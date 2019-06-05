@@ -13,4 +13,4 @@ import torch.nn.functional as F
     #     return F.margin_ranking_loss(input1, input2,target, self.margin, self.size_average)
 
 
-print(F.softmax([1,2,4],dim=3))
+print(F.softmax([1,2,4]))
