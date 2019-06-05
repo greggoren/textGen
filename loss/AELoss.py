@@ -1,6 +1,6 @@
 # from torch.nn.modules.loss import _Loss
-# import torch.nn.functional as F
-import torch.nn.functional.softmax as softmax
+import torch.nn.functional as F
+# from torch.nn.functional import softmax
 # class AutoEncoderCrossEntropyLoss(_Loss):
 
 
@@ -13,4 +13,4 @@ import torch.nn.functional.softmax as softmax
     #     return F.margin_ranking_loss(input1, input2,target, self.margin, self.size_average)
 
 
-print(softmax([1,2,4],dim=3))
+print(F.softmax([1,2,4],dim=3))
