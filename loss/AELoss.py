@@ -15,4 +15,4 @@ import numpy as np
     #     return F.margin_ranking_loss(input1, input2,target, self.margin, self.size_average)
 
 
-print(F.softmax(torch.DoubleTensor([1,2,4]),dim=3))
+print(F.softmax(torch.DoubleTensor([1,2,4]),dim=0))
