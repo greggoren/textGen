@@ -14,13 +14,12 @@ class LanguageHelper():
     def retrieve_stats(self,df):
         program = os.path.basename(sys.argv[0])
         logger = logging.getLogger(program)
-
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
         logging.root.setLevel(level=logging.INFO)
         logger.info("running %s" % ' '.join(sys.argv))
-
+        rnum=0
         for index, row in df.iterrows():
-            if index%1000==0:
+            if rnum%1000==0:
                 logger.info("in index ",index)
             sentence = row["proc_sentence"]
             print(row,index)
@@ -31,7 +30,10 @@ class LanguageHelper():
                     self.word2index[word]=self.new_word_index
                     self.index2word[self.new_word_index]=word
                     self.new_word_index+=1
+            rnum+=1
         logger.info("Finished run!")
+
+
     def save(self,filename):
         with open(filename,"wb") as f:
             pickle.dump(self,f)
