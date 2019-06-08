@@ -39,7 +39,7 @@ class LanguageHelper():
 
 if __name__=="__main__":
     df_filename = sys.argv[1]
-    df = pd.read_csv(df_filename)
+    df = pd.read_csv(df_filename,sep=",")
     lang_helper = LanguageHelper()
     lang_helper.retrieve_stats(df)
     lang_helper.save("corpusStats.pkl")
