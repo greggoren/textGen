@@ -5,6 +5,10 @@ import pickle
 To work with utils functions the Loader must return:
 def __getitem__(self, idx):
         return self.sequences[idx], torch.tensor(self.targets[idx]), self.sequence_lengths[idx]
+
+
+Then needed to do this:
+train_gen = Data.DataLoader(train_data, batch_size=128, shuffle=True, collate_fn=pad_and_sort_batch)
 """
 class Loader(Dataset):
     def __init__(self,input_dir):
