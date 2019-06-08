@@ -21,8 +21,9 @@ class LanguageHelper():
         for chunk in df:
             for index,row in chunk.iterrows():
                 if rnum%1000==0:
-                    logger.info("in index ",rnum)
+                    logger.info("in index "+str(rnum))
                 sentence = row["proc_sentence"]
+                sentence = str(sentence)
                 if sentence=="":
                     continue
                 # print(rnum,sentence)
