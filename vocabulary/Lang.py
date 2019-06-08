@@ -1,4 +1,4 @@
-from nltk import sent_tokenize
+from nltk import sent_tokenize,tokenize
 import pickle
 import sys
 import pandas as pd
@@ -13,7 +13,7 @@ class LanguageHelper():
     def retrieve_stats(self,df):
         for index, row in df.iterrows():
             sentence = row["sentence"]
-            tokens = sent_tokenize(sentence)
+            tokens = tokenize(sentence)
             for token in tokens:
                 word = token.lower()
                 if word not in self.word2index:
