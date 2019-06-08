@@ -23,7 +23,7 @@ class LanguageHelper():
                 if rnum%1000==0:
                     logger.info("in index ",rnum)
                 sentence = row["proc_sentence"]
-                if np.isnan(sentence):
+                if sentence=="":
                     continue
                 # print(rnum,sentence)
                 tokens = sentence.split()
