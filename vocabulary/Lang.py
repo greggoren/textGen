@@ -18,18 +18,19 @@ class LanguageHelper():
         logging.root.setLevel(level=logging.INFO)
         logger.info("running %s" % ' '.join(sys.argv))
         rnum=0
-        for index, row in df.iterrows():
-            if rnum%1000==0:
-                logger.info("in index ",rnum)
-            sentence = row["proc_sentence"]
-            tokens = sentence.split()
-            for token in tokens:
-                word = token.lower()
-                if word not in self.word2index:
-                    self.word2index[word]=self.new_word_index
-                    self.index2word[self.new_word_index]=word
-                    self.new_word_index+=1
-            rnum+=1
+        for chunk in df:
+            for index,row in chunk.iterrows():
+                if rnum%1000==0:
+                    logger.info("in index ",rnum)
+                sentence = row["proc_sentence"]
+                tokens = sentence.split()
+                for token in tokens:
+                    word = token.lower()
+                    if word not in self.word2index:
+                        self.word2index[word]=self.new_word_index
+                        self.index2word[self.new_word_index]=word
+                        self.new_word_index+=1
+                rnum+=1
         logger.info("Finished run!")
 
 
@@ -41,7 +42,7 @@ class LanguageHelper():
 
 if __name__=="__main__":
     df_filename = sys.argv[1]
-    df = pd.read_csv(df_filename,sep=",",header=0)
+    df = pd.read_csv(df_filename,sep=",",header=0,chunksize=100000)
     lang_helper = LanguageHelper()
     lang_helper.retrieve_stats(df)
     lang_helper.save("corpusStats.pkl")
