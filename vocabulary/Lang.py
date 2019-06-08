@@ -10,6 +10,7 @@ class LanguageHelper():
         self.word2index = {"<PAD>":0,"<SOS>":1,"<EOS>":2}
         self.index2word = {0:"<PAD>",1:"<SOS>",2:"<EOS>"}
         self.new_word_index = 3
+        self.word_count={}
 
     def retrieve_stats(self,df):
         program = os.path.basename(sys.argv[0])
@@ -34,6 +35,9 @@ class LanguageHelper():
                         self.word2index[word]=self.new_word_index
                         self.index2word[self.new_word_index]=word
                         self.new_word_index+=1
+                        self.word_count[word]=1
+                    else:
+                        self.word_count[word] += 1
                 rnum+=1
         logger.info("Finished run!")
 

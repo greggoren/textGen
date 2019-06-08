@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
+import gensim
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, isCuda):
+    def __init__(self, input_size, hidden_size, num_layers, isCuda,path_to_embeddings):
         super(EncoderRNN, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -18,6 +19,9 @@ class EncoderRNN(nn.Module):
         # initialize weights
         nn.init.xavier_uniform(self.lstm.weight_ih_l0, gain=np.sqrt(2))
         nn.init.xavier_uniform(self.lstm.weight_hh_l0, gain=np.sqrt(2))
+
+        #load w2v model
+
 
     def forward(self, input):
         tt = torch.cuda if self.isCuda else torch
@@ -54,9 +58,10 @@ class DecoderRNN(nn.Module):
 
 
 class LSTMAE(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, isCuda,vocab_size):
+    def __init__(self, input_size, hidden_size, num_layers, isCuda,vocab_size,path_to_embeddings):
         super(LSTMAE, self).__init__()
-        self.encoder = EncoderRNN(input_size, hidden_size, num_layers, isCuda)
+
+        self.encoder = EncoderRNN(input_size, hidden_size, num_layers, isCuda,path_to_embeddings)
         self.decoder = DecoderRNN(hidden_size, vocab_size, num_layers, isCuda)
 
     def forward(self, input):
