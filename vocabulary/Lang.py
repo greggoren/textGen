@@ -22,7 +22,7 @@ class LanguageHelper():
             if rnum%1000==0:
                 logger.info("in index ",index)
             sentence = row["proc_sentence"]
-            print(row,index)
+            print(sentence)
             tokens = sentence.split()
             for token in tokens:
                 word = token.lower()
