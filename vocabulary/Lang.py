@@ -20,9 +20,8 @@ class LanguageHelper():
         rnum=0
         for index, row in df.iterrows():
             if rnum%1000==0:
-                logger.info("in index ",index)
+                logger.info("in index ",rnum)
             sentence = row["proc_sentence"]
-            print(sentence)
             tokens = sentence.split()
             for token in tokens:
                 word = token.lower()
@@ -42,7 +41,7 @@ class LanguageHelper():
 
 if __name__=="__main__":
     df_filename = sys.argv[1]
-    df = pd.read_csv(df_filename,sep=",",nrows=10,header=0)
+    df = pd.read_csv(df_filename,sep=",",header=0)
     lang_helper = LanguageHelper()
     lang_helper.retrieve_stats(df)
     lang_helper.save("corpusStats.pkl")
