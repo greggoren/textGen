@@ -7,12 +7,11 @@ class LanguageHelper():
     def __init__(self):
         self.word2index = {"<PAD>":0,"<SOS>":1,"<EOS>":2}
         self.index2word = {0:"<PAD>",1:"<SOS>",2:"<EOS>"}
-        self.longest_sequence = 0
         self.new_word_index = 3
 
     def retrieve_stats(self,df):
         for index, row in df.iterrows():
-            sentence = row["sentence"]
+            sentence = row["proc_sentence"]
             tokens = tokenize(sentence)
             for token in tokens:
                 word = token.lower()
@@ -20,8 +19,6 @@ class LanguageHelper():
                     self.word2index[word]=self.new_word_index
                     self.index2word[self.new_word_index]=word
                     self.new_word_index+=1
-            if len(tokens)>self.longest_sequence:
-                self.longest_sequence=len(tokens)
 
     def save(self,filename):
         with open(filename,"wb") as f:
