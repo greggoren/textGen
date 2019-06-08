@@ -23,7 +23,7 @@ class LanguageHelper():
             if index%1000==0:
                 logger.info("in index ",index)
             sentence = row["proc_sentence"]
-            tokens = tokenize.word_tokenize(sentence)
+            tokens = sentence.split()
             for token in tokens:
                 word = token.lower()
                 if word not in self.word2index:
