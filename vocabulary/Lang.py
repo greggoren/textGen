@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 import logging
 import os
-
+import numpy as np
 class LanguageHelper():
     def __init__(self):
         self.word2index = {"<PAD>":0,"<SOS>":1,"<EOS>":2}
@@ -23,7 +23,9 @@ class LanguageHelper():
                 if rnum%1000==0:
                     logger.info("in index ",rnum)
                 sentence = row["proc_sentence"]
-                print(rnum,sentence)
+                if np.isnan(sentence):
+                    continue
+                # print(rnum,sentence)
                 tokens = sentence.split()
                 for token in tokens:
                     word = token.lower()
