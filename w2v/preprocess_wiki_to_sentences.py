@@ -1,16 +1,11 @@
-import os
 import re
-import sys
 import glob
 import nltk
 import gensim
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from uuid import uuid4
-from functools import reduce
 from multiprocessing import Pool
-from nltk.corpus import stopwords
 
 
 def _remove_non_printed_chars(string):

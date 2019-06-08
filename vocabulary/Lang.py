@@ -5,10 +5,10 @@ import pandas as pd
 
 class LanguageHelper():
     def __init__(self):
-        self.word2index = {"<SOS>":0,"<EOS>":1}
-        self.index2word = {0:"<SOS>",1:"<EOS>"}
+        self.word2index = {"<PAD>":0,"<SOS>":1,"<EOS>":2}
+        self.index2word = {0:"<PAD>",1:"<SOS>",2:"<EOS>"}
         self.longest_sequence = 0
-        self.new_word_index = 2
+        self.new_word_index = 3
 
     def retrieve_stats(self,df):
         for index, row in df.iterrows():

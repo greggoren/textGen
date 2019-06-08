@@ -54,10 +54,10 @@ class DecoderRNN(nn.Module):
 
 
 class LSTMAE(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, isCuda):
+    def __init__(self, input_size, hidden_size, num_layers, isCuda,vocab_size):
         super(LSTMAE, self).__init__()
         self.encoder = EncoderRNN(input_size, hidden_size, num_layers, isCuda)
-        self.decoder = DecoderRNN(hidden_size, input_size, num_layers, isCuda)
+        self.decoder = DecoderRNN(hidden_size, vocab_size, num_layers, isCuda)
 
     def forward(self, input):
         encoded_input = self.encoder(input)
