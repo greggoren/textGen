@@ -14,5 +14,5 @@ class Loader(Dataset):
         input_file_access = open(input_file,"rb")
         vectors = pickle.load(input_file_access)
         input_file_access.close()
-        label = self.labels[idx]
-        return vectors,label
+        # label = self.labels[idx]
+        return vectors
