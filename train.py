@@ -5,6 +5,7 @@ from model.SimpleLSTMAE import LSTMAE
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 import os
+from dataLoader.utilis import pad_and_sort_batch
 
 
 def train_model(lr,momentum,input_dir,batch_size,epochs,lang,input_size,hidden_size,stacked_layers):
@@ -17,7 +18,7 @@ def train_model(lr,momentum,input_dir,batch_size,epochs,lang,input_size,hidden_s
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=lr, momentum=momentum)
     data = Loader(input_dir)
-    data_loading = DataLoader(data, num_workers=5, shuffle=True, batch_size=batch_size)
+    data_loading = DataLoader(data, num_workers=5, shuffle=True, batch_size=batch_size,collate_fn=pad_and_sort_batch)
     epochs = epochs
     for epoch in range(epochs):
         running_loss = 0.0
