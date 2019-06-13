@@ -63,12 +63,14 @@ def remove_special_chars(text, char_list):
 def process_wiki_files(wiki_file):
     chars = ['\n']
     global sw
+    global w2v_model
 
     with open(wiki_file, encoding='utf-8') as f:
         content = f.read()
 
     articles = splitkeepsep(content, '<doc id=')
-    df = pd.DataFrame(columns=['article_uuid', 'sentence', 'proc_sentence', 'proc_len'])
+    # df = pd.DataFrame(columns=['article_uuid', 'sentence', 'proc_sentence', 'proc_len'])
+    df = pd.DataFrame(columns=['article_uuid', 'proc_sentence', 'proc_len'])
 
     for article in articles:
         uuid = uuid4()
@@ -77,12 +79,12 @@ def process_wiki_files(wiki_file):
                                        chars)
 
         sentences = nltk.sent_tokenize(article)
-        proc_sentences = [clean_string(sentence, sw) for sentence in sentences]
+        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,sentence)]
         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
 
         temp_df = pd.DataFrame(
             {'article_uuid': [uuid] * len(sentences),
-             'sentence': sentences,
+             # 'sentence': sentences,
              'proc_sentence': proc_sentences,
              'proc_len': proc_lens
              })
@@ -100,7 +102,6 @@ def validate_sentence(model,sentence):
 def process_wiki_files_reduced(model,wiki_file):
     chars = ['\n']
     global sw
-
     with open(wiki_file, encoding='utf-8') as f:
         content = f.read()
 
@@ -160,8 +161,8 @@ for filename in glob.iglob('data/wiki/*/*', recursive=True):
 sw = []
 w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt",limit = 700000  ,binary=True)
 # f = partial(process_wiki_files_reduced,w2v_model)
-df = list_multiprocessing([w2v_model,wiki_files],
-                          process_wiki_files_reduced,
+df = list_multiprocessing(wiki_files,
+                          process_wiki_files,
                           workers=10)
 
 df = pd.concat(df).reset_index(drop=True)
