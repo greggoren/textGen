@@ -25,7 +25,7 @@ if __name__ == '__main__':
         sys.exit(1)
     inp, outp = sys.argv[1:3]
     model = Word2Vec(LineSentence(inp), size=300, window=8, min_count=0, workers=multiprocessing.cpu_count())
-    model.
+
     # trim unneeded model memory = use (much) less RAM
     model.init_sims(replace=True)
     model.wv.save_word2vec_format(outp,binary=True)
