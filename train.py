@@ -30,18 +30,16 @@ def plot_metric(y,fname,y_label):
     plt.clf()
 
 
-def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df):
-    program = os.path.basename(sys.argv[0])
-    logger = logging.getLogger(program)
-
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
-    logging.root.setLevel(level=logging.INFO)
-    logger.info("running %s" % ' '.join(sys.argv))
+def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df,logger=None):
+    prnt = False
+    if logger is not None:
+        prnt = True
     rows,cols = w2v_model.wv.vectors.shape
     net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,n_layers)
     net = net.double()
     if cuda.is_available():
-        print("cuda is on!!")
+        if prnt:
+            logger.info("cuda is on!!")
         net.cuda()
     collator = PadCollator(PAD_idx)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
@@ -49,7 +47,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     data = Loader(df,w2v_model)
     loss_history = []
 
-    logger.info("Training Initialization")
+    if prnt:
+        logger.info("Training Initialization")
     for epoch in range(epochs):
         data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size, collate_fn=collator)
         running_loss = 0.0
@@ -68,17 +67,21 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             running_loss += loss.item()
             running_loss_for_plot += loss.item()
             if i % 1000 == 999:  # print every 1000 mini-batches
-                logger.info('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 1000))
+                if prnt:
+                    logger.info('[%d, %5d] loss: %.3f' %
+                          (epoch + 1, i + 1, running_loss / 1000))
                 running_loss = 0.0
         loss_history.append(running_loss_for_plot/i)
-    logger.info("Training Is Done")
+    if prnt:
+        logger.info("Training Is Done")
     models_dir = "models/"
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
     model_name = "model_"+str(lr)+"_"+str(batch_size)+"_"+str(epochs)
     torch.save(net,models_dir+model_name)
-    logger.info("Model Saved")
+    if prnt:
+        logger.info("Model Saved")
     plot_metric(loss_history,"CELoss.png","CE Loss")
-    logger.info("Plot Finished")
+    if prnt:
+        logger.info("Plot Finished")
     return net,models_dir+model_name
