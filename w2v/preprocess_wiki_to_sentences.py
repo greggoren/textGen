@@ -159,10 +159,10 @@ for filename in glob.iglob('data/wiki/*/*', recursive=True):
 # sw = list(sw_ru.union(sw_en))
 sw = []
 w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt",limit = 700000  ,binary=True)
-f = partial(process_wiki_files_reduced,w2v_model)
-df = list_multiprocessing(wiki_files,
-                          f,
-                          workers=4)
+# f = partial(process_wiki_files_reduced,w2v_model)
+df = list_multiprocessing([w2v_model,wiki_files],
+                          process_wiki_files_reduced,
+                          workers=10)
 
 df = pd.concat(df).reset_index(drop=True)
 df.article_uuid = df.article_uuid.astype(str)
