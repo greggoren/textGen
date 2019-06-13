@@ -83,7 +83,7 @@ def process_wiki_files(wiki_file):
         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
 
         temp_df = pd.DataFrame(
-            {'article_uuid': [uuid] * len(sentences),
+            {'article_uuid': [uuid] * len(proc_sentences),
              # 'sentence': sentences,
              'proc_sentence': proc_sentences,
              'proc_len': proc_lens
