@@ -1,34 +1,34 @@
 import torch.optim as optim
 import torch
 import torch.cuda as cuda
-from model.SimpleLSTMAE import LSTMAE
+from model.SequenceToSequence import Seq2seq
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 import os
 from dataLoader.utilis import pad_and_sort_batch
+from loss.FlatennedLoss import CELoss
 
-
-def train_model(lr,momentum,input_dir,batch_size,epochs,lang,input_size,hidden_size,stacked_layers):
-    net = LSTMAE(input_size,hidden_size,stacked_layers,True,len(lang.word2index))
+def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df):
+    rows,cols = w2v_model.wv.vectors.shape
+    net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,n_layers)
     net = net.double()
     if cuda.is_available():
         print("cuda is on!!")
         net.cuda()
 
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=momentum)
-    data = Loader(input_dir)
-    data_loading = DataLoader(data, num_workers=5, shuffle=True, batch_size=batch_size,collate_fn=pad_and_sort_batch)
-    epochs = epochs
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
+    optimizer = optim.SGD(net.parameters(), lr=lr)
+    data = Loader(df,w2v_model)
+    data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=pad_and_sort_batch)
     for epoch in range(epochs):
         running_loss = 0.0
         for i, batch in enumerate(data_loading):
-            inputs, labels = batch
+            sequences, labels, lengths = batch
 
             # forward + backward + optimize
-            out1, out2 = net(inputs)
-            optimizer.zero_grad()
-            loss = criterion(out1, out1, labels)
+            y_hat = net.forward_train(sequences,sequences)
+            optimizer.zero_grad(y_hat,sequences)
+            loss = criterion()
             loss.backward()
             optimizer.step()
 
