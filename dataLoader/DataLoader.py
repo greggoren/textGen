@@ -13,15 +13,18 @@ Then needed to do this:
 train_gen = Data.DataLoader(train_data, batch_size=128, shuffle=True, collate_fn=pad_and_sort_batch)
 """
 class Loader(Dataset):
-    def __init__(self,df,model,PAD_idx):
+    def __init__(self,df,model,PAD_idx,EOS_idx,SOS_idx):
         self.df = df
         self.model = model
         self.PAD_idx = PAD_idx
-
+        self.EOS_idx = EOS_idx
+        self.SOS_idx = SOS_idx
 
     def sequence2index(self,text):
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
-        return torch.tensor(seq)
+        seq.append(self.EOS_idx)
+        seq.insert(0,self.SOS_idx)
+        return seq
 
 
     def __len__(self):
