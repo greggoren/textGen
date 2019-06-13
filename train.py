@@ -41,6 +41,6 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     models_dir = "models/"
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
-    model_name = "model_"+str(lr)+"_"+str(momentum)+"_"+str(batch_size)+"_"+str(epochs)
+    model_name = "model_"+str(lr)+"_"+str(batch_size)+"_"+str(epochs)
     torch.save(net,models_dir+model_name)
     return net,models_dir+model_name
