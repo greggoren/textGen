@@ -5,7 +5,7 @@ from model.SequenceToSequence import Seq2seq
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 import os
-from dataLoader.utilis import pad_and_sort_batch
+from dataLoader.Collator import PadCollator
 from loss.FlatennedLoss import CELoss
 
 def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df):
@@ -15,11 +15,11 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if cuda.is_available():
         print("cuda is on!!")
         net.cuda()
-
+    collator = PadCollator(PAD_idx)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
     optimizer = optim.SGD(net.parameters(), lr=lr)
     data = Loader(df,w2v_model)
-    data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=pad_and_sort_batch)
+    data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=collator)
     for epoch in range(epochs):
         running_loss = 0.0
         for i, batch in enumerate(data_loading):

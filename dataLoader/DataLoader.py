@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 import torch
 import pickle
+import numpy as np
 
 """
 To work with utils functions the Loader must return:
@@ -12,9 +13,10 @@ Then needed to do this:
 train_gen = Data.DataLoader(train_data, batch_size=128, shuffle=True, collate_fn=pad_and_sort_batch)
 """
 class Loader(Dataset):
-    def __init__(self,df,model):
+    def __init__(self,df,model,PAD_idx):
         self.df = df
         self.model = model
+        self.PAD_idx = PAD_idx
 
 
     def sequence2index(self,text):
