@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 from uuid import uuid4
 from multiprocessing import Pool
-
+from functools import partial
 
 def _remove_non_printed_chars(string):
     reg = re.compile('[^a-zA-Zа-яА-ЯёЁ]')
@@ -90,6 +90,44 @@ def process_wiki_files(wiki_file):
 
     return df
 
+def validate_sentence(model,sentence):
+    for token in sentence.split():
+        if token not in model.wv:
+            return False
+    return True
+
+
+def process_wiki_files_reduced(model,wiki_file):
+    chars = ['\n']
+    global sw
+
+    with open(wiki_file, encoding='utf-8') as f:
+        content = f.read()
+
+    articles = splitkeepsep(content, '<doc id=')
+    df = pd.DataFrame(columns=['article_uuid',  'proc_sentence', 'proc_len'])
+
+    for article in articles:
+        uuid = uuid4()
+
+        article = remove_special_chars(remove_html_tags(article),
+                                       chars)
+
+        sentences = nltk.sent_tokenize(article)
+        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(model,sentence)]
+        proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
+
+        temp_df = pd.DataFrame(
+            {'article_uuid': [uuid] * len(sentences),
+             'proc_sentence': proc_sentences,
+             'proc_len': proc_lens
+             })
+        df = df.append(temp_df)
+
+    return df
+
+
+
 
 def list_multiprocessing(param_lst,
                          func,
@@ -120,11 +158,12 @@ for filename in glob.iglob('data/wiki/*/*', recursive=True):
 # sw_ru = set(stopwords.words('russian'))
 # sw = list(sw_ru.union(sw_en))
 sw = []
-
+w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt",limit = 700000  ,binary=True)
+f = partial(process_wiki_files_reduced,w2v_model)
 df = list_multiprocessing(wiki_files,
-                          process_wiki_files,
-                          workers=4)
+                          f,
+                          workers=12)
 
 df = pd.concat(df).reset_index(drop=True)
 df.article_uuid = df.article_uuid.astype(str)
-df.to_csv('wikipedia_sentences.csv')
+df.to_csv('wikipedia_sentences_reduced1.csv')
