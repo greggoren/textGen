@@ -35,7 +35,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if logger is not None:
         prnt = True
     rows,cols = w2v_model.wv.vectors.shape
-    net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,n_layers)
+    net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,w2v_model.wv.vectors,n_layers)
     net = net.double()
     if cuda.is_available():
         if prnt:
