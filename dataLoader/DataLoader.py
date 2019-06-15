@@ -20,12 +20,8 @@ class Loader(Dataset):
         self.SOS_idx = SOS_idx
 
     def sequence2index(self,text):
+        text = str(text)
         text = text.translate(str.maketrans('', '', string.punctuation))
-        """DEBUG!!!"""
-        for token in text.split():
-            if self.model.wv.vocab.get(token) is None:
-                print(token,"THERE IS A PROBLEM HERE")
-        """DEBUG!!!"""
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)
         seq.insert(0,self.SOS_idx)
