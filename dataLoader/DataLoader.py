@@ -22,7 +22,7 @@ class Loader(Dataset):
     def sequence2index(self,text):
         text = text.translate(str.maketrans('', '', string.punctuation))
         """DEBUG!!"""
-        for token in text.split:
+        for token in text.split():
             print(token,self.model.wv.vocab.get(token).index is None)
         """DEBUG!!"""
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
