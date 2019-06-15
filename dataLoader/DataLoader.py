@@ -23,7 +23,8 @@ class Loader(Dataset):
         text = text.translate(str.maketrans('', '', string.punctuation))
         """DEBUG!!!"""
         for token in text.split():
-            print(token,self.model.wv.vocab.get(token) is None)
+            if self.model.wv.vocab.get(token) is None:
+                print(token,"THERE IS A PROBLEM HERE")
         """DEBUG!!!"""
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)

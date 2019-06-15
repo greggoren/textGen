@@ -20,6 +20,7 @@ if __name__=="__main__":
     EOS_idx = rows+1
     PAD_idx = rows+2
     df = pd.read_csv(data_set_file_path,delimiter=",",nrows=5000,header=0)
+    df=df.loc[df["proc_len"]>=3]
     n_layers = 1
     hidden_size = 200
     lr = 0.01
