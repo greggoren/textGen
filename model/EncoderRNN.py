@@ -42,7 +42,7 @@ class EncoderRNN(nn.Module):
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
         added_rows = np.array([[rows]*cols,[rows+1]*cols])
-        working_matrix = np.vstack((working_matrix,added_rows))
+        working_matrix = torch.tensor(np.vstack((working_matrix,added_rows)))
         embedding = torch.nn.Embedding(num_embeddings=rows+2, embedding_dim=cols)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze
