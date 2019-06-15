@@ -22,14 +22,14 @@ class PadCollator(object):
         batch_size = len(DataLoaderBatch)
         batch_split = list(zip(*DataLoaderBatch))
 
-        seqs, targs, lengths = batch_split[0], batch_split[1], batch_split[2]
-        max_length = max(lengths)
+        seqs, tags, lengths = batch_split[0], batch_split[1], batch_split[2]
+        max_length = int(max(lengths))
 
         padded_seqs = np.zeros((batch_size, max_length))
         for i, l in enumerate(lengths):
             padded_seqs[i, 0:l] = seqs[i][0:l]
             padded_seqs[i,l:] = [self.PAD_idx]*(max_length-l)
-        return self.sort_batch(torch.tensor(padded_seqs), torch.tensor(targs).view(-1, 1), torch.tensor(lengths))
+        return self.sort_batch(torch.LongTensor(padded_seqs), torch.LongTensor(tags).view(-1, 1), torch.LongTensor(lengths))
 
 def pad_and_sort_batch(DataLoaderBatch):
     """
