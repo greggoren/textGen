@@ -27,9 +27,9 @@ def clean_string(input_string,
                  stop_words_list,
                  min_len=2,
                  max_len=30):
-    input_string = _remove_non_printed_chars(input_string)
-    input_string = _remove_stop_words(input_string, stop_words_list)
-    input_string = _trim_string(input_string)
+    # input_string = _remove_non_printed_chars(input_string)
+    # input_string = _remove_stop_words(input_string, stop_words_list)
+    # input_string = _trim_string(input_string)
 
     # also remove short words, most likely containing addresses / crap / left-overs / etc remaining after removal
     # gensim mostly does the same as above, it is used here for simplicity
