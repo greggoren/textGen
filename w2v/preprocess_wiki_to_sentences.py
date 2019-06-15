@@ -30,6 +30,7 @@ def clean_string(input_string,
     input_string = _remove_non_printed_chars(input_string)
     input_string = _remove_stop_words(input_string, stop_words_list)
     input_string = _trim_string(input_string)
+
     # also remove short words, most likely containing addresses / crap / left-overs / etc remaining after removal
     # gensim mostly does the same as above, it is used here for simplicity
     input_string = ' '.join(gensim.utils.simple_preprocess(input_string,
@@ -79,7 +80,7 @@ def process_wiki_files(wiki_file):
                                        chars)
 
         sentences = nltk.sent_tokenize(article)
-        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,sentence)]
+        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,clean_string(sentence, sw))]
         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
 
         temp_df = pd.DataFrame(
