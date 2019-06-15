@@ -33,7 +33,8 @@ class EncoderRNN(nn.Module):
         return encoded_out, hidden
 
     def init_hidden(self, batches):
-        hidden = torch.zeros(2, self.n_layers*2, batches, int(self.hidden_size/2))
+        # hidden = torch.zeros(2, self.n_layers*2, batches, int(self.hidden_size/2))
+        hidden = torch.zeros(1, self.n_layers, batches, int(self.hidden_size))
         # if USE_CUDA: hidden = hidden.cuda()
         return hidden
 
