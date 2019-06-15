@@ -31,19 +31,19 @@ class PadCollator(object):
             padded_seqs[i,l:] = [self.PAD_idx]*(max_length-l)
         return self.sort_batch(padded_seqs, torch.LongTensor(tags).view(-1, 1), lengths)
 
-def pad_and_sort_batch(DataLoaderBatch):
-    """
-    DataLoaderBatch should be a list of (sequence, target, length) tuples...
-    Returns a padded tensor of sequences sorted from longest to shortest,
-    """
-    batch_size = len(DataLoaderBatch)
-    batch_split = list(zip(*DataLoaderBatch))
-
-    seqs, targs, lengths = batch_split[0], batch_split[1], batch_split[2]
-    max_length = max(lengths)
-
-    padded_seqs = np.zeros((batch_size, max_length))
-    for i, l in enumerate(lengths):
-        padded_seqs[i, 0:l] = seqs[i][0:l]
-
-    return sort_batch(torch.tensor(padded_seqs), torch.tensor(targs).view(-1, 1), torch.tensor(lengths))
+# def pad_and_sort_batch(DataLoaderBatch):
+#     """
+#     DataLoaderBatch should be a list of (sequence, target, length) tuples...
+#     Returns a padded tensor of sequences sorted from longest to shortest,
+#     """
+#     batch_size = len(DataLoaderBatch)
+#     batch_split = list(zip(*DataLoaderBatch))
+#
+#     seqs, targs, lengths = batch_split[0], batch_split[1], batch_split[2]
+#     max_length = max(lengths)
+#
+#     padded_seqs = np.zeros((batch_size, max_length))
+#     for i, l in enumerate(lengths):
+#         padded_seqs[i, 0:l] = seqs[i][0:l]
+#
+#     return sort_batch(torch.tensor(padded_seqs), torch.tensor(targs).view(-1, 1), torch.tensor(lengths))
