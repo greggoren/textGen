@@ -23,20 +23,20 @@ def _trim_string(string):
     return re.sub('\s+', ' ', string).strip().lower()
 
 
-def clean_string(string,
+def clean_string(input_string,
                  stop_words_list,
                  min_len=2,
                  max_len=30):
-    string = _remove_non_printed_chars(string)
-    string = _remove_stop_words(string, stop_words_list)
-    string = _trim_string(string)
-    string = string.translate(str.maketrans('', '', string.punctuation))
+    input_string = _remove_non_printed_chars(input_string)
+    input_string = _remove_stop_words(input_string, stop_words_list)
+    input_string = _trim_string(input_string)
+    input_string = input_string.translate(str.maketrans('', '', string.punctuation))
     # also remove short words, most likely containing addresses / crap / left-overs / etc remaining after removal
     # gensim mostly does the same as above, it is used here for simplicity
-    string = ' '.join(gensim.utils.simple_preprocess(string,
-                                                     min_len=min_len,
-                                                     max_len=max_len))
-    return string
+    input_string = ' '.join(gensim.utils.simple_preprocess(input_string,
+                                                           min_len=min_len,
+                                                           max_len=max_len))
+    return input_string
 
 
 def splitkeepsep(s, sep):
