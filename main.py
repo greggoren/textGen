@@ -14,7 +14,7 @@ if __name__=="__main__":
     logger.info("running %s" % ' '.join(sys.argv))
     w2v_model_file_path = sys.argv[1]
     data_set_file_path = sys.argv[2]
-    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=700000)
+    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=200000)
     rows,cols = w2v_model.wv.vectors.shape
     SOS_idx = rows
     EOS_idx = rows+1
