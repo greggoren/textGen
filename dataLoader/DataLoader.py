@@ -1,7 +1,6 @@
 from torch.utils.data import Dataset
 import torch
-import pickle
-import numpy as np
+import string
 
 """
 To work with utils functions the Loader must return:
@@ -21,6 +20,7 @@ class Loader(Dataset):
         self.SOS_idx = SOS_idx
 
     def sequence2index(self,text):
+        text = text.translate(str.maketrans('', '', string.punctuation))
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)
         seq.insert(0,self.SOS_idx)
