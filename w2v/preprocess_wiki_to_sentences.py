@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 from uuid import uuid4
 from multiprocessing import Pool
-from functools import partial
+import string
 
 def _remove_non_printed_chars(string):
     reg = re.compile('[^a-zA-Zа-яА-ЯёЁ]')
@@ -30,6 +30,7 @@ def clean_string(string,
     string = _remove_non_printed_chars(string)
     string = _remove_stop_words(string, stop_words_list)
     string = _trim_string(string)
+    string = string.translate(str.maketrans('', '', string.punctuation))
     # also remove short words, most likely containing addresses / crap / left-overs / etc remaining after removal
     # gensim mostly does the same as above, it is used here for simplicity
     string = ' '.join(gensim.utils.simple_preprocess(string,
