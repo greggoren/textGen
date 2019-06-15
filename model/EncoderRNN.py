@@ -4,7 +4,7 @@ import torch.nn.init as init
 from copy import deepcopy
 import numpy as np
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size, embedding_size,embeddings,n_layers=1):
+    def __init__(self, vocab_size, hidden_size,embeddings,n_layers=1):
         super(EncoderRNN, self).__init__()
 
         self.vocab_size = vocab_size
@@ -16,7 +16,7 @@ class EncoderRNN(nn.Module):
         init.normal_(self.embedding.weight, 0.0, 0.2)
 
         self.lstm = nn.LSTM(
-            embedding_size,
+            embeddings.shape[1],
             int(hidden_size),
             num_layers=n_layers,
             batch_first=True,  # First dimension of input tensor will be treated as a batch dimension
