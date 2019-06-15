@@ -22,9 +22,10 @@ class DecoderRNN(nn.Module):
     def from_pretrained(self,embeddings, freeze=True):
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
-        added_rows = np.array([[rows]*cols,[rows+1]*cols])
-        working_matrix = np.vstack((working_matrix,added_rows))
-        embedding = torch.nn.Embedding(num_embeddings=rows+2, embedding_dim=cols)
+        added_rows = np.array([[rows] * cols, [rows + 1] * cols])
+        np.vstack((working_matrix, added_rows))
+        working_matrix = torch.FloatTensor(working_matrix)
+        embedding = torch.nn.Embedding(num_embeddings=rows + 2, embedding_dim=cols)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze
         return embedding
