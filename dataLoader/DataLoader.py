@@ -34,5 +34,5 @@ class Loader(Dataset):
         row = self.df.ix[idx]
         sequence= self.sequence2index(row['proc_sentence'])
         length = float(row['length'])
-        label = torch.tensor(sequence)
+        label = torch.LongTensor(sequence)
         return sequence,label,length
