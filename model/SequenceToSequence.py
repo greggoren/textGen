@@ -10,24 +10,24 @@ class Seq2seq(nn.Module):
         self.hidden_size = hidden_size
 
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,self.n_layers)
-        self.decoder = DecoderRNN(output_vocab_size, hidden_size,embeddings,self.n_layers)
+        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,self.n_layers)
 
         self.W = nn.Linear(hidden_size, output_vocab_size)
 
         self.softmax = nn.Softmax()
 
-    def _forward_encoder(self, x):
+    def _forward_encoder(self, x,lengths):
         batch_size = x.shape[0]
         init_hidden = self.encoder.init_hidden(batch_size)
-        encoder_outputs, encoder_hidden = self.encoder(x, init_hidden)
+        encoder_outputs, encoder_hidden = self.encoder(x, lengths,init_hidden)
         encoder_hidden_h, encoder_hidden_c = encoder_hidden
 
         self.decoder_hidden_h = encoder_hidden_h.permute(1,0,2).reshape(batch_size, self.n_layers, self.hidden_size).permute(1,0,2)
         self.decoder_hidden_c = encoder_hidden_c.permute(1,0,2).reshape(batch_size, self.n_layers, self.hidden_size).permute(1,0,2)
         return self.decoder_hidden_h, self.decoder_hidden_c
 
-    def forward_train(self, x, y):
-        decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x)
+    def forward_train(self, x, y,lengths):
+        decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
 
         H = []
         for i in range(y.shape[1]):

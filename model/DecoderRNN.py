@@ -5,10 +5,10 @@ import numpy as np
 from copy import deepcopy
 
 class DecoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size,embeddings, n_layers=1):
+    def __init__(self, input_vector_size ,hidden_size,embeddings, n_layers=1):
         super(DecoderRNN, self).__init__()
 
-        self.vocab_size = vocab_size
+        # self.vocab_size = vocab_size
         self.hidden_size = hidden_size
         self.n_layers = n_layers
 
@@ -16,14 +16,14 @@ class DecoderRNN(nn.Module):
         self.embedding = self.from_pretrained(embeddings)
         # init.normal_(self.embedding.weight, 0.0, 0.2)
 
-        self.lstm = nn.LSTM(hidden_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
+        self.lstm = nn.LSTM(input_vector_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
 
 
     def from_pretrained(self,embeddings, freeze=True):
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
-        added_rows = np.array([[rows] * cols, [rows + 1] * cols])
-        np.vstack((working_matrix, added_rows))
+        added_rows = np.array([[rows] * cols, [rows + 1] * cols,[rows+2]*cols])
+        working_matrix=np.vstack((working_matrix, added_rows))
         working_matrix = torch.FloatTensor(working_matrix)
         embedding = torch.nn.Embedding(num_embeddings=rows + 2, embedding_dim=cols)
         embedding.weight = torch.nn.Parameter(working_matrix)

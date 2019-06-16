@@ -3,6 +3,9 @@ from torch import nn
 import torch.nn.init as init
 from copy import deepcopy
 import numpy as np
+from torch.autograd import Variable
+
+
 class EncoderRNN(nn.Module):
     def __init__(self, vocab_size, hidden_size,embeddings,n_layers=1):
         super(EncoderRNN, self).__init__()
@@ -13,7 +16,7 @@ class EncoderRNN(nn.Module):
         self.relu = nn.ReLU
         # self.embedding = nn.Embedding(vocab_size, hidden_size)
         self.embedding = self.from_pretrained(embeddings)
-        init.normal_(self.embedding.weight, 0.0, 0.2)
+        # init.normal_(self.embedding.weight, 0.0, 0.2)
 
         self.lstm = nn.LSTM(
             embeddings.shape[1],
@@ -28,21 +31,24 @@ class EncoderRNN(nn.Module):
         embedded = self.embedding(word_inputs)
         lstm_input = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
         output, hidden = self.lstm(lstm_input, hidden)
-        encoded_out, hidden = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
+        encoded_out, _ = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
         encoded_out = self.relu(encoded_out)
         return encoded_out, hidden
 
-    def init_hidden(self, batches):
-        # hidden = torch.zeros(2, self.n_layers*2, batches, int(self.hidden_size/2))
-        hidden = torch.zeros(1, self.n_layers, batches, int(self.hidden_size))
-        # if USE_CUDA: hidden = hidden.cuda()
-        return hidden
+    def init_hidden(self, batch_size):
+        # # hidden = torch.zeros(2, self.n_layers*2, batches, int(self.hidden_size/2))
+        # hidden = torch.zeros(1, self.n_layers, batches, int(self.hidden_size))
+        # # if USE_CUDA: hidden = hidden.cuda()
+        # return hidden
+        hidden = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
+        cell = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
+        return (hidden, cell)
 
     def from_pretrained(self,embeddings, freeze=True):
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
-        added_rows = np.array([[rows]*cols,[rows+1]*cols])
-        np.vstack((working_matrix,added_rows))
+        added_rows = np.array([[rows]*cols,[rows+1]*cols,[rows+2]*cols])
+        working_matrix=np.vstack([working_matrix,added_rows])
         working_matrix = torch.FloatTensor(working_matrix)
         embedding = torch.nn.Embedding(num_embeddings=rows+2, embedding_dim=cols)
         embedding.weight = torch.nn.Parameter(working_matrix)
