@@ -27,9 +27,9 @@ if __name__=="__main__":
     df = pd.read_csv(data_set_file_path,delimiter=",",header=0)
     # df=df.loc[df["proc_len"]>=3]
     n_layers = 1
-    hidden_size = 200
+    hidden_size = 100
     lr = 0.01
-    batch_size = 4
+    batch_size = 5
     epochs = 5
     train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df,logger)
 
