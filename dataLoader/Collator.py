@@ -4,8 +4,9 @@ import torch
 
 class PadCollator(object):
 
-    def __init__(self,PAD_idx):
+    def __init__(self,PAD_idx,device):
         self.PAD_idx = PAD_idx
+        self.device = device
 
     def sort_batch(self,batch,  lengths):
         """
@@ -15,7 +16,7 @@ class PadCollator(object):
         """
         seq_lengths, perm_idx = lengths.sort(0, descending=True)
         seq_tensor = batch[perm_idx]
-        return torch.LongTensor(seq_tensor).cuda(),seq_lengths
+        return torch.LongTensor(seq_tensor).to(self.device),seq_lengths
 
     def __call__(self, DataLoaderBatch):
         batch_size = len(DataLoaderBatch)
@@ -28,7 +29,7 @@ class PadCollator(object):
         for i, l in enumerate(lengths):
             padded_seqs[i, 0:l] = seqs[i][0:l]
             padded_seqs[i,l:] = [self.PAD_idx]*(max_length-l)
-        return self.sort_batch(padded_seqs,torch.LongTensor(lengths).cuda())
+        return self.sort_batch(padded_seqs,torch.LongTensor(lengths).to(self.device))
 
 # def pad_and_sort_batch(DataLoaderBatch):
 #     """

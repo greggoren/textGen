@@ -38,11 +38,11 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     # net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,n_layers,w2v_model.wv.vectors)
     net = Seq2seq(cols,rows+2,hidden_size,SOS_idx,EOS_idx,n_layers,w2v_model.wv.vectors)
     net = net.double()
-    if cuda.is_available():
-        if prnt:
-            logger.info("cuda is on!!")
-        net.cuda()
-        net.share_memory()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if prnt:
+        logger.info("cuda is on!!")
+    net.to(device)
+    # net.share_memory()
 
     collator = PadCollator(PAD_idx)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
