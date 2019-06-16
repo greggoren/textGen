@@ -6,6 +6,7 @@ import logging
 import os
 
 if __name__=="__main__":
+    sys.setrecursionlimit(10000)
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 

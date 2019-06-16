@@ -14,6 +14,7 @@ class DecoderRNN(nn.Module):
 
         # self.embedding = nn.Embedding(vocab_size, hidden_size)
         self.embedding = self.from_pretrained(embeddings)
+
         # init.normal_(self.embedding.weight, 0.0, 0.2)
 
         self.lstm = nn.LSTM(input_vector_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
