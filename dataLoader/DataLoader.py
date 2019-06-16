@@ -22,7 +22,6 @@ class Loader(Dataset):
 
     def sequence2index(self,text):
         text = str(text)
-        text = text.translate(str.maketrans('', '', string.punctuation))
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)
         seq.insert(0,self.SOS_idx)
@@ -36,4 +35,4 @@ class Loader(Dataset):
         row = self.df.ix[idx]
         sequence= self.sequence2index(row['proc_sentence'])
         length = int(row['proc_len'])
-        return sequence,length
+        return sequence,sequence,length

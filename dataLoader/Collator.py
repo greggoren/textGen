@@ -8,7 +8,7 @@ class PadCollator(object):
         self.PAD_idx = PAD_idx
         self.device = device
 
-    def sort_batch(self,batch,  lengths):
+    def sort_batch(self,batch, labels, lengths):
         """
         Sort a minibatch by the length of the sequences with the longest sequences first
         return the sorted batch targes and sequence lengths.
@@ -16,20 +16,21 @@ class PadCollator(object):
         """
         seq_lengths, perm_idx = lengths.sort(0, descending=True)
         seq_tensor = batch[perm_idx]
-        return torch.LongTensor(seq_tensor).to(self.device),seq_lengths
+        labels = [torch.LongTensor(labels[i]).to(self.device) for i in [perm_idx]]
+        return (torch.LongTensor(seq_tensor).to(self.device),labels,seq_lengths)
 
     def __call__(self, DataLoaderBatch):
         batch_size = len(DataLoaderBatch)
         batch_split = list(zip(*DataLoaderBatch))
 
-        seqs,  lengths = batch_split[0], batch_split[1]
+        seqs, labels ,lengths = batch_split[0], batch_split[1],batch_split[2]
         max_length = int(max(lengths))
 
         padded_seqs = np.zeros((batch_size, max_length))
         for i, l in enumerate(lengths):
             padded_seqs[i, 0:l] = seqs[i][0:l]
             padded_seqs[i,l:] = [self.PAD_idx]*(max_length-l)
-        return self.sort_batch(padded_seqs,torch.LongTensor(lengths).to(self.device))
+        return self.sort_batch(padded_seqs,labels,torch.LongTensor(lengths).to(self.device))
 
 # def pad_and_sort_batch(DataLoaderBatch):
 #     """

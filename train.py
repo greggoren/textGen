@@ -6,6 +6,7 @@ from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 import os
 from dataLoader.Collator import PadCollator
+from dataLoader.DefCollate import DefCollator
 import logging
 import matplotlib.pyplot as plt
 import sys
@@ -39,12 +40,13 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     net = Seq2seq(cols,rows+2,hidden_size,SOS_idx,EOS_idx,n_layers,w2v_model.wv.vectors)
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if prnt:
-        logger.info("cuda is on!!")
+    # if prnt:
+    #     logger.info("cuda is on!!")
     net.to(device)
     # net.share_memory()
 
-    collator = PadCollator(PAD_idx)
+    collator = PadCollator(PAD_idx,device)
+    def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
     optimizer = optim.SGD(net.parameters(), lr=lr)
     data = Loader(df,w2v_model,PAD_idx,EOS_idx,SOS_idx)
@@ -53,12 +55,12 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if prnt:
         logger.info("Training Initialization")
     for epoch in range(epochs):
-        data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size)
+        data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
         running_loss = 0.0
         running_loss_for_plot = 0.0
         for i, batch in enumerate(data_loading):
             batch = collator(batch)
-            sequences, lengths = batch
+            sequences,labels, lengths = batch
 
             # forward + backward + optimize
             y_hat = net.forward_train(sequences,sequences,lengths)
