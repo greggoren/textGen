@@ -42,6 +42,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         if prnt:
             logger.info("cuda is on!!")
         net.cuda()
+        net.share_memory()
+
     collator = PadCollator(PAD_idx)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
     optimizer = optim.SGD(net.parameters(), lr=lr)
