@@ -29,7 +29,7 @@ class PadCollator(object):
         for i, l in enumerate(lengths):
             padded_seqs[i, 0:l] = seqs[i][0:l]
             padded_seqs[i,l:] = [self.PAD_idx]*(max_length-l)
-        return self.sort_batch(padded_seqs, tags, torch.LongTensor(lengths)).cuda()
+        return self.sort_batch(padded_seqs, tags, torch.LongTensor(lengths).cuda())
 
 # def pad_and_sort_batch(DataLoaderBatch):
 #     """
