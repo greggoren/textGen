@@ -58,7 +58,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         running_loss_for_plot = 0.0
         for i, batch in enumerate(data_loading):
             batch = collator(batch)
-            sequences, labels, lengths = batch
+            sequences, lengths = batch
 
             # forward + backward + optimize
             y_hat = net.forward_train(sequences,sequences,lengths)
