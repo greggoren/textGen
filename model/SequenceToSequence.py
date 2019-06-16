@@ -2,6 +2,12 @@ from model.DecoderRNN import DecoderRNN
 from model.EncoderRNN import EncoderRNN
 import torch
 from torch import nn
+
+class MyDataParallel(nn.DataParallel):
+    def __getattr__(self, name):
+        return getattr(self.module, name)
+
+
 class Seq2seq(nn.Module):
     def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx ,n_layers,embeddings):
         super(Seq2seq, self).__init__()
@@ -10,7 +16,7 @@ class Seq2seq(nn.Module):
         self.hidden_size = hidden_size
 
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,self.n_layers)
-        self.encoder = nn.DataParallel(self.encoder)
+        self.encoder = MyDataParallel(self.encoder)
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,self.n_layers)
 
         self.W = nn.Linear(hidden_size, output_vocab_size)
