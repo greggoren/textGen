@@ -22,7 +22,7 @@ class Seq2seq(nn.Module):
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,self.n_layers)
-
+        self.decoder = nn.DataParallel(self.decoder)
         self.W = nn.Linear(hidden_size, output_vocab_size)
 
         self.softmax = nn.Softmax()
