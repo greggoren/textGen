@@ -10,6 +10,7 @@ class Seq2seq(nn.Module):
         self.hidden_size = hidden_size
 
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,self.n_layers)
+        self.encoder = nn.DataParallel(self.encoder)
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,self.n_layers)
 
         self.W = nn.Linear(hidden_size, output_vocab_size)
