@@ -5,7 +5,8 @@ from torch import nn
 
 class MyDataParallel(nn.DataParallel):
     def __getattr__(self, name):
-        return getattr(self.module, name)
+        # return getattr(self.module, name)
+        return name
 
 
 class Seq2seq(nn.Module):
