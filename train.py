@@ -8,8 +8,8 @@ from dataLoader.Collator import PadCollator
 from dataLoader.DefCollate import DefCollator
 import pickle
 
-def save_loss_history(obj,epoch):
-    dir_name = "loss_history/"
+def save_loss_history(obj,epoch,lr,batch_size):
+    dir_name = "loss_history/"+str(lr) + "_" + str(batch_size)+"/"
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
     fname = dir_name+"loss_progress_"+str(epoch)+".pkl"
@@ -72,7 +72,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                     running_loss = 0.0
 
         loss_history.append(running_loss_for_plot/(i+1))
-        save_loss_history(loss_history,epoch)
+        save_loss_history(loss_history,epoch,lr,batch_size)
         if epoch%10==0:
             save_model(net,epoch,lr,batch_size,logger)
     if prnt:
