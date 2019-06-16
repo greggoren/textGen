@@ -6,6 +6,10 @@ import numpy as np
 from torch.autograd import Variable
 
 
+
+
+
+
 class EncoderRNN(nn.Module):
     def __init__(self, vocab_size, hidden_size,embeddings,n_layers=1):
         super(EncoderRNN, self).__init__()
@@ -16,6 +20,7 @@ class EncoderRNN(nn.Module):
         self.relu = nn.ReLU
         # self.embedding = nn.Embedding(vocab_size, hidden_size)
         self.embedding = self.from_pretrained(embeddings)
+        self.embedding= nn.DataParallel(self.embedding)
         # init.normal_(self.embedding.weight, 0.0, 0.2)
 
         self.lstm = nn.LSTM(
