@@ -53,10 +53,11 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if prnt:
         logger.info("Training Initialization")
     for epoch in range(epochs):
-        data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size, collate_fn=collator)
+        data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size)
         running_loss = 0.0
         running_loss_for_plot = 0.0
         for i, batch in enumerate(data_loading):
+            batch = collator(batch)
             sequences, labels, lengths = batch
 
             # forward + backward + optimize
