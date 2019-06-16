@@ -16,14 +16,13 @@ class PadCollator(object):
         """
         seq_lengths, perm_idx = lengths.sort(0, descending=True)
         seq_tensor = batch[perm_idx]
-        labels = [torch.LongTensor(labels[i]).to(self.device) for i in [perm_idx]]
+        labels = [torch.LongTensor(labels[i]).to(self.device) for i in perm_idx]
         return (torch.LongTensor(seq_tensor).to(self.device),labels,seq_lengths)
 
     def __call__(self, DataLoaderBatch):
-        batch_size = len(DataLoaderBatch)
-        batch_split = list(zip(*DataLoaderBatch))
+        batch_size = len(DataLoaderBatch[0])
 
-        seqs, labels ,lengths = batch_split[0], batch_split[1],batch_split[2]
+        seqs, labels ,lengths = DataLoaderBatch[0], DataLoaderBatch[1],DataLoaderBatch[2]
         max_length = int(max(lengths))
 
         padded_seqs = np.zeros((batch_size, max_length))

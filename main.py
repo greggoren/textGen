@@ -25,13 +25,15 @@ if __name__=="__main__":
     SOS_idx = rows
     EOS_idx = rows+1
     PAD_idx = rows+2
-    df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=1000)
+    df = pd.read_csv(data_set_file_path,delimiter=",",header=0)
     # df=df.loc[df["proc_len"]>=3]
     n_layers = 1
-    hidden_size = 100
-    lr = 0.01
-    batch_size = 5
-    epochs = 5
-    train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df,logger)
+    hidden_size = 200
+    lrs = [0.001,0.01,0.1]
+    batch_sizes = [5,20,50,120,250]
+    epochs = 150
+    for lr in lrs:
+        for batch_size in batch_sizes:
+            train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df,logger)
 
 

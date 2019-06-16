@@ -1,42 +1,35 @@
 import torch.optim as optim
 import torch
-import torch.cuda as cuda
 from model.SequenceToSequence import Seq2seq
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 import os
 from dataLoader.Collator import PadCollator
 from dataLoader.DefCollate import DefCollator
-import logging
-import matplotlib.pyplot as plt
-import sys
+import pickle
 
-def plot_metric(y,fname,y_label):
-    params = {'legend.fontsize': 'x-large',
-              'figure.figsize': (13, 8),
-              'axes.labelsize': 'x-large',
-              'axes.titlesize': 'x-large',
-              'xtick.labelsize': 'x-large',
-              'ytick.labelsize': 'x-large',
-              'font.family': 'serif'}
-    plt.rcParams.update(params)
-    plt.figure()
-    x = [i +1 for i in range(y)]
-    plt.plot(x, y, color='b', linewidth=5,markersize=10, mew=1)
-    plt.xticks(x, fontsize=25)
-    plt.yticks(fontsize=25)
-    plt.ylabel(y_label, fontsize=30)
-    plt.xlabel("Epoch", fontsize=30)
-    plt.savefig(fname)
-    plt.clf()
+def save_loss_history(obj,epoch):
+    dir_name = "loss_history/"
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    fname = dir_name+"loss_progress_"+str(epoch)+".pkl"
+    with open(fname,'wb') as f:
+        pickle.dump(obj,f)
 
+def save_model(net,epoch,lr,batch_size,logger=None):
+    models_dir = "models/"+str(lr) + "_" + str(batch_size)+"/"
+    if not os.path.exists(models_dir):
+        os.makedirs(models_dir)
+    model_name = "model_" + str(epoch)
+    torch.save(net, models_dir + model_name)
+    if logger is not None:
+        logger.info("Model Saved")
 
 def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,df,logger=None):
     prnt = False
     if logger is not None:
         prnt = True
     rows,cols = w2v_model.wv.vectors.shape
-    # net = Seq2seq(cols, rows+1, hidden_size,SOS_idx,EOS_idx ,n_layers,w2v_model.wv.vectors)
     net = Seq2seq(cols,rows+2,hidden_size,SOS_idx,EOS_idx,n_layers,w2v_model.wv.vectors)
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -72,22 +65,17 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             # print statistics
             running_loss += loss.item()
             running_loss_for_plot += loss.item()
-            # if i % 1000 == 999:  # print every 1000 mini-batches
-            if prnt:
-                logger.info('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / (i+1)))
-                running_loss = 0.0
-        loss_history.append(running_loss_for_plot/i)
+            if i % 1000 == 999:  # print every 1000 mini-batches
+                if prnt:
+                    logger.info('[%d, %5d] loss: %.3f' %
+                          (epoch + 1, i + 1, running_loss / (i+1)))
+                    running_loss = 0.0
+
+        loss_history.append(running_loss_for_plot/(i+1))
+        save_loss_history(loss_history,epoch)
+        if epoch%10==0:
+            save_model(net,epoch,lr,batch_size,logger)
     if prnt:
         logger.info("Training Is Done")
-    models_dir = "models/"
-    if not os.path.exists(models_dir):
-        os.makedirs(models_dir)
-    model_name = "model_"+str(lr)+"_"+str(batch_size)+"_"+str(epochs)
-    torch.save(net,models_dir+model_name)
-    if prnt:
-        logger.info("Model Saved")
-    # plot_metric(loss_history,"CELoss.png","CE Loss")
-    # if prnt:
-    #     logger.info("Plot Finished")
-    return net,models_dir+model_name
+
+
