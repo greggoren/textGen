@@ -51,7 +51,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if prnt:
         logger.info("Training Initialization")
     for epoch in range(epochs):
-        data_loading = DataLoader(data, num_workers=0, shuffle=True, batch_size=batch_size, collate_fn=collator)
+        data_loading = DataLoader(data, num_workers=5, shuffle=True, batch_size=batch_size, collate_fn=collator)
         running_loss = 0.0
         running_loss_for_plot = 0.0
         for i, batch in enumerate(data_loading):
@@ -67,7 +67,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             # print statistics
             running_loss += loss.item()
             running_loss_for_plot += loss.item()
-            if i % 1000 == 0:  # print every 1000 mini-batches
+            if i % 1000 == 999:  # print every 1000 mini-batches
                 if prnt:
                     logger.info('[%d, %5d] loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / 1000))
