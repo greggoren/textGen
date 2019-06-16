@@ -47,7 +47,6 @@ class Seq2seq(nn.Module):
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
-            # h = self.softmax(h)
             # h: (batch_size, vocab_size, 1)
             H.append(h.unsqueeze(2))
 
