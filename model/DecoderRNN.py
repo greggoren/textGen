@@ -16,7 +16,7 @@ class DecoderRNN(nn.Module):
 
 
     def from_pretrained(self,embeddings, freeze=True):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
         added_rows = np.array([[rows] * cols, [rows + 1] * cols,[rows+2]*cols])

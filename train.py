@@ -9,12 +9,12 @@ import pandas as pd
 from torch import nn
 from loss.Utils import save_loss_history
 from loss.Utils import save_model
-
+from parallel.Parallel import DataParallelModel, DataParallelCriterion
 class MyDataParallel(nn.DataParallel):
     def __getattr__(self, name):
         return getattr(self.module, name)
 
-class CustomDataParallel(nn.DataParallel):
+class CustomDataParallel(DataParallelModel):
     def __init__(self, model):
         super(CustomDataParallel, self).__init__(model,device_ids=[1,0])
 
@@ -42,6 +42,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
+    criterion = DataParallelCriterion(criterion)
     optimizer = optim.SGD(net.parameters(), lr=lr)
 
     loss_history = []
