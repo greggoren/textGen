@@ -16,7 +16,7 @@ if __name__=="__main__":
     w2v_model_file_path = sys.argv[1]
     data_set_file_path = sys.argv[2]
 
-    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=200000)
+    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=15000)
     if len(sys.argv)>3:
         output_model = sys.argv[3]
         w2v_model.wv.save_word2vec_format(output_model,binary=True)
@@ -29,7 +29,7 @@ if __name__=="__main__":
     n_layers = 1
     hidden_size = 200
     lrs = [0.001,0.01,0.1]
-    batch_sizes = [10,20,50]
+    batch_sizes = [100,50,200]
     epochs = 10
     for lr in lrs:
         for batch_size in batch_sizes:
