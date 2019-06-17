@@ -14,7 +14,15 @@ class MyDataParallel(nn.DataParallel):
     def __getattr__(self, name):
         return getattr(self.module, name)
 
+class CustomDataParallel(nn.DataParallel):
+    def __init__(self, model):
+        super(CustomDataParallel, self).__init__(model)
 
+    def __getattr__(self, name):
+        try:
+            return super(CustomDataParallel, self).__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
 
 
 def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,logger=None):
@@ -29,7 +37,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
-    net = MyDataParallel(net)
+    net = CustomDataParallel(net)
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
