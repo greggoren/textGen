@@ -71,7 +71,11 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             print(loss)
             optimizer.zero_grad()
             # loss = criterion(y_hat,sequences)
-
+            if isinstance(loss,list):
+                tmp_loss=0.0
+                for item in loss:
+                    tmp_loss+=item
+                loss = tmp_loss
             loss.sum().backward()
             optimizer.step()
 
