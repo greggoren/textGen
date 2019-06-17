@@ -1,7 +1,8 @@
 import torch
 
-tgt = torch.LongTensor([[0],[0]])
+tgt = torch.FloatTensor([[2],[1]])
+tgt = tgt/2
 
-tgt=tgt.reshape((2,))
+
 
 print(tgt)
