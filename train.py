@@ -55,6 +55,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             running_loss = 0.0
             running_loss_for_plot = 0.0
             for i, batch in enumerate(data_loading):
+                running_batch_num+=1
                 batch = collator(batch)
                 sequences,labels, lengths = batch
 
@@ -68,13 +69,13 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 # print statistics
                 running_loss += loss.item()
                 running_loss_for_plot += loss.item()
-                if i % 1000 == 999:  # print every 1000 mini-batches
+                if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
                     if prnt:
                         logger.info('[%d, %5d] loss: %.3f' %
-                              (epoch + 1, i + 1, running_loss / (i+1)))
+                              (epoch + 1, i + 1, running_loss / (running_batch_num)))
                         running_loss = 0.0
 
-        loss_history.append(running_loss_for_plot/(i+1))
+        loss_history.append(running_loss_for_plot/running_batch_num)
         save_loss_history(loss_history,epoch,lr,batch_size)
         if epoch%10==0:
             save_model(net,epoch,lr,batch_size,logger)
