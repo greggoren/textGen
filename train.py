@@ -54,7 +54,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         running_loss_for_plot = 0.0
         for df in chunks:
             data = Loader(df, w2v_model, PAD_idx, EOS_idx, SOS_idx)
-            data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
+            data_loading = DataLoader(data, num_workers=8, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
             running_loss = 0.0
 
             for i, batch in enumerate(data_loading):
