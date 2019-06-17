@@ -3,28 +3,19 @@ import torch
 from model.SequenceToSequence import Seq2seq
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
-import os
 from dataLoader.Collator import PadCollator
 from dataLoader.DefCollate import DefCollator
-import pickle
 import pandas as pd
+from torch import nn
+from loss.Utils import save_loss_history
+from loss.Utils import save_model
 
-def save_loss_history(obj,epoch,lr,batch_size):
-    dir_name = "loss_history/"+str(lr) + "_" + str(batch_size)+"/"
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
-    fname = dir_name+"loss_progress_"+str(epoch)+".pkl"
-    with open(fname,'wb') as f:
-        pickle.dump(obj,f)
+class MyDataParallel(nn.DataParallel):
+    def __getattr__(self, name):
+        return getattr(self.module, name)
 
-def save_model(net,epoch,lr,batch_size,logger=None):
-    models_dir = "models/"+str(lr) + "_" + str(batch_size)+"/"
-    if not os.path.exists(models_dir):
-        os.makedirs(models_dir)
-    model_name = "model_" + str(epoch)
-    torch.save(net, models_dir + model_name)
-    if logger is not None:
-        logger.info("Model Saved")
+
+
 
 def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,logger=None):
     prnt = False
@@ -38,6 +29,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
+    net = nn.DataParallel(net,device_ids=[0,1])
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
@@ -60,7 +52,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 sequences,labels, lengths = batch
 
                 # forward + backward + optimize
-                y_hat = net.forward_train(sequences,sequences,lengths)
+                y_hat = net.module.forward_train(sequences,sequences,lengths)
                 optimizer.zero_grad()
                 loss = criterion(y_hat,sequences)
                 loss.backward()

@@ -4,11 +4,8 @@ import torch
 from torch import nn
 
 
-        # return name
 
-class MyDataParallel(nn.DataParallel):
-    def __getattr__(self, name):
-        return getattr(self.module, name)
+
 
 
 
@@ -22,7 +19,7 @@ class Seq2seq(nn.Module):
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
-        self.decoder = nn.DataParallel(self.decoder,dim=1)
+        # self.decoder = nn.DataParallel(self.decoder,dim=1)
         self.W = nn.Linear(hidden_size, output_vocab_size)
 
         self.softmax = nn.Softmax()
