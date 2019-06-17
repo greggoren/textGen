@@ -10,12 +10,12 @@ from torch import nn
 
 
 class Seq2seq(nn.Module):
-    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings):
+    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings,criterion):
         super(Seq2seq, self).__init__()
         self.SOS_idx,self.EOS_idx= SOS_idx,EOS_idx
         self.n_layers = n_layers
         self.hidden_size = hidden_size
-
+        self.criterion = criterion
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
@@ -38,17 +38,19 @@ class Seq2seq(nn.Module):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
 
         H = []
+        loss = 0.0
         for i in range(y.shape[1]):
             input = y[:, i]
             decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
+            loss+=self.criterion(h,input)
             # h: (batch_size, vocab_size, 1)
-            H.append(h.unsqueeze(2))
-
+            # H.append(h.unsqueeze(2))
         # H: (batch_size, vocab_size, seq_len)
-        return torch.cat(H, dim=2)
+        # return torch.cat(H, dim=2)
+        return loss
 
     def forward_test(self, x):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x)

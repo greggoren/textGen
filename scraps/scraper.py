@@ -1,6 +1,8 @@
-class Test():
-    def __call__(self, c):
-        print(c,"here!!")
+import torch
 
-t = Test()
-t(5)
+c = torch.nn.CrossEntropyLoss()
+src = torch.FloatTensor([[[1,30],[1,2]]])
+tgt = torch.LongTensor([[0,0]])
+
+l= c(src,tgt)
+print(l.item())
