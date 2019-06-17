@@ -33,7 +33,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
     # chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
-    df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=100)
+    df = pd.read_csv(data_set_file_path,delimiter=",",header=0)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
     net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion)
@@ -56,7 +56,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         running_batch_num = 0
         running_loss_for_plot = 0.0
         data = Loader(df, w2v_model, PAD_idx, EOS_idx, SOS_idx)
-        data_loading = DataLoader(data, num_workers=8, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
+        data_loading = DataLoader(data, num_workers=4, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
         running_loss = 0.0
 
         for i, batch in enumerate(data_loading):
@@ -68,7 +68,6 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             # y_hat = net.forward_train(sequences,sequences,lengths)
             # y_hat = net(sequences,sequences,lengths)
             loss = net(sequences,sequences,lengths)
-            print(loss)
             optimizer.zero_grad()
             # loss = criterion(y_hat,sequences)
             if isinstance(loss,list):
@@ -80,10 +79,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             optimizer.step()
 
             # print statistics
-            running_loss += loss.sum().item()
-            running_loss_for_plot += loss.sum().item()
-            logger.info("sum="+str(loss.sum().item()))
-            logger.info("item="+str(loss.item()))
+            running_loss += loss.item()
+            running_loss_for_plot += loss.item()
 
             logger.info("IN EPOCH: "+str(epoch)+" RUNNING BATCH: "+str(running_batch_num))
             if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
