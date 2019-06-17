@@ -16,6 +16,7 @@ class Seq2seq(nn.Module):
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.criterion = criterion
+        self.vocab_size = embeddings.shape[0]+3
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
@@ -45,6 +46,7 @@ class Seq2seq(nn.Module):
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
+            h = h.reshape((input.shape[0],self.vocab_size))
             print(h.shape)
             print(input.shape)
             loss+=self.criterion(h,input)
