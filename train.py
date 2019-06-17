@@ -42,7 +42,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
-    criterion = DataParallelCriterion(criterion)
+    criterion = DataParallelCriterion(criterion,device_ids=[1,0])
     optimizer = optim.SGD(net.parameters(), lr=lr)
 
     loss_history = []
