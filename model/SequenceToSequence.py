@@ -34,7 +34,7 @@ class Seq2seq(nn.Module):
         self.decoder_hidden_c = encoder_hidden_c.permute(1,0,2).reshape(batch_size, self.n_layers, self.hidden_size).permute(1,0,2)
         return self.decoder_hidden_h, self.decoder_hidden_c
 
-    def forward_train(self, x, y,lengths):
+    def forward(self, x, y,lengths):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
 
         H = []
@@ -50,7 +50,7 @@ class Seq2seq(nn.Module):
         # H: (batch_size, vocab_size, seq_len)
         return torch.cat(H, dim=2)
 
-    def forward(self, x):
+    def forward_test(self, x):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x)
 
         current_y = self.SOS_idx
