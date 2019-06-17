@@ -130,9 +130,9 @@ class DataParallelCriterion(DataParallel):
         if len(self.device_ids) == 1:
             return self.module(inputs, *targets[0], **kwargs[0])
         replicas = self.replicate(self.module, self.device_ids[:len(inputs)])
+        print(replicas)
+        print(inputs)
         outputs = _criterion_parallel_apply(replicas, inputs, targets, kwargs)
-        #return Reduce.apply(*outputs) / len(outputs)
-        #return self.gather(outputs, self.output_device).mean()
         return self.gather(outputs, self.output_device)
 
 
