@@ -68,6 +68,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             # y_hat = net.forward_train(sequences,sequences,lengths)
             # y_hat = net(sequences,sequences,lengths)
             loss = net(sequences,sequences,lengths)
+            print(loss)
             optimizer.zero_grad()
             # loss = criterion(y_hat,sequences)
 
