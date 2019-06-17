@@ -47,8 +47,6 @@ class Seq2seq(nn.Module):
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
             h = h.reshape((input.shape[0],self.vocab_size))
-            print(h.shape)
-            print(input.shape)
             loss+=self.criterion(h,input)
             # h: (batch_size, vocab_size, 1)
             # H.append(h.unsqueeze(2))
