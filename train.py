@@ -16,7 +16,7 @@ class MyDataParallel(nn.DataParallel):
 
 class CustomDataParallel(nn.DataParallel):
     def __init__(self, model):
-        super(CustomDataParallel, self).__init__(model)
+        super(CustomDataParallel, self).__init__(model,device_ids=[1,0])
 
     def __getattr__(self, name):
         try:
@@ -50,11 +50,12 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         logger.info("Training Initialization")
     for epoch in range(epochs):
         running_batch_num = 0
+        running_loss_for_plot = 0.0
         for df in chunks:
             data = Loader(df, w2v_model, PAD_idx, EOS_idx, SOS_idx)
             data_loading = DataLoader(data, num_workers=10, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
             running_loss = 0.0
-            running_loss_for_plot = 0.0
+
             for i, batch in enumerate(data_loading):
                 running_batch_num+=1
                 batch = collator(batch)
