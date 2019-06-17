@@ -29,7 +29,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
-    net = nn.DataParallel(net)
+    net = MyDataParallel(net)
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
@@ -52,7 +52,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 sequences,labels, lengths = batch
 
                 # forward + backward + optimize
-                y_hat = net.module.forward_train(sequences,sequences,lengths)
+                y_hat = net.forward_train(sequences,sequences,lengths)
                 optimizer.zero_grad()
                 loss = criterion(y_hat,sequences)
                 loss.backward()
