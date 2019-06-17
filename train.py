@@ -32,7 +32,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     if prnt:
         logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
-    chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
+    # chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
+    df = pd.read_csv(data_set_file_path,delimiter=",",header=0)
     net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors)
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
@@ -53,33 +54,32 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     for epoch in range(epochs):
         running_batch_num = 0
         running_loss_for_plot = 0.0
-        for df in chunks:
-            data = Loader(df, w2v_model, PAD_idx, EOS_idx, SOS_idx)
-            data_loading = DataLoader(data, num_workers=8, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
-            running_loss = 0.0
+        data = Loader(df, w2v_model, PAD_idx, EOS_idx, SOS_idx)
+        data_loading = DataLoader(data, num_workers=8, shuffle=True, batch_size=batch_size,collate_fn=def_collator)
+        running_loss = 0.0
 
-            for i, batch in enumerate(data_loading):
-                running_batch_num+=1
-                batch = collator(batch)
-                sequences,labels, lengths = batch
+        for i, batch in enumerate(data_loading):
+            running_batch_num+=1
+            batch = collator(batch)
+            sequences,labels, lengths = batch
 
-                # forward + backward + optimize
-                # y_hat = net.forward_train(sequences,sequences,lengths)
-                y_hat = net(sequences,sequences,lengths)
-                optimizer.zero_grad()
-                loss = criterion(y_hat,sequences)
-                loss.sum().backward()
-                optimizer.step()
+            # forward + backward + optimize
+            # y_hat = net.forward_train(sequences,sequences,lengths)
+            y_hat = net(sequences,sequences,lengths)
+            optimizer.zero_grad()
+            loss = criterion(y_hat,sequences)
+            loss.sum().backward()
+            optimizer.step()
 
-                # print statistics
-                running_loss += loss.sum().item()
-                running_loss_for_plot += loss.sum().item()
-                logger.info("IN EPOCH: "+str(epoch)+" RUNNING BATCH: "+str(running_batch_num))
-                if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
-                    if prnt:
-                        logger.info('[%d, %5d] loss: %.3f' %
-                              (epoch + 1, running_batch_num, running_loss / (running_batch_num)))
-                        running_loss = 0.0
+            # print statistics
+            running_loss += loss.sum().item()
+            running_loss_for_plot += loss.sum().item()
+            logger.info("IN EPOCH: "+str(epoch)+" RUNNING BATCH: "+str(running_batch_num))
+            if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
+                if prnt:
+                    logger.info('[%d, %5d] loss: %.3f' %
+                          (epoch + 1, running_batch_num, running_loss / (running_batch_num)))
+                    running_loss = 0.0
 
         loss_history.append(running_loss_for_plot/running_batch_num)
         save_loss_history(loss_history,epoch,lr,batch_size)
