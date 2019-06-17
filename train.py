@@ -73,6 +73,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 # print statistics
                 running_loss += loss.sum().item()
                 running_loss_for_plot += loss.sum().item()
+                logger.info("IN EPOCH: "+str(epoch)+" RUNNING BATCH: "+str(running_batch_num))
                 if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
                     if prnt:
                         logger.info('[%d, %5d] loss: %.3f' %
