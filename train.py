@@ -80,6 +80,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                     logger.info('[%d, %5d] loss: %.3f' %
                           (epoch + 1, running_batch_num, running_loss / (running_batch_num)))
                     running_loss = 0.0
+            del loss,y_hat
 
         loss_history.append(running_loss_for_plot/running_batch_num)
         save_loss_history(loss_history,epoch,lr,batch_size)
