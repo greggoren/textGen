@@ -29,7 +29,7 @@ if __name__=="__main__":
     n_layers = 1
     hidden_size = 200
     lrs = [0.001,0.01,0.1]
-    batch_sizes = [50,100,200]
+    batch_sizes = [10,50,100,200]
     epochs = 150
     for lr in lrs:
         for batch_size in batch_sizes:

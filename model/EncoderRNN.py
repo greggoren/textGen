@@ -20,7 +20,7 @@ class EncoderRNN(nn.Module):
         self.PAD_idx = PAD_idx
         self.relu = nn.ReLU
         self.embedding = self.from_pretrained(embeddings)
-        self.embedding= nn.DataParallel(self.embedding)
+        # self.embedding= nn.DataParallel(self.embedding)
 
         self.lstm = nn.LSTM(
             embeddings.shape[1],
