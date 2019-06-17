@@ -34,7 +34,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
     chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
-    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,n_layers,w2v_model.wv.vectors)
+    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors)
     net = net.double()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)

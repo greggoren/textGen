@@ -11,17 +11,16 @@ from torch.autograd import Variable
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size,embeddings,n_layers=1):
+    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,n_layers=1):
         super(EncoderRNN, self).__init__()
 
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
         self.n_layers = n_layers
+        self.PAD_idx = PAD_idx
         self.relu = nn.ReLU
-        # self.embedding = nn.Embedding(vocab_size, hidden_size)
         self.embedding = self.from_pretrained(embeddings)
         self.embedding= nn.DataParallel(self.embedding)
-        # init.normal_(self.embedding.weight, 0.0, 0.2)
 
         self.lstm = nn.LSTM(
             embeddings.shape[1],
@@ -56,7 +55,7 @@ class EncoderRNN(nn.Module):
         added_rows = np.array([[rows]*cols,[rows+1]*cols,[rows+2]*cols])
         working_matrix=np.vstack([working_matrix,added_rows])
         working_matrix = torch.FloatTensor(working_matrix).to(device)
-        embedding = torch.nn.Embedding(num_embeddings=rows+3, embedding_dim=cols)
+        embedding = torch.nn.Embedding(num_embeddings=rows+3, embedding_dim=cols,padding_idx=self.PAD_idx)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze
         return embedding

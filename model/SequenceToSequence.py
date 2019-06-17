@@ -13,16 +13,16 @@ class MyDataParallel(nn.DataParallel):
 
 
 class Seq2seq(nn.Module):
-    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx ,n_layers,embeddings):
+    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings):
         super(Seq2seq, self).__init__()
         self.SOS_idx,self.EOS_idx= SOS_idx,EOS_idx
         self.n_layers = n_layers
         self.hidden_size = hidden_size
 
-        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,self.n_layers)
+        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
-        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,self.n_layers)
-        self.decoder = nn.DataParallel(self.decoder)
+        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
+        self.decoder = nn.DataParallel(self.decoder,dim=1)
         self.W = nn.Linear(hidden_size, output_vocab_size)
 
         self.softmax = nn.Softmax()
