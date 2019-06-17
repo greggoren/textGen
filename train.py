@@ -67,7 +67,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 y_hat = net(sequences,sequences,lengths)
                 optimizer.zero_grad()
                 loss = criterion(y_hat,sequences)
-                loss.backward()
+                loss.sum().backward()
                 optimizer.step()
 
                 # print statistics
