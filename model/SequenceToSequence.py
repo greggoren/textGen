@@ -17,6 +17,7 @@ class Seq2seq(nn.Module):
         self.hidden_size = hidden_size
         self.criterion = criterion
         self.vocab_size = embeddings.shape[0]+3
+        self.PAD_idx
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
@@ -35,10 +36,15 @@ class Seq2seq(nn.Module):
         self.decoder_hidden_c = encoder_hidden_c.permute(1,0,2).reshape(batch_size, self.n_layers, self.hidden_size).permute(1,0,2)
         return self.decoder_hidden_h, self.decoder_hidden_c
 
+
+    def normalize_loss(self,loss,lengths):
+        for i in range(loss.shape[0]):
+            loss[i] = loss[i] / lengths[i]
+        return loss.mean()
+
+
     def forward(self, x, y,lengths):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
-
-        H = []
         loss = 0.0
         for i in range(y.shape[1]):
             input = y[:, i]
@@ -52,6 +58,7 @@ class Seq2seq(nn.Module):
             # H.append(h.unsqueeze(2))
         # H: (batch_size, vocab_size, seq_len)
         # return torch.cat(H, dim=2)
+        loss = self.normalize_loss(loss,lengths)
         return loss
 
     def forward_test(self, x):
