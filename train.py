@@ -33,7 +33,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
     # chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
-    df = pd.read_csv(data_set_file_path,delimiter=",",header=0)
+    df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=200)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx)
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
     net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion)
@@ -74,6 +74,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 tmp_loss=0.0
                 for item in loss:
                     tmp_loss+=item.to(device)
+                tmp_loss=tmp_loss/len(loss)
                 loss = tmp_loss
             loss.sum().backward()
             optimizer.step()
@@ -86,7 +87,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
                 if prnt:
                     logger.info('[%d, %5d] loss: %.3f' %
-                          (epoch + 1, running_batch_num, running_loss / (running_batch_num)))
+                          (epoch + 1, running_batch_num, running_loss / (i+1)))
+
                     running_loss = 0.0
             # del loss,y_hat
             del loss
