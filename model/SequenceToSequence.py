@@ -52,7 +52,7 @@ class Seq2seq(nn.Module):
             # H.append(h.unsqueeze(2))
         # H: (batch_size, vocab_size, seq_len)
         # return torch.cat(H, dim=2)
-        return loss/(y.shape[1])
+        return loss
 
     def forward_test(self, x):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x)
