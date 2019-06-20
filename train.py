@@ -87,7 +87,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             if running_batch_num % 1000 == 999:  # print every 1000 mini-batches
                 if prnt:
                     logger.info('[%d, %5d] loss: %.3f' %
-                          (epoch + 1, running_batch_num, running_loss / (i+1)))
+                          (epoch + 1, running_batch_num, running_loss / 1000))
 
                     running_loss = 0.0
             # del loss,y_hat
