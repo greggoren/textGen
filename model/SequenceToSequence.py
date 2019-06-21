@@ -17,7 +17,7 @@ class Seq2seq(nn.Module):
         self.hidden_size = hidden_size
         self.criterion = criterion
         self.vocab_size = embeddings.shape[0]+3
-        self.PAD_idx
+        self.PAD_idx = PAD_idx
         self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,self.n_layers)
         # self.encoder = self.encoder
         self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,self.n_layers)
