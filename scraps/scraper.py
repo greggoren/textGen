@@ -8,10 +8,10 @@ c = torch.nn.CrossEntropyLoss(reduction='none',ignore_index=100)
 loss = c(src,tgt)
 print(loss)
 
-l = torch.FloatTensor([3,2,4])
-print(loss.add(l))
+l = torch.LongTensor([3,2,4])
+# l = torch.FloatTensor(l)
 for i in range(loss.shape[0]):
-    loss[i]=loss[i]/l[i]
+    loss[i]=loss[i]/float(l[i])
 print(loss)
 
 

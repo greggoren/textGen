@@ -39,7 +39,7 @@ class Seq2seq(nn.Module):
 
     def normalize_loss(self,loss,lengths):
         for i in range(loss.shape[0]):
-            loss[i] = loss[i] / lengths[i]
+            loss[i] = loss[i] / float(lengths[i])
         return loss.mean()
 
 
