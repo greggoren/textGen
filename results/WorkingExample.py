@@ -37,7 +37,7 @@ if __name__=="__main__":
     indices_dict = get_words_from_indices_dict(w2v_model,SOS_idx,EOS_idx)
     for i,inp in enumerate(input_sentences):
         x = convert_to_indices(inp[0],w2v_model,EOS_idx,SOS_idx,device)
-        result_indices = greedy_generation(model,x,inp[1],50)
+        result_indices = greedy_generation(model,x,inp[1],50,device)
         generated_sentece = retrieve_sentence_from_indices(indices_dict,result_indices)
         greedy_output.write("Example:"+str(i+1)+"\n")
         greedy_output.write("Input: "+inp[0]+"\n")

@@ -1,13 +1,13 @@
 import torch
 
-def greedy_generation(model, x, lengths,max_generation_len):
+def greedy_generation(model, x, lengths,max_generation_len,device):
     decoder_hidden_h, decoder_hidden_c = model._forward_encoder(x, lengths)
 
     current_y = model.SOS_idx
     result = [current_y]
     counter = 0
     while current_y != model.EOS_idx and counter < max_generation_len:
-        input = torch.LongTensor([current_y])
+        input = torch.LongTensor([current_y]).to(device)
         decoder_output, decoder_hidden = model.decoder(input, (decoder_hidden_h, decoder_hidden_c))
         decoder_hidden_h, decoder_hidden_c = decoder_hidden
         # h: (vocab_size)
