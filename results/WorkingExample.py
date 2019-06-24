@@ -13,7 +13,7 @@ def convert_to_indices(sentence,w2v_model,EOS_idx,SOS_idx,device):
 
 
 def get_words_from_indices_dict(model,SOS_idx,EOS_idx):
-    indices_dict = {v:k for (k, v) in model.wv.vocab.items()}
+    indices_dict = {v.index:k for (k, v) in model.wv.vocab.items()}
     indices_dict[SOS_idx]="<SOS>"
     indices_dict[EOS_idx]="<EOS>"
     return indices_dict
