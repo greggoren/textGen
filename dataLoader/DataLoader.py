@@ -24,7 +24,7 @@ class Loader(Dataset):
         text = str(text)
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)
-        seq.insert(0,self.SOS_idx)
+        # seq.insert(0,self.SOS_idx)
         return seq
 
 
@@ -34,5 +34,5 @@ class Loader(Dataset):
     def __getitem__(self, idx):
         row = self.df.ix[idx]
         sequence= self.sequence2index(row['proc_sentence'])
-        length = int(row['proc_len'])+2
+        length = int(row['proc_len'])+1
         return sequence,sequence,length
