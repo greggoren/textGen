@@ -3,12 +3,11 @@ import sys
 import gensim
 from modules.GreedySearch import greedy_generation
 
-
 def convert_to_indices(sentence,w2v_model,EOS_idx,SOS_idx,device):
 
     indices = [w2v_model.wv.vocab.get(token).index for token in sentence.split()]
     indices.append(EOS_idx)
-    indices.insert(0,SOS_idx)
+    # indices.insert(0,SOS_idx)
     return torch.LongTensor([indices]).to(device)
 
 
@@ -32,7 +31,7 @@ if __name__=="__main__":
     SOS_idx = rows
     EOS_idx = rows + 1
     model = torch.load(model_file_path,map_location=device)
-    input_sentences = [('the first known use of this word was in',torch.LongTensor([11]).to(device)),('karl marx became leading figure in the international and member of its general council',torch.LongTensor([15]).to(device)),('in addition to playing cricket for the university he also played football for oxford university',torch.LongTensor([17]).to(device)),('he was evacuated to malta where he died from his wounds on november',torch.LongTensor([15]).to(device))]
+    input_sentences = [('the first known use of this word was in',torch.LongTensor([10]).to(device)),('karl marx became leading figure in the international and member of its general council',torch.LongTensor([14]).to(device)),('in addition to playing cricket for the university he also played football for oxford university',torch.LongTensor([16]).to(device)),('he was evacuated to malta where he died from his wounds on november',torch.LongTensor([14]).to(device))]
     greedy_output = open("GreedyReuslts.txt",'w')
     indices_dict = get_words_from_indices_dict(w2v_model,SOS_idx,EOS_idx)
     for i,inp in enumerate(input_sentences):
