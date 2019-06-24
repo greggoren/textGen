@@ -28,7 +28,7 @@ if __name__=="__main__":
     # df=df.loc[df["proc_len"]>=3]
     n_layers = 1
     hidden_size = 200
-    lrs = [0.01,0.1]
+    lrs = [0.1,]
     batch_sizes = [100]
     epochs = 100
     for lr in lrs:
