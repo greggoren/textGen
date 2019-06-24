@@ -32,7 +32,7 @@ if __name__=="__main__":
     SOS_idx = rows
     EOS_idx = rows + 1
     model = torch.load(model_file_path,map_location=device)
-    input_sentences = [('the first known use of this word was in',torch.LongTensor([11])),('karl marx became leading figure in the international and member of its general council',torch.LongTensor([15])),('in addition to playing cricket for the university he also played football for oxford university',torch.LongTensor([17])),('he was evacuated to malta where he died from his wounds on november',torch.LongTensor([15]))]
+    input_sentences = [('the first known use of this word was in',torch.LongTensor([11])),('karl marx became leading figure in the international and member of its general council',torch.LongTensor([15]).to(device)),('in addition to playing cricket for the university he also played football for oxford university',torch.LongTensor([17])),('he was evacuated to malta where he died from his wounds on november',torch.LongTensor([15]))]
     greedy_output = open("GreedyReuslts.txt",'w')
     indices_dict = get_words_from_indices_dict(w2v_model,SOS_idx,EOS_idx)
     for i,inp in enumerate(input_sentences):
