@@ -61,8 +61,8 @@ class Seq2seq(nn.Module):
         loss = self.normalize_loss(loss,lengths)
         return loss
 
-    def forward_test(self, x):
-        decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x)
+    def greedy_generation(self, x,lengths):
+        decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
 
         current_y = self.SOS_idx
         result = [current_y]

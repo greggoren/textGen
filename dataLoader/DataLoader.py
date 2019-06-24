@@ -34,5 +34,5 @@ class Loader(Dataset):
     def __getitem__(self, idx):
         row = self.df.ix[idx]
         sequence= self.sequence2index(row['proc_sentence'])
-        length = int(row['proc_len'])
+        length = int(row['proc_len'])+2
         return sequence,sequence,length
