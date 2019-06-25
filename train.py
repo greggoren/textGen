@@ -25,7 +25,7 @@ class CustomDataParallel(DataParallelModel):
             return getattr(self.module, name)
 
 
-def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,logger=None):
+def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,logger=None):
     prnt = False
     if logger is not None:
         prnt = True
@@ -36,7 +36,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=500000)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx,reduction='none')
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
-    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion)
+    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed)
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 

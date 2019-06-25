@@ -10,8 +10,9 @@ from torch.autograd import Variable
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,n_layers=1):
+    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,n_layers=1):
         super(EncoderRNN, self).__init__()
+        self.seed = seed
 
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
@@ -49,9 +50,10 @@ class EncoderRNN(nn.Module):
 
     def from_pretrained(self,embeddings, freeze=True):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        np.random.seed(self.seed)
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
-        added_rows = np.array([[rows]*cols,[rows+1]*cols,[rows+2]*cols])
+        added_rows = np.array([np.random.rand(cols), np.random.rand(cols),np.random.rand(cols)])
         working_matrix=np.vstack([working_matrix,added_rows])
         working_matrix = torch.FloatTensor(working_matrix).to(device)
         embedding = torch.nn.Embedding(num_embeddings=rows+3, embedding_dim=cols,padding_idx=self.PAD_idx)
