@@ -41,11 +41,12 @@ class Seq2seq(nn.Module):
 
 
     def forward(self, x, y,lengths):
+        device = torch.device("cuda" if torch.cudva.is_available() else "cpu")
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
         loss = 0.0
         init_token = self.SOS_idx
         #input of <SOS>
-        input = torch.LongTensor([init_token]*x.shape[0]).to(self.device)
+        input = torch.LongTensor([init_token]*x.shape[0]).to(device)
         decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
         decoder_hidden_h, decoder_hidden_c = decoder_hidden
         # Teacher forcing : input sequence

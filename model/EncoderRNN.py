@@ -50,13 +50,13 @@ class EncoderRNN(nn.Module):
         return (hidden, cell)
 
     def from_pretrained(self,embeddings, freeze=True):
-        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         np.random.seed(self.seed)
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
         added_rows = np.array([np.random.rand(cols), np.random.rand(cols),np.random.rand(cols)])
         working_matrix=np.vstack([working_matrix,added_rows])
-        working_matrix = torch.FloatTensor(working_matrix).to(self.device)
+        working_matrix = torch.FloatTensor(working_matrix).to(device)
         embedding = torch.nn.Embedding(num_embeddings=rows+3, embedding_dim=cols,padding_idx=self.PAD_idx)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze
