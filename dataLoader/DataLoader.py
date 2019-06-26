@@ -22,6 +22,7 @@ class Loader(Dataset):
 
     def sequence2index(self,text):
         text = str(text)
+        print("text",text)
         seq = [self.model.wv.vocab.get(token).index for token in text.split()]
         seq.append(self.EOS_idx)
         # seq.insert(0,self.SOS_idx)
