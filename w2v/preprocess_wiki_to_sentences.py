@@ -164,7 +164,7 @@ w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt"  
 # f = partial(process_wiki_files_reduced,w2v_model)
 df = list_multiprocessing(wiki_files,
                           process_wiki_files,
-                          workers=12)
+workers = 12)
 
 df = pd.concat(df).reset_index(drop=True)
 df.article_uuid = df.article_uuid.astype(str)
