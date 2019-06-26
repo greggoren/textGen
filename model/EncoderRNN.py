@@ -33,7 +33,7 @@ class EncoderRNN(nn.Module):
     # word_inputs: (batch_size, seq_length), h: (h_or_c, layer_n_direction, batch, seq_length)
     def forward(self, word_inputs,input_lengths, hidden):
         embedded = self.embedding(word_inputs)
-        embedded = self.dropout(embedded)
+        # embedded = self.dropout(self.embedding(word_inputs))
         lstm_input = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
         self.lstm.flatten_parameters()
         output, hidden = self.lstm(lstm_input, hidden)

@@ -32,8 +32,8 @@ class DecoderRNN(nn.Module):
     def forward(self, word_inputs, hidden):
         # Note: we run this one by one
         # embedded (batch_size, 1, hidden_size)
-        embedded = self.embedding(word_inputs).unsqueeze_(1)
-        embedded = self.dropout(embedded)
+        # embedded = self.dropout(self.embedding(word_inputs)).unsqueeze_(1)
+        embedded = self.embedding(word_inputs)
         self.lstm.flatten_parameters()
         output, hidden = self.lstm(embedded, hidden)
 
