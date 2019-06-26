@@ -44,15 +44,19 @@ class Seq2seq(nn.Module):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
         loss = 0.0
         init_token = self.SOS_idx
+        #input of <SOS>
         input = torch.LongTensor([init_token]*x.shape[0]).to(self.device)
-        for i in range(y.shape[1]+1):
+        decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
+        decoder_hidden_h, decoder_hidden_c = decoder_hidden
+        # Teacher forcing : input sequence
+        for i in range(y.shape[1]):
+            input = y[:, i]
             decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
             h = h.reshape((input.shape[0],self.vocab_size))
             loss+=self.criterion(h,input)
-            input = y[:, i]
 
         loss = self.normalize_loss(loss,lengths)
         return loss
