@@ -95,7 +95,7 @@ def process_wiki_files(wiki_file):
 
 def validate_sentence(model,sentence):
     for token in sentence.split():
-        if token not in model.wv:
+        if model.wv.vocab.get(token) is None:
             return False
     return True
 
