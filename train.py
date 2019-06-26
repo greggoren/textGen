@@ -25,23 +25,34 @@ class CustomDataParallel(DataParallelModel):
             return getattr(self.module, name)
 
 
-def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,logger=None):
+def init_weights(m):
+    for name, param in m.named_parameters():
+        if 'weight' in name:
+            nn.init.normal_(param.data, mean=0, std=0.01)
+        else:
+            nn.init.constant_(param.data, 0)
+
+
+
+
+
+def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,p,logger=None):
     prnt = False
     if logger is not None:
         prnt = True
     if prnt:
-        logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" epochs="+str(epochs))
+        logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" dropout="+str(p)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
-    # chunks = pd.read_csv(data_set_file_path,delimiter=",",header=0,chunksize=100000)
     df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=500000)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx,reduction='none')
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
-    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed)
+    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed,p)
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
     net = net.double()
     net.to(device)
+    net.apply(init_weights)
     net = CustomDataParallel(net)
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()

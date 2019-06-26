@@ -10,7 +10,7 @@ from torch import nn
 
 
 class Seq2seq(nn.Module):
-    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings,criterion,seed):
+    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings,criterion,seed,p):
         super(Seq2seq, self).__init__()
         self.SOS_idx,self.EOS_idx= SOS_idx,EOS_idx
         self.n_layers = n_layers
@@ -18,9 +18,9 @@ class Seq2seq(nn.Module):
         self.criterion = criterion
         self.vocab_size = embeddings.shape[0]+3
         self.PAD_idx = PAD_idx
-        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,seed,self.n_layers)
+        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,seed,p,self.n_layers)
         # self.encoder = self.encoder
-        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,self.n_layers)
+        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,self.n_layers)
         # self.decoder = nn.DataParallel(self.decoder,dim=1)
         self.W = nn.Linear(hidden_size, output_vocab_size)
 

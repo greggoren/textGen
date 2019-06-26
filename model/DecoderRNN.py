@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 
 class DecoderRNN(nn.Module):
-    def __init__(self, input_vector_size ,hidden_size,embeddings, PAD_idx,seed,n_layers=1):
+    def __init__(self, input_vector_size ,hidden_size,embeddings, PAD_idx,seed,p,n_layers=1):
         super(DecoderRNN, self).__init__()
         self.seed = seed
         self.hidden_size = hidden_size
@@ -13,7 +13,7 @@ class DecoderRNN(nn.Module):
         self.embedding = self.from_pretrained(embeddings)
         # self.embedding = nn.DataParallel(self.embedding)
         self.lstm = nn.LSTM(input_vector_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
-
+        self.dropout = nn.Dropout(p)
 
     def from_pretrained(self,embeddings, freeze=True):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -31,7 +31,8 @@ class DecoderRNN(nn.Module):
     def forward(self, word_inputs, hidden):
         # Note: we run this one by one
         # embedded (batch_size, 1, hidden_size)
-        embedded = self.embedding(word_inputs).unsqueeze_(1)
+        embedded = self.dropout(self.embedding(word_inputs)).unsqueeze_(1)
         self.lstm.flatten_parameters()
         output, hidden = self.lstm(embedded, hidden)
+
         return output, hidden

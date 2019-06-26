@@ -31,9 +31,10 @@ if __name__=="__main__":
     lrs = [0.1,]
     batch_sizes = [100]
     epochs = 100
+    dropout = 0.5
     random_seed = 9001
     for lr in lrs:
         for batch_size in batch_sizes:
-            train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,logger)
+            train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,dropout,logger)
 
 
