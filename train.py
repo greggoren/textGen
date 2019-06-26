@@ -37,6 +37,7 @@ def init_weights(m):
 
 
 def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,p,logger=None):
+    #t
     prnt = False
     if logger is not None:
         prnt = True
