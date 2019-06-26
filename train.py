@@ -46,8 +46,9 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=500000)
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx,reduction='none')
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
-    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed,p)
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+
+    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed,p,device)
     # device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
     net = net.double()

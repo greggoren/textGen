@@ -4,11 +4,12 @@ import numpy as np
 from copy import deepcopy
 
 class DecoderRNN(nn.Module):
-    def __init__(self, input_vector_size ,hidden_size,embeddings, PAD_idx,seed,p,n_layers=1):
+    def __init__(self, input_vector_size ,hidden_size,embeddings, PAD_idx,seed,p,device,n_layers=1):
         super(DecoderRNN, self).__init__()
         self.seed = seed
         self.hidden_size = hidden_size
         self.n_layers = n_layers
+        self.device = device
         self.PAD_idx = PAD_idx
         self.embedding = self.from_pretrained(embeddings)
         # self.embedding = nn.DataParallel(self.embedding)
@@ -16,13 +17,13 @@ class DecoderRNN(nn.Module):
         self.dropout = nn.Dropout(p)
 
     def from_pretrained(self,embeddings, freeze=True):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cuda" if torch.cudva.is_available() else "cpu")
         np.random.seed(self.seed)
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
         added_rows = np.array([np.random.rand(cols), np.random.rand(cols),np.random.rand(cols)])
         working_matrix=np.vstack((working_matrix, added_rows))
-        working_matrix = torch.FloatTensor(working_matrix).to(device)
+        working_matrix = torch.FloatTensor(working_matrix).to(self.device)
         embedding = torch.nn.Embedding(num_embeddings=rows +3 , embedding_dim=cols,padding_idx=self.PAD_idx)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze

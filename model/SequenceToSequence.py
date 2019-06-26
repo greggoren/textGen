@@ -10,7 +10,7 @@ from torch import nn
 
 
 class Seq2seq(nn.Module):
-    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings,criterion,seed,p):
+    def __init__(self, input_vocab_size, output_vocab_size, hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,embeddings,criterion,seed,p,device):
         super(Seq2seq, self).__init__()
         self.SOS_idx,self.EOS_idx= SOS_idx,EOS_idx
         self.n_layers = n_layers
@@ -18,13 +18,9 @@ class Seq2seq(nn.Module):
         self.criterion = criterion
         self.vocab_size = embeddings.shape[0]+3
         self.PAD_idx = PAD_idx
-        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,seed,p,self.n_layers)
-        # self.encoder = self.encoder
-        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,self.n_layers)
-        # self.decoder = nn.DataParallel(self.decoder,dim=1)
+        self.encoder = EncoderRNN(input_vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers)
+        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers)
         self.W = nn.Linear(hidden_size, output_vocab_size)
-
-        self.softmax = nn.Softmax()
 
     def _forward_encoder(self, x,lengths):
         batch_size = x.shape[0]
@@ -46,18 +42,17 @@ class Seq2seq(nn.Module):
     def forward(self, x, y,lengths):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
         loss = 0.0
+        init_token = self.SOS_idx
+        input = torch.LongTensor([init_token]).to(self.device)
         for i in range(y.shape[1]):
-            input = y[:, i]
             decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
             h = h.reshape((input.shape[0],self.vocab_size))
             loss+=self.criterion(h,input)
-            # h: (batch_size, vocab_size, 1)
-            # H.append(h.unsqueeze(2))
-        # H: (batch_size, vocab_size, seq_len)
-        # return torch.cat(H, dim=2)
+            input = y[:, i]
+
         loss = self.normalize_loss(loss,lengths)
         return loss
 

@@ -10,7 +10,7 @@ from torch.autograd import Variable
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,n_layers=1):
+    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,n_layers=1):
         super(EncoderRNN, self).__init__()
         self.seed = seed
 
@@ -21,6 +21,7 @@ class EncoderRNN(nn.Module):
         self.relu = nn.ReLU
         self.embedding = self.from_pretrained(embeddings)
         self.dropout = nn.Dropout(p)
+        self.device = device
         self.lstm = nn.LSTM(
             embeddings.shape[1],
             int(hidden_size),
@@ -49,13 +50,13 @@ class EncoderRNN(nn.Module):
         return (hidden, cell)
 
     def from_pretrained(self,embeddings, freeze=True):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         np.random.seed(self.seed)
         working_matrix = deepcopy(embeddings)
         rows, cols = embeddings.shape
         added_rows = np.array([np.random.rand(cols), np.random.rand(cols),np.random.rand(cols)])
         working_matrix=np.vstack([working_matrix,added_rows])
-        working_matrix = torch.FloatTensor(working_matrix).to(device)
+        working_matrix = torch.FloatTensor(working_matrix).to(self.device)
         embedding = torch.nn.Embedding(num_embeddings=rows+3, embedding_dim=cols,padding_idx=self.PAD_idx)
         embedding.weight = torch.nn.Parameter(working_matrix)
         embedding.weight.requires_grad = not freeze
