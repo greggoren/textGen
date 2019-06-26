@@ -19,9 +19,9 @@ class EncoderRNN(nn.Module):
         self.n_layers = n_layers
         self.PAD_idx = PAD_idx
         self.relu = nn.ReLU
+        self.device = device
         self.embedding = self.from_pretrained(embeddings)
         self.dropout = nn.Dropout(p)
-        self.device = device
         self.lstm = nn.LSTM(
             embeddings.shape[1],
             int(hidden_size),
