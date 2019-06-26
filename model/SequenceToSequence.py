@@ -41,7 +41,7 @@ class Seq2seq(nn.Module):
 
 
     def forward(self, x, y,lengths):
-        device = torch.device("cuda" if torch.cudva.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
         loss = 0.0
         init_token = self.SOS_idx
