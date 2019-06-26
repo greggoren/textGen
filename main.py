@@ -16,7 +16,7 @@ if __name__=="__main__":
     w2v_model_file_path = sys.argv[1]
     data_set_file_path = sys.argv[2]
 
-    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=7000)
+    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file_path,binary=True,limit=5000)
     if len(sys.argv)>3:
         output_model = sys.argv[3]
         w2v_model.wv.save_word2vec_format(output_model,binary=True)
