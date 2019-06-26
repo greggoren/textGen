@@ -160,12 +160,14 @@ for filename in glob.iglob('data/wiki/*/*', recursive=True):
 # sw_ru = set(stopwords.words('russian'))
 # sw = list(sw_ru.union(sw_en))
 sw = []
-w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt"  ,binary=True,limit=7000)
+w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt"  ,binary=True,limit=5000)
 # f = partial(process_wiki_files_reduced,w2v_model)
 df = list_multiprocessing(wiki_files,
                           process_wiki_files,
 workers = 12)
 
 df = pd.concat(df).reset_index(drop=True)
+df=df[df.proc_len>1]
 df.article_uuid = df.article_uuid.astype(str)
-df.to_csv('wikipedia_sentences_reduced7K.csv')
+
+df.to_csv('wikipedia_sentences_reduced5K.csv')

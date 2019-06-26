@@ -62,22 +62,3 @@ class Seq2seq(nn.Module):
         loss = self.normalize_loss(loss,lengths)
         return loss
 
-    def greedy_generation(self, x,lengths):
-        decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
-
-        current_y = self.SOS_idx
-        result = [current_y]
-        counter = 0
-        while current_y != self.EOS_idx and counter < 100:
-            input = torch.tensor([current_y])
-            decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
-            decoder_hidden_h, decoder_hidden_c = decoder_hidden
-            # h: (vocab_size)
-            h = self.W(decoder_output.squeeze(1)).squeeze(0)
-            y = self.softmax(h)
-            _, current_y = torch.max(y, dim=0)
-            current_y = current_y.item()
-            result.append(current_y)
-            counter += 1
-
-        return result
