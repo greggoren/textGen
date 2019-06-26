@@ -15,8 +15,9 @@ def greedy_generation(model, x, lengths,max_generation_len,device):
         h = model.W(decoder_output.squeeze(1).squeeze(0))
         # y = softmax(h)
         y = softmax(h)
-        _, current_y = torch.max(y, dim=0)
-        current_y = current_y.item()
+        # _, current_y = torch.max(y, dim=0)
+        current_y = y.max(0)[1].item()
+        # current_y = current_y.item()
         result.append(current_y)
         counter += 1
 
