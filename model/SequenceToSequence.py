@@ -44,8 +44,8 @@ class Seq2seq(nn.Module):
         decoder_hidden_h, decoder_hidden_c = self._forward_encoder(x,lengths)
         loss = 0.0
         init_token = self.SOS_idx
-        input = torch.LongTensor([init_token]*x.shape[0]).reshape(x.shape[0],1).to(self.device)
-        for i in range(y.shape[1]):
+        input = torch.LongTensor([init_token]*x.shape[0]).to(self.device)
+        for i in range(y.shape[1]+1):
             decoder_output, decoder_hidden = self.decoder(input, (decoder_hidden_h, decoder_hidden_c))
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
