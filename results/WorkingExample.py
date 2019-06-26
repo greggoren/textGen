@@ -2,6 +2,7 @@ import torch
 import sys
 import gensim
 from modules.GreedySearch import greedy_generation
+from model.SequenceToSequence import Seq2seq
 
 def convert_to_indices(sentence,w2v_model,EOS_idx,SOS_idx,device):
 
@@ -30,7 +31,8 @@ if __name__=="__main__":
     rows, cols = w2v_model.wv.vectors.shape
     SOS_idx = rows
     EOS_idx = rows + 1
-    model = torch.load(model_file_path,map_location=device)
+
+    model = torch.load_(model_file_path,map_location=device)
     model.eval()
     input_sentences = [('the first known use of this word was in',torch.LongTensor([10]).to(device)),('karl marx became leading figure in the international and member of its general council',torch.LongTensor([14]).to(device)),('in addition to playing cricket for the university he also played football for oxford university',torch.LongTensor([16]).to(device)),('he was evacuated to malta where he died from his wounds on november',torch.LongTensor([14]).to(device))]
     greedy_output = open("GreedyReuslts.txt",'w')
