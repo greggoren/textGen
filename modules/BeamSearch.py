@@ -90,8 +90,8 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
             nextnodes = []
 
             for new_k in range(beam_width):
-                decoded_t = torch.LongTensor([indexes[0][new_k]]).to(device)
-                log_p = log_prob[0][new_k].item()
+                decoded_t = torch.LongTensor([indexes[new_k]]).to(device)
+                log_p = log_prob[new_k].item()
 
                 node = BeamSearchNode(decoder_hidden, n, decoded_t, n.logp + log_p, n.leng + 1)
                 score = -node.eval()
