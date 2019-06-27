@@ -26,7 +26,7 @@ if __name__=="__main__":
     EOS_idx = rows+1
     PAD_idx = rows+2
     # df=df.loc[df["proc_len"]>=3]
-    n_layers = 1
+    n_layers = 3
     hidden_size = 200
     lrs = [0.1,]
     batch_sizes = [100]
