@@ -25,7 +25,7 @@ class BeamSearchNode(object):
 
         return self.logp / float(self.leng - 1 + 1e-6) + alpha * reward
 
-def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,device,encoder_outputs=None):
+def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None):
     '''
     :param target_tensor: target indexes tensor of shape [B, T] where B is the batch size and T is the maximum length of the output sentence
     :param decoder_hidden: input tensor of shape [1, B, H] for start of the decoding
@@ -46,7 +46,7 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,devi
         # encoder_output = encoder_outputs[:,idx, :].unsqueeze(1)
 
         # Start with the start of the sentence token
-        decoder_input = torch.LongTensor([SOS_token]).to(device)
+        decoder_input = torch.LongTensor([model.SOS_idx]).to(device)
 
         # Number of sentence to generate
         endnodes = []
@@ -70,7 +70,7 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,devi
             decoder_input = n.wordid
             decoder_hidden = n.h
 
-            if n.wordid.item() == EOS_token and n.prevNode != None:
+            if n.wordid.item() == model.EOS_idx and n.prevNode != None:
                 endnodes.append((score, n))
                 # if we reached maximum # of sentences required
                 if len(endnodes) >= number_required:
@@ -80,7 +80,8 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,devi
 
             # decode for one step using decoder
             # decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_output)
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+            decoder_output, decoder_hidden = model.decoder(decoder_input, decoder_hidden)
+            decoder_output = model.W(decoder_output.squeeze(1).squeeze(0))
 
             # PUT HERE REAL BEAM SEARCH OF TOP
             log_prob, indexes = torch.topk(decoder_output, beam_width)
@@ -117,7 +118,7 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,devi
                 utterance.append(n.wordid.item())
 
             utterance = utterance[::-1]
-            utterance.append(EOS_token)
+            utterance.append(model.EOS_idx)
 
             utterances.append(utterance)
         # utterances.append(EOS_token)
