@@ -2,6 +2,7 @@ import torch
 import sys
 import gensim
 from modules.GreedySearch import greedy_generation
+from modules.BeamSearch import beam_search_generation
 from model.SequenceToSequence import Seq2seq
 
 def convert_to_indices(sentence,w2v_model,EOS_idx,SOS_idx,device):
@@ -38,7 +39,7 @@ if __name__=="__main__":
     input_sentences = [('the first known use of this word was in',torch.LongTensor([10]).to(device))
                        ,("due to its links to active workers movements the international became significant organisation",torch.LongTensor([14]).to(device))
                        ,("it developed mostly in the netherlands britain and the united states before and during the second world war",torch.LongTensor([19]).to(device))
-                       ,("in the the number of people affected was estimated at per people worldwid",torch.LongTensor([14]).to(device))]
+                       ,("in the the number of people affected was estimated at per people worldwide",torch.LongTensor([14]).to(device))]
 
 
 
@@ -54,7 +55,15 @@ if __name__=="__main__":
         greedy_output.write("Generated Output: "+generated_sentece+"\n")
     greedy_output.close()
 
-
+    beam_output = open("BeamResults.txt",'w')
+    for i, inp in enumerate(input_sentences):
+        x = convert_to_indices(inp[0], w2v_model, EOS_idx, SOS_idx, device)
+        output_indices = beam_search_generation(model,x,inp[1],device)
+        generated_sentence = retrieve_sentence_from_indices(indices_dict,output_indices[0][0])
+        beam_output.write(("Example:"+str(i+1)+"\n"))
+        beam_output.write("Input: "+inp[0]+"\n")
+        beam_output.write("Generated Output: " + generated_sentence + "\n")
+    beam_output.close()
 
 
 

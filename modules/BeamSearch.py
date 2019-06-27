@@ -3,7 +3,6 @@ import torch
 from queue import PriorityQueue
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class BeamSearchNode(object):
     def __init__(self, hiddenstate, previousNode, wordId, logProb, length):
@@ -26,7 +25,7 @@ class BeamSearchNode(object):
 
         return self.logp / float(self.leng - 1 + 1e-6) + alpha * reward
 
-def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,encoder_outputs=None):
+def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,device,encoder_outputs=None):
     '''
     :param target_tensor: target indexes tensor of shape [B, T] where B is the batch size and T is the maximum length of the output sentence
     :param decoder_hidden: input tensor of shape [1, B, H] for start of the decoding
@@ -44,10 +43,10 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,enco
             decoder_hidden = (decoder_hiddens[0][:,idx, :].unsqueeze(0),decoder_hiddens[1][:,idx, :].unsqueeze(0))
         else:
             decoder_hidden = decoder_hiddens[:, idx, :].unsqueeze(0)
-        encoder_output = encoder_outputs[:,idx, :].unsqueeze(1)
+        # encoder_output = encoder_outputs[:,idx, :].unsqueeze(1)
 
         # Start with the start of the sentence token
-        decoder_input = torch.LongTensor([[SOS_token]], device=device)
+        decoder_input = torch.LongTensor([SOS_token]).to(device)
 
         # Number of sentence to generate
         endnodes = []
@@ -80,14 +79,17 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,enco
                     continue
 
             # decode for one step using decoder
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_output)
+            # decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_output)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
 
             # PUT HERE REAL BEAM SEARCH OF TOP
             log_prob, indexes = torch.topk(decoder_output, beam_width)
+            log_prob = log_prob.squeeze(0)
+            indexes = indexes.squeeze(0)
             nextnodes = []
 
             for new_k in range(beam_width):
-                decoded_t = indexes[0][new_k].view(1, -1)
+                decoded_t = torch.LongTensor([indexes[0][new_k]]).to(device)
                 log_p = log_prob[0][new_k].item()
 
                 node = BeamSearchNode(decoder_hidden, n, decoded_t, n.logp + log_p, n.leng + 1)
@@ -108,15 +110,24 @@ def beam_decode(target_tensor, decoder_hiddens,EOS_token,SOS_token, decoder,enco
         utterances = []
         for score, n in sorted(endnodes, key=operator.itemgetter(0)):
             utterance = []
-            utterance.append(n.wordid)
+            utterance.append(n.wordid.item())
             # back trace
             while n.prevNode != None:
                 n = n.prevNode
-                utterance.append(n.wordid)
+                utterance.append(n.wordid.item())
 
             utterance = utterance[::-1]
+            utterance.append(EOS_token)
+
             utterances.append(utterance)
+        # utterances.append(EOS_token)
 
         decoded_batch.append(utterances)
-
     return decoded_batch
+
+def beam_search_generation(model,x,length,device):
+    # decoder_hidden_h, decoder_hidden_c = model._forward_encoder(x, length)
+    decoder_hiddens = model._forward_encoder(x, length)
+    decoded = beam_decode(x,decoder_hiddens,model.EOS_idx,model.SOS_idx,model.decoder,device)
+    return decoded
+

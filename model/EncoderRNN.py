@@ -46,8 +46,12 @@ class EncoderRNN(nn.Module):
         # hidden = torch.zeros(1, self.n_layers, batches, int(self.hidden_size))
         # # if USE_CUDA: hidden = hidden.cuda()
         # return hidden
-        hidden = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
-        cell = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # hidden = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
+        hidden = Variable(torch.zeros(self.n_layers,batch_size,self.hidden_size).double().to(device))
+        # cell = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
+        cell = Variable(torch.zeros(self.n_layers,batch_size,self.hidden_size).double().to(device))
+
         return (hidden, cell)
 
     def from_pretrained(self,embeddings, freeze=True):
