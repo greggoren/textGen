@@ -27,7 +27,7 @@ if __name__=="__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_file_path = sys.argv[1]
     w2v_model_path = sys.argv[2]
-    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_path,binary=True,limit=15000)
+    w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_path,binary=True,limit=5000)
     rows, cols = w2v_model.wv.vectors.shape
     SOS_idx = rows
     EOS_idx = rows + 1
