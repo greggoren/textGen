@@ -32,7 +32,7 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
     :param encoder_outputs: if you are using attention mechanism you can pass encoder outputs, [T, B, H] where T is the maximum length of input sentence
     :return: decoded_batch
     '''
-
+    log_softmax = torch.nn.LogSoftmax(dim=0)
     beam_width = 10
     topk = 1  # how many sentence do you want to generate
     decoded_batch = []
@@ -82,7 +82,7 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
             # decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_output)
             decoder_output, decoder_hidden = model.decoder(decoder_input, decoder_hidden)
             decoder_output = model.W(decoder_output.squeeze(1).squeeze(0))
-
+            decoder_output =log_softmax(decoder_output)
             # PUT HERE REAL BEAM SEARCH OF TOP
             log_prob, indexes = torch.topk(decoder_output, beam_width)
             log_prob = log_prob.squeeze(0)
@@ -129,6 +129,6 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
 def beam_search_generation(model,x,length,device):
     # decoder_hidden_h, decoder_hidden_c = model._forward_encoder(x, length)
     decoder_hiddens = model._forward_encoder(x, length)
-    decoded = beam_decode(x,decoder_hiddens,model.EOS_idx,model.SOS_idx,model.decoder,device)
+    decoded = beam_decode(x,decoder_hiddens,model,device)
     return decoded
 
