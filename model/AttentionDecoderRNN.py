@@ -13,7 +13,7 @@ class AttnDecoderRNN(nn.Module):
         self.seed = seed
         self.PAD_idx = Pad_idx
         self.embedding,self.input_embedding_size = self.from_pretrained(embeddings)
-        self.attn = nn.Linear(self.hidden_size+self.hidden_size(1+bidirectional) , 1)
+        self.attn = nn.Linear(self.hidden_size+self.hidden_size*(1+bidirectional) , 1)
         self.dropout = nn.Dropout(self.dropout_p)
         self.lstm = nn.LSTM(self.input_embedding_size+self.hidden_size*(1+bidirectional), self.hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
 
