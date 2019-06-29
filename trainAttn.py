@@ -86,7 +86,9 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
                 for item in loss:
                     tmp_loss+=item.to(device)
                 tmp_loss=tmp_loss/len(loss)
+
                 loss = tmp_loss
+                del tmp_loss
             loss.sum().backward()
             optimizer.step()
 
