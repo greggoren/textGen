@@ -10,7 +10,7 @@ from torch.autograd import Variable
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,n_layers=1):
+    def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,n_layers,bidirectional):
         super(EncoderRNN, self).__init__()
         self.seed = seed
 
@@ -22,12 +22,13 @@ class EncoderRNN(nn.Module):
         self.device = device
         self.embedding = self.from_pretrained(embeddings)
         self.dropout = nn.Dropout(p)
+        self.bidirectional = bidirectional
         self.lstm = nn.LSTM(
             embeddings.shape[1],
             int(hidden_size),
             num_layers=n_layers,
             batch_first=True,  # First dimension of input tensor will be treated as a batch dimension
-            bidirectional=False
+            bidirectional=self.bidirectional
         )
 
     # word_inputs: (batch_size, seq_length), h: (h_or_c, layer_n_direction, batch, seq_length)
@@ -38,7 +39,8 @@ class EncoderRNN(nn.Module):
         self.lstm.flatten_parameters()
         output, hidden = self.lstm(lstm_input, hidden)
         encoded_out, _ = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
-        encoded_out = self.relu(encoded_out)
+        # encoded_out = self.relu(encoded_out)
+
         return encoded_out, hidden
 
     def init_hidden(self, batch_size):
@@ -48,9 +50,9 @@ class EncoderRNN(nn.Module):
         # return hidden
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # hidden = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
-        hidden = Variable(torch.zeros(self.n_layers,batch_size,self.hidden_size).double().to(device))
+        hidden = Variable(torch.zeros(self.n_layers*(1+self.bidirectional),batch_size,self.hidden_size).double().to(device))
         # cell = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
-        cell = Variable(torch.zeros(self.n_layers,batch_size,self.hidden_size).double().to(device))
+        cell = Variable(torch.zeros(self.n_layers*(1+self.bidirectional),batch_size,self.hidden_size).double().to(device))
 
         return (hidden, cell)
 

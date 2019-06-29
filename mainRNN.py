@@ -1,7 +1,6 @@
-from train import train_model
+from trainRNN import train_model
 import gensim
 import sys
-import pandas as pd
 import logging
 import os
 
@@ -25,16 +24,16 @@ if __name__=="__main__":
     SOS_idx = rows
     EOS_idx = rows+1
     PAD_idx = rows+2
-    # df=df.loc[df["proc_len"]>=3]
-    n_layers = 3
+    n_layers = 1
     hidden_size = 200
     lrs = [0.1,]
     batch_sizes = [100]
     epochs = 100
     dropout = 0.5
     random_seed = 9001
+    bidirectional = False
     for lr in lrs:
         for batch_size in batch_sizes:
-            train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,dropout,logger)
+            train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,dropout,bidirectional,logger)
 
 

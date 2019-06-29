@@ -1,6 +1,6 @@
 import torch.optim as optim
 import torch
-from model.SequenceToSequence import Seq2seq
+from model.Seq2SeqAttnNet import Seq2seqAttn
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
 from dataLoader.Collator import PadCollator
@@ -36,7 +36,7 @@ def init_weights(m):
 
 
 
-def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,p,logger=None):
+def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_idx,PAD_idx,data_set_file_path,random_seed,p,bidrectional,logger=None):
     #t
     prnt = False
     if logger is not None:
@@ -45,11 +45,12 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
         logger.info("RUNNING WITH PARAMS: lr=" +str(lr)+" batch_size="+str(batch_size)+" dropout="+str(p)+" epochs="+str(epochs))
     rows,cols = w2v_model.wv.vectors.shape
     df = pd.read_csv(data_set_file_path,delimiter=",",header=0,nrows=500000)
+    max_len = int(df["proc_len"].max())
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_idx,reduction='none')
     # criterion = DataParallelCriterion(criterion, device_ids=[1, 0])
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
-    net = Seq2seq(cols,rows+3,hidden_size,SOS_idx,EOS_idx,PAD_idx,n_layers,w2v_model.wv.vectors,criterion,random_seed,p,device)
+    net = Seq2seqAttn(cols, hidden_size, SOS_idx, EOS_idx, PAD_idx, n_layers, w2v_model.wv.vectors, criterion, random_seed, p,device, max_len,bidrectional)
     # device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
     net = net.double()
@@ -78,12 +79,8 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
             batch = collator(batch)
             sequences,labels, lengths = batch
 
-            # forward + backward + optimize
-            # y_hat = net.forward_train(sequences,sequences,lengths)
-            # y_hat = net(sequences,sequences,lengths)
             loss = net(sequences,sequences,lengths)
             optimizer.zero_grad()
-            # loss = criterion(y_hat,sequences)
             if isinstance(loss,list):
                 tmp_loss=0.0
                 for item in loss:

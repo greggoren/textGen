@@ -118,10 +118,8 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
                 utterance.append(n.wordid.item())
 
             utterance = utterance[::-1]
-            utterance.append(model.EOS_idx)
 
             utterances.append(utterance)
-        # utterances.append(EOS_token)
 
         decoded_batch.append(utterances)
     return decoded_batch
