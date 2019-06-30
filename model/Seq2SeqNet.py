@@ -1,5 +1,5 @@
-from model.DecoderRNN import DecoderRNN
-from model.EncoderRNN import EncoderRNN
+from model.DecoderLSTM import DecoderLSTM
+from model.EncoderLSTM import EncoderLSTM
 import torch
 from torch import nn
 
@@ -21,7 +21,7 @@ class Seq2seq(nn.Module):
         self.device = device
         self.bidirectional=bidirectional
         self.encoder = EncoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers,bidirectional)
-        self.decoder = DecoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers)
+        self.decoder = DecoderLSTM(input_vocab_size, hidden_size, embeddings, PAD_idx, seed, p, device, self.n_layers)
         self.W = nn.Linear(hidden_size, output_vocab_size)
 
     def _forward_encoder(self, x,lengths):

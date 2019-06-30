@@ -89,7 +89,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
 
                 loss = tmp_loss
                 del tmp_loss
-            loss.sum().backward()
+            loss.backward()
             optimizer.step()
 
             # print statistics

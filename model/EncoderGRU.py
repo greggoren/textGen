@@ -9,9 +9,9 @@ from torch.autograd import Variable
 
 
 
-class EncoderRNN(nn.Module):
+class EncoderGRU(nn.Module):
     def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,n_layers,bidirectional):
-        super(EncoderRNN, self).__init__()
+        super(EncoderGRU, self).__init__()
         self.seed = seed
 
         self.vocab_size = vocab_size
@@ -23,38 +23,29 @@ class EncoderRNN(nn.Module):
         self.embedding = self.from_pretrained(embeddings)
         self.dropout = nn.Dropout(p)
         self.bidirectional = bidirectional
-        self.lstm = nn.LSTM(
+        self.gru = nn.GRU(
             embeddings.shape[1],
             int(hidden_size),
             num_layers=n_layers,
             batch_first=True,  # First dimension of input tensor will be treated as a batch dimension
-            bidirectional=self.bidirectional
+            bidirectional=self.bidirectional,
+            dropout=0.5
         )
 
     # word_inputs: (batch_size, seq_length), h: (h_or_c, layer_n_direction, batch, seq_length)
     def forward(self, word_inputs,input_lengths, hidden):
         embedded = self.embedding(word_inputs)
-        # embedded = self.dropout(self.embedding(word_inputs))
-        lstm_input = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
-        self.lstm.flatten_parameters()
-        output, hidden = self.lstm(lstm_input, hidden)
+        gru_input = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
+        self.gru.flatten_parameters()
+        output, hidden = self.gru(gru_input, hidden)
         encoded_out, _ = torch.nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
-        # encoded_out = self.relu(encoded_out)
 
         return encoded_out, hidden
 
     def init_hidden(self, batch_size):
-        # # hidden = torch.zeros(2, self.n_layers*2, batches, int(self.hidden_size/2))
-        # hidden = torch.zeros(1, self.n_layers, batches, int(self.hidden_size))
-        # # if USE_CUDA: hidden = hidden.cuda()
-        # return hidden
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # hidden = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
         hidden = Variable(torch.zeros(self.n_layers*(1+self.bidirectional),batch_size,self.hidden_size).double().to(device))
-        # cell = Variable(next(self.parameters()).data.new(self.n_layers, batch_size, self.hidden_size))
-        cell = Variable(torch.zeros(self.n_layers*(1+self.bidirectional),batch_size,self.hidden_size).double().to(device))
-
-        return (hidden, cell)
+        return hidden
 
     def from_pretrained(self,embeddings, freeze=True):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

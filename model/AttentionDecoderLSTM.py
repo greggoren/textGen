@@ -3,9 +3,9 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from copy import deepcopy
-class AttnDecoderRNN(nn.Module):
+class AttnDecoderLSTM(nn.Module):
     def __init__(self, hidden_size, output_size,embeddings,seed,Pad_idx,n_layers,dropout_p,max_length,bidirectional):
-        super(AttnDecoderRNN, self).__init__()
+        super(AttnDecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.dropout_p = dropout_p
@@ -35,6 +35,7 @@ class AttnDecoderRNN(nn.Module):
         # embedded = self.dropout(embedded)
         weights = []
         for i in range(len(encoder_outputs[0])):
+
             weights.append(self.attn(torch.cat((hidden[0],
                                                 encoder_outputs[:,i]), dim=1)))
 

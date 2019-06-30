@@ -10,7 +10,7 @@ from torch import nn
 from loss.Utils import save_loss_history
 from loss.Utils import save_model
 from parallel.Parallel import DataParallelModel, DataParallelCriterion
-from modules.Evaluate import evaluate
+from modules.Evaluate import evaluate_attn
 class MyDataParallel(nn.DataParallel):
     def __getattr__(self, name):
         return getattr(self.module, name)

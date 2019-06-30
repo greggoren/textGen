@@ -1,5 +1,5 @@
-from model.AttentionDecoderRNN import AttnDecoderRNN
-from model.EncoderRNN import EncoderRNN
+from model.AttentionDecoderLSTM import AttnDecoderLSTM
+from model.EncoderLSTM import EncoderLSTM
 import torch
 from torch import nn
 
@@ -20,8 +20,8 @@ class Seq2seqAttn(nn.Module):
         self.PAD_idx = PAD_idx
         self.device = device
         self.bidirectional = bidirectional
-        self.encoder = EncoderRNN(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers,bidirectional)
-        self.decoder = AttnDecoderRNN(hidden_size,self.vocab_size,embeddings,seed,PAD_idx,self.n_layers,p,max_length,self.bidirectional)
+        self.encoder = EncoderLSTM(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers,bidirectional)
+        self.decoder = AttnDecoderLSTM(hidden_size, self.vocab_size, embeddings, seed, PAD_idx, self.n_layers, p, max_length, self.bidirectional)
         self.W = nn.Linear(hidden_size, self.vocab_size)
 
     def _forward_encoder(self, x,lengths):
@@ -35,6 +35,7 @@ class Seq2seqAttn(nn.Module):
         # self.decoder_hidden_c = encoder_hidden_c.permute(1,0,2).reshape(batch_size, self.n_layers*(1+self.bidirectional), self.hidden_size).permute(1,0,2)
         # self.decoder_hidden_c = encoder_hidden_c.permute(1,0,2).reshape(batch_size, self.n_layers, self.hidden_size).permute(1,0,2)
         # return self.decoder_hidden_h, self.decoder_hidden_c,encoder_outputs
+        # return encoder_hidden_h[:self.n_layers],encoder_hidden_c[:self.n_layers],encoder_outputs
         return encoder_hidden_h[0],encoder_hidden_c[0],encoder_outputs
 
 
