@@ -69,10 +69,10 @@ def evaluate_attn(model, collator, indices_dict, device, eval_data):
     bleu1_stats,bleu2_stats,bleu3_stats,bleu4_stats=[],[],[],[]
     for i, batch in enumerate(eval_data):
         true,_,_ = batch
-        print(true)
-        ref = [retrieve_sentence_from_indices(indices_dict, true),]
+        ref = [retrieve_sentence_from_indices(indices_dict, true[0]),]
         batch = collator(batch)
         sequence, label, length = batch
+        sequence=sequence.unsqueeze_(0)
         result_indices = greedy_generation_attn(model,sequence,length,50,device)
         generated_sentece = retrieve_sentence_from_indices(indices_dict,result_indices)
         bleu1, bleu2, bleu3, bleu4 = calc_bleu(ref,generated_sentece)
