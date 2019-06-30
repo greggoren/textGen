@@ -3,9 +3,9 @@ import torch
 import numpy as np
 from copy import deepcopy
 
-class DecoderLSTM(nn.Module):
+class DecoderRNN(nn.Module):
     def __init__(self, input_vector_size ,hidden_size,embeddings, PAD_idx,seed,p,device,n_layers=1):
-        super(DecoderLSTM, self).__init__()
+        super(DecoderRNN, self).__init__()
         self.seed = seed
         self.hidden_size = hidden_size
         self.n_layers = n_layers

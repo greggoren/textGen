@@ -1,5 +1,5 @@
-from model.AttentionDecoderLSTM import AttnDecoderLSTM
-from model.EncoderLSTM import EncoderLSTM
+from model.AttentionDecoderRNN import AttnDecoderRNN
+from model.EncoderRNN import EncoderRNN
 import torch
 from torch import nn
 
@@ -20,8 +20,8 @@ class Seq2seqAttn(nn.Module):
         self.PAD_idx = PAD_idx
         self.device = device
         self.bidirectional = bidirectional
-        self.encoder = EncoderLSTM(input_vocab_size,hidden_size,embeddings,PAD_idx,seed,p,device,self.n_layers,bidirectional)
-        self.decoder = AttnDecoderLSTM(hidden_size, self.vocab_size, embeddings, seed, PAD_idx, self.n_layers, p, max_length, self.bidirectional)
+        self.encoder = EncoderRNN(input_vocab_size, hidden_size, embeddings, PAD_idx, seed, p, device, self.n_layers, bidirectional)
+        self.decoder = AttnDecoderRNN(hidden_size, self.vocab_size, embeddings, seed, PAD_idx, self.n_layers, p, max_length, self.bidirectional)
         self.W = nn.Linear(hidden_size, self.vocab_size)
 
     def _forward_encoder(self, x,lengths):

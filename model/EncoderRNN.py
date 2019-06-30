@@ -9,9 +9,9 @@ from torch.autograd import Variable
 
 
 
-class EncoderLSTM(nn.Module):
+class EncoderRNN(nn.Module):
     def __init__(self, vocab_size, hidden_size,embeddings,PAD_idx,seed,p,device,n_layers,bidirectional):
-        super(EncoderLSTM, self).__init__()
+        super(EncoderRNN, self).__init__()
         self.seed = seed
 
         self.vocab_size = vocab_size
