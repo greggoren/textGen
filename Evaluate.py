@@ -19,17 +19,15 @@ def get_words_from_indices_dict(model,SOS_idx,EOS_idx):
 
 def retrieve_sentence_from_indices(indices_dict,results,EOS_idx):
     # sentence = " ".join([indices_dict[i] for i in indices])
-    try:
-        sentences= []
-        for result in results:
-            tmp = []
-            for i in result:
-                if i.item()==EOS_idx:
-                    tmp.append(indices_dict[EOS_idx])
-                    break
-                tmp.append(indices_dict[i.item()])
-            sentences.append(tmp)
-    except:
+    sentences= []
+    for result in results:
+        tmp = []
+        for i in result:
+            if i.item()==EOS_idx:
+                tmp.append(indices_dict[EOS_idx])
+                break
+            tmp.append(indices_dict[i.item()])
+        sentences.append(tmp)
     return sentences
 
 
