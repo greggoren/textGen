@@ -62,8 +62,8 @@ class Seq2seqAttn(nn.Module):
             if teacher_forcing:
                 input = y[:, i]
             else:
-                h = softmax(h)
-                input = h.max(1)[1]
+                dist = softmax(h)
+                input = dist.max(1)[1]
 
             loss+=self.criterion(h,y[:,i])
 
