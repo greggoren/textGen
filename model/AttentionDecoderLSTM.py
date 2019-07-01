@@ -3,19 +3,22 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from copy import deepcopy
-class AttnDecoderRNN(nn.Module):
+from model.Attention import Attention
+
+
+class AttnDecoderLSTM(nn.Module):
     def __init__(self, hidden_size, output_size,embeddings,seed,Pad_idx,n_layers,dropout_p,max_length,bidirectional):
-        super(AttnDecoderRNN, self).__init__()
+        super(AttnDecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.dropout_p = dropout_p
         self.max_length = max_length
         self.seed = seed
         self.PAD_idx = Pad_idx
+        self.attn = Attention(self.hidden_size, bidirectional)
         self.embedding,self.input_embedding_size = self.from_pretrained(embeddings)
-        # self.attn = nn.Linear(self.hidden_size*((1+bidirectional)) , self.hidden_size)
-        self.attn = nn.Linear(self.hidden_size+self.hidden_size*(1+bidirectional) , 1)
-        self.attn_combined = nn.Linear(self.input_embedding_size+self.hidden_size*(1+bidirectional) ,self.input_embedding_size)
+        self.attn_combined = nn.Linear(self.input_embedding_size + self.hidden_size * (1 + bidirectional),
+                                       self.input_embedding_size)
         self.dropout = nn.Dropout(self.dropout_p)
         self.relu = nn.ReLU()
         self.lstm = nn.LSTM(self.input_embedding_size, self.hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
@@ -33,21 +36,18 @@ class AttnDecoderRNN(nn.Module):
         embedding.weight.requires_grad = not freeze
         return embedding,cols
 
-    def forward(self, input, hidden, encoder_outputs):
+    def forward(self, input, hidden, encoder_outputs,lengths):
         embedded = self.embedding(input)
         embedded = self.dropout(embedded)
-        weights = []
-        for i in range(len(encoder_outputs[0])):
 
-            weights.append(self.attn(torch.cat((hidden[0],encoder_outputs[:,i]), dim=1)))
-            # weights.append(torch.bmm(self.attn(encoder_outputs[:,i]),hidden[0]))
+        # attn_hidden = torch.cat((hidden[0][0],hidden[0][1]),dim=1)
+        attn_hidden = hidden[0]
+        normalized_weights = self.attn(attn_hidden,encoder_outputs,lengths)
 
-        normalized_weights = F.softmax(torch.cat(weights, 1), 1)
-
-        attn_applied = torch.bmm(normalized_weights.unsqueeze(1),
+        context = torch.bmm(normalized_weights.unsqueeze(1),
                                  encoder_outputs)
 
-        attn_comb = torch.cat((attn_applied.squeeze(1), embedded), dim=1)
+        attn_comb = torch.cat((context.squeeze(1), embedded), dim=1)
         input_lstm = self.attn_combined(attn_comb).unsqueeze_(1)
         input_lstm = self.relu(input_lstm)
         self.lstm.flatten_parameters()
