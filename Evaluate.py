@@ -1,5 +1,5 @@
 import torch
-from  nltk.translate.bleu_score import sentence_bleu
+from  nltk.translate.bleu_score import sentence_bleu,SmoothingFunction
 import numpy as np
 from dataLoader.DataLoader import Loader
 from torch.utils.data import DataLoader
@@ -77,9 +77,10 @@ def calc_bleu(references,candidates):
     res = []
     for i,icand in enumerate(candidates):
         try:
+            cc = SmoothingFunction()
             cand = icand[1:]
             ref = [references[i],]
-            bleu=sentence_bleu(ref, cand,auto_reweigh=True)
+            bleu=sentence_bleu(ref, cand,cc.method3)
             res.append(bleu)
         except:
             print("here")

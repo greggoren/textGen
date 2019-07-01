@@ -13,13 +13,13 @@ def plot_metric(y,fname,y_label):
               'font.family': 'serif'}
     plt.rcParams.update(params)
     plt.figure()
-    x = [i +1 for i in range(y)]
+    x = [i +1 for i in range(len(y))]
     plt.plot(x, y, color='b', linewidth=5,markersize=10, mew=1)
     plt.xticks(x, fontsize=25)
     plt.yticks(fontsize=25)
     plt.ylabel(y_label, fontsize=30)
     plt.xlabel("Epoch", fontsize=30)
-    plt.savefig(fname)
+    plt.savefig(fname+".png")
     plt.clf()
 
 
