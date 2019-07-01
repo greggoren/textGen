@@ -66,7 +66,7 @@ class Seq2seqAttn(nn.Module):
             # h: (batch_size, vocab_size)
             h = self.W(decoder_output.squeeze(1)).squeeze(0)
             h = h.reshape((input.shape[0],self.vocab_size))
-            loss+=self.criterion(h,input)
+            loss+=self.criterion(h,y[:,i])
 
         loss = self.normalize_loss(loss,lengths)
         return loss
