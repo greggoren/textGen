@@ -32,7 +32,7 @@ class Seq2seqAttn(nn.Module):
         encoder_hidden_h, encoder_hidden_c = encoder_hidden
 
 
-        return encoder_hidden_h[0],encoder_hidden_c[0],encoder_outputs
+        return encoder_hidden_h[0].unsqueeze_(0),encoder_hidden_c[0].unsqueeze_(0),encoder_outputs
 
 
     def normalize_loss(self,loss,lengths):
@@ -50,22 +50,21 @@ class Seq2seqAttn(nn.Module):
         teacher_forcing = True if random.random() > 0.3 else False #decide if employ teacher forcing
         #input of <SOS>
         input = torch.LongTensor([init_token]*x.shape[0]).to(device)
-        decoder_output, decoder_hidden,_ = self.decoder(input, (decoder_hidden_h, decoder_hidden_c),encoder_outputs,lengths)
-        decoder_hidden_h, decoder_hidden_c = decoder_hidden
-        h = self.W(decoder_output.squeeze(1)).squeeze(0)
-        h = h.reshape((input.shape[0], self.vocab_size))
 
         for i in range(y.shape[1]):
+            decoder_output, decoder_hidden, _ = self.decoder(input,
+                                                             (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),
+                                                             encoder_outputs, lengths)
+            decoder_hidden_h, decoder_hidden_c = decoder_hidden
+            # h: (batch_size, vocab_size)
+            h = self.W(decoder_output.squeeze(1)).squeeze(0)
+            h = h.reshape((input.shape[0], self.vocab_size))
             if teacher_forcing:
                 input = y[:, i]
             else:
                 h = softmax(h)
                 input = h.max(1)[1]
-            decoder_output, decoder_hidden,_ = self.decoder(input, (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),encoder_outputs,lengths)
-            decoder_hidden_h, decoder_hidden_c = decoder_hidden
-            # h: (batch_size, vocab_size)
-            h = self.W(decoder_output.squeeze(1)).squeeze(0)
-            h = h.reshape((input.shape[0],self.vocab_size))
+
             loss+=self.criterion(h,y[:,i])
 
         loss = self.normalize_loss(loss,lengths)
