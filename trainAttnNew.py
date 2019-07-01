@@ -56,7 +56,7 @@ def train_model(lr,batch_size,epochs,hidden_size,n_layers,w2v_model,SOS_idx,EOS_
     net = net.double()
     net.to(device)
     net.apply(init_weights)
-    optimizer = optim.Adam(net.parameters(), lr=lr)
+    optimizer = optim.SGD(net.parameters(), lr=lr)
     net = CustomDataParallel(net)
     collator = PadCollator(PAD_idx,device)
     def_collator = DefCollator()
