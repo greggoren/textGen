@@ -48,8 +48,10 @@ class Attention(nn.Module):
 
 
     def mask_3d(self,attention_energies, seq_len, val):
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         maxlen = attention_energies.shape[1]
-        mask = torch.arange(maxlen)[None, :] < seq_len[:, None]
+        mask = torch.arange(maxlen).to(device)[None, :] < seq_len[:, None]
         attention_energies[~mask]=val
         return attention_energies
 
