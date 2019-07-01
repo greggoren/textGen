@@ -80,21 +80,11 @@ def calc_bleu(references,candidates):
             cand = icand[1:]
 
             ref = [references[i],]
-            if len(cand)==1 or len(ref[0])==1:
-                bleu=sentence_bleu(ref,cand, weights=(1,))
-                res.append(bleu)
-                continue
-            elif len(cand)==2 or len(ref[0])==2:
-                bleu=sentence_bleu(ref, cand, weights=(0.5, 0.5))
-                res.append(bleu)
-                continue
-            elif len(cand)==3 or len(ref[0])==3:
-                bleu=sentence_bleu(ref, cand, weights=(0.33, 0.33, 0.33))
-                res.append(bleu)
-                continue
-            else:
-                bleu=sentence_bleu(ref, cand)
-                res.append(bleu)
+            weights = (0.25,)*4
+            if len(cand)<4:
+                weights = (1/len(cand),)*len(cand)
+            bleu=sentence_bleu(ref, cand,weights=weights)
+            res.append(bleu)
 
 
         except:
