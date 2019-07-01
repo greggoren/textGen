@@ -30,7 +30,6 @@ def retrieve_sentence_from_indices(indices_dict,results,EOS_idx):
                 tmp.append(indices_dict[i.item()])
             sentences.append(tmp)
     except:
-        print('here')
     return sentences
 
 
@@ -80,7 +79,7 @@ def calc_bleu(references,candidates):
             cc = SmoothingFunction()
             cand = icand[1:]
             ref = [references[i],]
-            bleu=sentence_bleu(ref, cand,cc.method3)
+            bleu=sentence_bleu(ref, cand,smoothing_function=cc.method3)
             res.append(bleu)
         except:
             print("here")
