@@ -14,8 +14,10 @@ class AttnDecoderRNN(nn.Module):
         self.PAD_idx = Pad_idx
         self.embedding,self.input_embedding_size = self.from_pretrained(embeddings)
         self.attn = nn.Linear(self.hidden_size+self.hidden_size*(1+bidirectional) , 1)
+        self.attn_combined = nn.Linear(self.input_embedding_size+self.hidden_size*(1+bidirectional) ,self.input_embedding_size)
         self.dropout = nn.Dropout(self.dropout_p)
-        self.lstm = nn.LSTM(self.input_embedding_size+self.hidden_size*(1+bidirectional), self.hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
+        self.relu = nn.ReLU()
+        self.lstm = nn.LSTM(self.input_embedding_size, self.hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
 
     def from_pretrained(self,embeddings, freeze=True):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -32,7 +34,7 @@ class AttnDecoderRNN(nn.Module):
 
     def forward(self, input, hidden, encoder_outputs):
         embedded = self.embedding(input)
-        # embedded = self.dropout(embedded)
+        embedded = self.dropout(embedded)
         weights = []
         for i in range(len(encoder_outputs[0])):
 
@@ -44,8 +46,9 @@ class AttnDecoderRNN(nn.Module):
         attn_applied = torch.bmm(normalized_weights.unsqueeze(1),
                                  encoder_outputs)
 
-        input_lstm = torch.cat((attn_applied.squeeze(1), embedded), dim=1).unsqueeze_(1)
-
+        attn_comb = torch.cat((attn_applied.squeeze(1), embedded), dim=1)
+        input_lstm = self.attn_combined(attn_comb).unsqueeze_(1)
+        input_lstm = self.relu(input_lstm)
         self.lstm.flatten_parameters()
         output, hidden = self.lstm(input_lstm, (hidden[0].unsqueeze(0),hidden[1].unsqueeze(0)))
 

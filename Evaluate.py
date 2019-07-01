@@ -70,6 +70,30 @@ def greedy_generation_attn(model, x, lengths,device):
     return result
 
 
+
+def beam_generation_attn(model, x, lengths,device):
+    max_generation_len = lengths.max(0)[0].item()
+    decoder_hidden_h, decoder_hidden_c,encoder_outputs = model._forward_encoder(x, lengths)
+    softmax = torch.nn.Softmax(dim=1)
+    current_ys = model.SOS_idx
+    counter = 0
+    input = torch.LongTensor([current_ys] * x.shape[0]).to(device)
+    result = [input.unsqueeze(1)]
+    while counter < max_generation_len:
+        decoder_output, decoder_hidden,_ = model.decoder(input, (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),encoder_outputs)
+        decoder_hidden_h, decoder_hidden_c = decoder_hidden
+        h = model.W(decoder_output.squeeze(1).squeeze(0))
+        y = softmax(h)
+        current_ys = y.max(1)[1]
+        result.append(current_ys.unsqueeze(1))
+        counter += 1
+        input = current_ys
+    result=torch.cat(result,1)
+    return result
+
+
+
+
 def calc_bleu(references,candidates):
     res = []
     for i,icand in enumerate(candidates):

@@ -13,7 +13,7 @@ class DecoderRNN(nn.Module):
         self.PAD_idx = PAD_idx
         self.embedding = self.from_pretrained(embeddings)
         # self.embedding = nn.DataParallel(self.embedding)
-        self.lstm = nn.LSTM(input_vector_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False)
+        self.lstm = nn.LSTM(input_vector_size, hidden_size, num_layers=n_layers, batch_first=True, bidirectional=False,dropout=0.5)
         self.dropout = nn.Dropout(p)
 
     def from_pretrained(self,embeddings, freeze=True):

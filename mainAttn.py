@@ -25,7 +25,7 @@ if __name__=="__main__":
     EOS_idx = rows+1
     PAD_idx = rows+2
     n_layers = 1
-    hidden_size = 512
+    hidden_size = 256
     lrs = [0.1,]
     batch_sizes = [100]
     epochs = 100

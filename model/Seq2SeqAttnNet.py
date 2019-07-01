@@ -2,7 +2,7 @@ from model.AttentionDecoderRNN import AttnDecoderRNN
 from model.EncoderRNN import EncoderRNN
 import torch
 from torch import nn
-
+import random
 
 
 
@@ -46,17 +46,25 @@ class Seq2seqAttn(nn.Module):
 
 
     def forward(self, x, y,lengths):
+        softmax = nn.Softmax(dim=1)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         decoder_hidden_h, decoder_hidden_c,encoder_outputs = self._forward_encoder(x,lengths)
         loss = 0.0
         init_token = self.SOS_idx
+        teacher_forcing = True if random.random() > 0.3 else False #decide if employ teacher forcing
         #input of <SOS>
         input = torch.LongTensor([init_token]*x.shape[0]).to(device)
         decoder_output, decoder_hidden,_ = self.decoder(input, (decoder_hidden_h, decoder_hidden_c),encoder_outputs)
         decoder_hidden_h, decoder_hidden_c = decoder_hidden
-        # Teacher forcing : input sequence
+        h = self.W(decoder_output.squeeze(1)).squeeze(0)
+        h = h.reshape((input.shape[0], self.vocab_size))
+
         for i in range(y.shape[1]):
-            input = y[:, i]
+            if teacher_forcing:
+                input = y[:, i]
+            else:
+                h = softmax(h)
+                input = h.max(1)[1]
             decoder_output, decoder_hidden,_ = self.decoder(input, (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),encoder_outputs)
             decoder_hidden_h, decoder_hidden_c = decoder_hidden
             # h: (batch_size, vocab_size)
