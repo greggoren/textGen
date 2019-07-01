@@ -19,15 +19,18 @@ def get_words_from_indices_dict(model,SOS_idx,EOS_idx):
 
 def retrieve_sentence_from_indices(indices_dict,results,EOS_idx):
     # sentence = " ".join([indices_dict[i] for i in indices])
-    sentences= []
-    for result in results:
-        tmp = []
-        for i in result:
-            if i.item()==EOS_idx:
-                tmp.append(indices_dict[EOS_idx])
-                break
-            tmp.append(indices_dict[i.item()])
-        sentences.append(tmp)
+    try:
+        sentences= []
+        for result in results:
+            tmp = []
+            for i in result:
+                if i.item()==EOS_idx:
+                    tmp.append(indices_dict[EOS_idx])
+                    break
+                tmp.append(indices_dict[i.item()])
+            sentences.append(tmp)
+    except:
+        print('here')
     return sentences
 
 
@@ -73,13 +76,22 @@ def greedy_generation_attn(model, x, lengths,device):
 def calc_bleu(references,candidates):
     res = []
     for i,icand in enumerate(candidates):
-        cand = icand[1:]
-        ref = [references[i],]
-        bleu1=sentence_bleu(ref,cand, weights=(1, 0, 0, 0))
-        bleu2=sentence_bleu(ref, cand, weights=(0.5, 0.5, 0, 0))
-        bleu3=sentence_bleu(ref, cand, weights=(0.33, 0.33, 0.33, 0))
-        bleu4=sentence_bleu(ref, cand)
-        res.append((bleu1,bleu2,bleu3,bleu4))
+        try:
+            cand = icand[1:]
+
+            ref = [references[i],]
+            if len(cand)==1 or len(ref[0])==1:
+                bleu=sentence_bleu(ref,cand, weights=(1,))
+            elif len(cand)==2 or len(ref[0])==2:
+                bleu=sentence_bleu(ref, cand, weights=(0.5, 0.5))
+            elif len(cand)==3 or len(ref[0])==3:
+                bleu=sentence_bleu(ref, cand, weights=(0.33, 0.33, 0.33))
+            else:
+                bleu=sentence_bleu(ref, cand)
+
+            res.append(bleu)
+        except:
+            print("here")
     return res
 
 def evaluate_attn(model, collator, indices_dict, device, eval_data):
@@ -92,7 +104,7 @@ def evaluate_attn(model, collator, indices_dict, device, eval_data):
         generated_senteces = retrieve_sentence_from_indices(indices_dict,result_indices,model.EOS_idx)
         res = calc_bleu(ref,generated_senteces)
         total.extend(res)
-    result = [np.mean([t[0] for t in  total]),np.mean([t[1] for t in total]),np.mean([t[2] for t in total]),np.mean([t[3] for t in total])]
+    result = np.mean(total)
     return result
 
 
@@ -119,11 +131,11 @@ if __name__=="__main__":
     epochs = len(listdir(models_folder))
     for i in range(epochs):
         data_loading = DataLoader(data, num_workers=4, shuffle=True, batch_size=batch_size, collate_fn=def_collator)
-        model_file_name = models_folder+"/model_"+str(i)
+        model_file_name = models_folder+"/model_5"
         model = torch.load(model_file_name, map_location=device)
         tmp_res = evaluate_attn(model, collator, indices_dict, device, data_loading)
         results.append(tmp_res)
-    with open("eval_bleu_greedy_"+suffix+".pkl") as f:
+    with open("eval_bleu_greedy_"+suffix+".pkl",'wb') as f:
         pickle.dump(results,f)
 
 

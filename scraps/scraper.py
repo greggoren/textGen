@@ -1,8 +1,9 @@
 import torch
 import numpy as np
 # src = torch.FloatTensor([[[2, 1], [2, 2]], [[2, 1], [2, 2]]])
+from  nltk.translate.bleu_score import sentence_bleu
 
 
-a = torch.LongTensor([[[1]*5,[2]*5],[[1]*5,[2]*5]])
-
-print(a.reshape(1,a.shape[0],2*a[0].shape[1]))
+ref = [['he', 'founded', '<EOS>']]
+cand = ['<EOS>']
+print(sentence_bleu(ref,cand,weights=(1,)))
