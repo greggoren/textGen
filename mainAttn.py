@@ -29,7 +29,7 @@ if __name__=="__main__":
     lrs = [0.1,]
     batch_sizes = [100]
     epochs = 100
-    dropout = 0.5
+    dropout = 0.2
     random_seed = 9001
     bidirectional = True
     for lr in lrs:
