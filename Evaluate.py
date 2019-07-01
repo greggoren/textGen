@@ -78,20 +78,14 @@ def calc_bleu(references,candidates):
     for i,icand in enumerate(candidates):
         try:
             cand = icand[1:]
-
             ref = [references[i],]
-            weights = (0.25,)*4
-            if len(cand)<4:
-                weights = (1/len(cand),)*len(cand)
-            bleu=sentence_bleu(ref, cand,weights=weights)
+            bleu=sentence_bleu(ref, cand,auto_reweigh=True)
             res.append(bleu)
-
-
         except:
             print("here")
     return res
 
-def evaluate_attn(model, collator, indices_dict, device, eval_data):
+def evaluate_attn_greedy(model, collator, indices_dict, device, eval_data):
     total = []
     for i, batch in enumerate(eval_data):
         batch = collator(batch)
@@ -130,7 +124,7 @@ if __name__=="__main__":
         data_loading = DataLoader(data, num_workers=4, shuffle=True, batch_size=batch_size, collate_fn=def_collator)
         model_file_name = models_folder+"/model_5"
         model = torch.load(model_file_name, map_location=device)
-        tmp_res = evaluate_attn(model, collator, indices_dict, device, data_loading)
+        tmp_res = evaluate_attn_greedy(model, collator, indices_dict, device, data_loading)
         results.append(tmp_res)
     with open("eval_bleu_greedy_"+suffix+".pkl",'wb') as f:
         pickle.dump(results,f)
