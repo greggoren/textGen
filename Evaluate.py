@@ -52,7 +52,7 @@ def greedy_generation(model, x, lengths,max_generation_len,device):
 def greedy_generation_attn(model, x, lengths,device):
     max_generation_len = lengths.max(0)[0].item()
     decoder_hidden_h, decoder_hidden_c,encoder_outputs = model._forward_encoder(x, lengths)
-    softmax = torch.nn.Softmax(dim=0)
+    softmax = torch.nn.Softmax(dim=1)
     current_ys = model.SOS_idx
     counter = 0
     input = torch.LongTensor([current_ys] * x.shape[0]).to(device)
