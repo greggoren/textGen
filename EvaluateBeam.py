@@ -93,7 +93,7 @@ if __name__=="__main__":
     for i in range(epochs):
         data_loading = DataLoader(data, num_workers=4, shuffle=True, batch_size=batch_size, collate_fn=def_collator)
         # model_file_name = models_folder+"/model_"+str(i)
-        model_file_name = models_folder+"/model_20"
+        model_file_name = models_folder+"/model_"+str(i)
         model = torch.load(model_file_name, map_location=device)
         model.eval()
         tmp_res = evaluate_attn_beam(model, collator, indices_dict, device, data_loading)
