@@ -39,7 +39,7 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,lengths,encoder_outp
 
     # decoding goes sentence by sentence
     for idx in range(target_tensor.size(0)):
-        length = torch.LongTensor([lengths[idx]])
+        length = torch.LongTensor([lengths[idx]]).to(device)
         encoder_output = encoder_outputs[idx].unsqueeze_(0)
         if isinstance(decoder_hiddens, tuple):  # LSTM case
             decoder_hidden = (decoder_hiddens[0][:,idx, :],decoder_hiddens[1][:,idx, :])
