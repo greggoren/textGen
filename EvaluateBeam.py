@@ -10,6 +10,10 @@ import sys
 import gensim
 from os import listdir
 import pickle
+from modules.BeamSearch import beam_search_generation
+
+
+
 def get_words_from_indices_dict(model,SOS_idx,EOS_idx):
     indices_dict = {v.index:k for (k, v) in model.wv.vocab.items()}
     indices_dict[SOS_idx]="<SOS>"
@@ -31,65 +35,9 @@ def retrieve_sentence_from_indices(indices_dict,results,EOS_idx):
     return sentences
 
 
-def greedy_generation(model, x, lengths,max_generation_len,device):
-    decoder_hidden_h, decoder_hidden_c = model._forward_encoder(x, lengths)
-    softmax = torch.nn.Softmax(dim=0)
-    current_y = model.SOS_idx
-    result = [current_y]
-    counter = 0
-    while current_y != model.EOS_idx and counter < max_generation_len:
-        input = torch.LongTensor([current_y]).to(device)
-        decoder_output, decoder_hidden = model.decoder(input, (decoder_hidden_h, decoder_hidden_c))
-        decoder_hidden_h, decoder_hidden_c = decoder_hidden
-        h = model.W(decoder_output.squeeze(1).squeeze(0))
-        y = softmax(h)
-        current_y = y.max(0)[1].item()
-        result.append(current_y)
-        counter += 1
-
-    return result
-
-def greedy_generation_attn(model, x, lengths,device):
-    max_generation_len = 50
-    decoder_hidden_h, decoder_hidden_c,encoder_outputs = model._forward_encoder(x, lengths)
-    softmax = torch.nn.Softmax(dim=1)
-    current_ys = model.SOS_idx
-    counter = 0
-    input = torch.LongTensor([current_ys] * x.shape[0]).to(device)
-    result = [input.unsqueeze(1)]
-    while counter < max_generation_len:
-        decoder_output, decoder_hidden,_ = model.decoder(input, (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),encoder_outputs,lengths)
-        decoder_hidden_h, decoder_hidden_c = decoder_hidden
-        h = model.W(decoder_output.squeeze(1).squeeze(0))
-        y = softmax(h)
-        current_ys = y.max(1)[1]
-        result.append(current_ys.unsqueeze(1))
-        counter += 1
-        input = current_ys
-    result=torch.cat(result,1)
-    return result
 
 
 
-def beam_generation_attn(model, x, lengths,device):
-    max_generation_len = lengths.max(0)[0].item()
-    decoder_hidden_h, decoder_hidden_c,encoder_outputs = model._forward_encoder(x, lengths)
-    softmax = torch.nn.Softmax(dim=1)
-    current_ys = model.SOS_idx
-    counter = 0
-    input = torch.LongTensor([current_ys] * x.shape[0]).to(device)
-    result = [input.unsqueeze(1)]
-    while counter < max_generation_len:
-        decoder_output, decoder_hidden,_ = model.decoder(input, (decoder_hidden_h.squeeze(0), decoder_hidden_c.squeeze(0)),encoder_outputs)
-        decoder_hidden_h, decoder_hidden_c = decoder_hidden
-        h = model.W(decoder_output.squeeze(1).squeeze(0))
-        y = softmax(h)
-        current_ys = y.max(1)[1]
-        result.append(current_ys.unsqueeze(1))
-        counter += 1
-        input = current_ys
-    result=torch.cat(result,1)
-    return result
 
 
 
@@ -107,13 +55,13 @@ def calc_bleu(references,candidates):
             print("here")
     return res
 
-def evaluate_attn_greedy(model, collator, indices_dict, device, eval_data):
+def evaluate_attn_beam(model, collator, indices_dict, device, eval_data):
     total = []
     for i, batch in enumerate(eval_data):
         batch = collator(batch)
         sequence, label, length = batch
         ref = retrieve_sentence_from_indices(indices_dict, sequence,model.EOS_idx)
-        result_indices = greedy_generation_attn(model,sequence,length,device)
+        result_indices = beam_search_generation(model, sequence, length, device)
         generated_senteces = retrieve_sentence_from_indices(indices_dict,result_indices,model.EOS_idx)
         res = calc_bleu(ref,generated_senteces)
         total.extend(res)
@@ -144,11 +92,13 @@ if __name__=="__main__":
     epochs = len(listdir(models_folder))
     for i in range(epochs):
         data_loading = DataLoader(data, num_workers=4, shuffle=True, batch_size=batch_size, collate_fn=def_collator)
-        model_file_name = models_folder+"/model_5"
+        # model_file_name = models_folder+"/model_"+str(i)
+        model_file_name = models_folder+"/model_20"
         model = torch.load(model_file_name, map_location=device)
-        tmp_res = evaluate_attn_greedy(model, collator, indices_dict, device, data_loading)
+        model.eval()
+        tmp_res = evaluate_attn_beam(model, collator, indices_dict, device, data_loading)
         results.append(tmp_res)
-    with open("eval_bleu_greedy_"+suffix+".pkl",'wb') as f:
+    with open("eval_bleu_beam_"+suffix+".pkl",'wb') as f:
         pickle.dump(results,f)
 
 

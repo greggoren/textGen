@@ -25,7 +25,7 @@ class BeamSearchNode(object):
 
         return self.logp / float(self.leng - 1 + 1e-6) + alpha * reward
 
-def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None):
+def beam_decode(target_tensor, decoder_hiddens,model,device,lengths,encoder_outputs=None):
     '''
     :param target_tensor: target indexes tensor of shape [B, T] where B is the batch size and T is the maximum length of the output sentence
     :param decoder_hidden: input tensor of shape [1, B, H] for start of the decoding
@@ -39,10 +39,12 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
 
     # decoding goes sentence by sentence
     for idx in range(target_tensor.size(0)):
+        length = torch.LongTensor([lengths[idx]])
+        encoder_output = encoder_outputs[idx].unsqueeze_(0)
         if isinstance(decoder_hiddens, tuple):  # LSTM case
-            decoder_hidden = (decoder_hiddens[0][:,idx, :].unsqueeze(0),decoder_hiddens[1][:,idx, :].unsqueeze(0))
+            decoder_hidden = (decoder_hiddens[0][:,idx, :],decoder_hiddens[1][:,idx, :])
         else:
-            decoder_hidden = decoder_hiddens[:, idx, :].unsqueeze(0)
+            decoder_hidden = decoder_hiddens[:, idx, :]
         # encoder_output = encoder_outputs[:,idx, :].unsqueeze(1)
 
         # Start with the start of the sentence token
@@ -80,7 +82,10 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
 
             # decode for one step using decoder
             # decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_output)
-            decoder_output, decoder_hidden = model.decoder(decoder_input, decoder_hidden)
+            if decoder_hidden[0].dim()==3:
+                decoder_hidden = (decoder_hidden[0].squeeze(0), decoder_hidden[1].squeeze(0))
+            decoder_output, decoder_hidden,_ = model.decoder(decoder_input, decoder_hidden,encoder_output,length)
+
             decoder_output = model.W(decoder_output.squeeze(1).squeeze(0))
             decoder_output =log_softmax(decoder_output)
             # PUT HERE REAL BEAM SEARCH OF TOP
@@ -120,13 +125,16 @@ def beam_decode(target_tensor, decoder_hiddens,model,device,encoder_outputs=None
             utterance = utterance[::-1]
 
             utterances.append(utterance)
-
         decoded_batch.append(utterances)
-    return decoded_batch
+    result = []
+    for utterances in decoded_batch:
+        for u in utterances:
+            result.append(torch.LongTensor(u))
+    return result
 
 def beam_search_generation(model,x,length,device):
     # decoder_hidden_h, decoder_hidden_c = model._forward_encoder(x, length)
-    decoder_hiddens = model._forward_encoder(x, length)
-    decoded = beam_decode(x,decoder_hiddens,model,device)
+    decoder_hiddens_h,decoder_hiddens_c,encoder_outputs = model._forward_encoder(x, length)
+    decoded = beam_decode(x,(decoder_hiddens_h,decoder_hiddens_c),model,device,length,encoder_outputs)
     return decoded
 
