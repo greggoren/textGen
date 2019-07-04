@@ -23,16 +23,17 @@ def write_file(queries,df):
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    fname = data_dir + "_".join([q.rstrip() for q in query.split()])
-    f = open(fname, 'a')
+
     seen = set([])
     for i, row in df.iterrows():
         sentence = row["proc_sentence"]
-        if get_appearance_indicator(sentence, query) and sentence not in seen:
-            f.write(query + '\t' + sentence + "\n")
-            seen.add(sentence)
-    f.close()
-    return fname
+        for query in queries:
+            if get_appearance_indicator(sentence, query) and sentence not in seen:
+                fname = data_dir + "_".join([q.rstrip() for q in query.split()])
+                f = open(fname, 'a')
+                f.write(query + '\t' + sentence + "\n")
+                f.close()
+                seen.add(sentence)
 
 
 def combine_results(results, final_file):
@@ -40,22 +41,16 @@ def combine_results(results, final_file):
         command = "cat " + result + " >> " + final_file
         os.popen(command)
 
-
+from functools import partial
 if __name__ == "__main__":
     sentences_file = sys.argv[1]
     queries_file = sys.argv[2]
     queries_stats = retrieve_queries(queries_file)
     queries = [q for q in queries_stats]
-    df = pd.read_csv(sentences_file, delimiter=",", header=0, chunksize=250000)
-    args = []
-    for i, chunk in enumerate(df):
-        if i == len(queries):
-            break
-        args.append((queries[i], chunk))
-    final_file = "possible_translation_sentences.txt"
+    df = pd.read_csv(sentences_file, delimiter=",", header=0, chunksize=500000)
+    func = partial(write_file,queries)
     with Pool(12) as pool:
-        results = pool.map(write_file, args)
-        combine_results(results, final_file)
+        results = pool.map(func, df)
 
 
 
