@@ -49,7 +49,7 @@ if __name__=="__main__":
     queries_file = sys.argv[2]
     queries_stats = retrieve_queries(queries_file)
     queries = [q for q in queries_stats]
-    df = pd.read_csv(sentences_file,delimiter=",",header=0,chunksize=500000)
+    df = pd.read_csv(sentences_file,delimiter=",",header=0,chunksize=250000)
     args = zip(queries,df[:len(queries)])
     final_file = "input_senteces.txt"
     with Pool(12) as pool:
