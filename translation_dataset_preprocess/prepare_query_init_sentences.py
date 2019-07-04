@@ -19,7 +19,7 @@ def get_appearance_indicator(sentence,query):
 
 def write_file(args):
     query,df = args
-    data_dir = "data/"
+    data_dir = "data/translation/"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     fname = data_dir+"_".join([q.rstrip() for q in query.split()])
@@ -27,9 +27,7 @@ def write_file(args):
     seen=set([])
     for i,row in df.iterrows():
         sentence = row["proc_sentence"]
-        if len(seen)>=100000:
-            break
-        if not get_appearance_indicator(sentence,query) and sentence not in seen:
+        if get_appearance_indicator(sentence,query) and sentence not in seen:
             f.write(query+'\t'+sentence+"\n")
             seen.add(sentence)
     return fname
@@ -56,7 +54,7 @@ if __name__=="__main__":
         if i==len(queries):
             break
         args.append((queries[i],chunk))
-    final_file = "input_senteces.txt"
+    final_file = "target_senteces_candidates.txt"
     with Pool(12) as pool:
         results = pool.map(write_file,args)
         combine_results(results,final_file)
