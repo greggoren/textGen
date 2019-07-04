@@ -167,6 +167,7 @@ workers = 12)
 
 df = pd.concat(df).reset_index(drop=True)
 df=df[df.proc_len>1]
+df=df[df.proc_len<30]
 df.article_uuid = df.article_uuid.astype(str)
 
 df.to_csv('wikipedia_sentences.csv')
