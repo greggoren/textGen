@@ -2,7 +2,10 @@ import os
 import pandas as pd
 import sys
 from multiprocessing import Pool
+from threading import Lock
 
+lock = Lock()
+global lock
 
 def retrieve_queries(fname):
     queries = {}
@@ -19,6 +22,7 @@ def get_appearance_indicator(sentence, query):
 
 
 def write_file(queries,df):
+    global lock
     data_dir = "translations_pool/"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -29,10 +33,14 @@ def write_file(queries,df):
         sentence = row["proc_sentence"]
         for query in queries:
             if get_appearance_indicator(sentence, query) and sentence not in seen:
+
                 fname = data_dir + "_".join([q.rstrip() for q in query.split()])
                 f = open(fname, 'a')
+                lock.acquire()
                 f.write(query + '\t' + sentence + "\n")
+                lock.release()
                 f.close()
+
                 seen.add(sentence)
 
 
