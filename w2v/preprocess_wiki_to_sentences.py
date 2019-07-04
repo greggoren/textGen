@@ -64,13 +64,12 @@ def remove_special_chars(text, char_list):
 def process_wiki_files(wiki_file):
     chars = ['\n']
     global sw
-    global w2v_model
+    # global w2v_model
 
     with open(wiki_file, encoding='utf-8') as f:
         content = f.read()
 
     articles = splitkeepsep(content, '<doc id=')
-    # df = pd.DataFrame(columns=['article_uuid', 'sentence', 'proc_sentence', 'proc_len'])
     df = pd.DataFrame(columns=['article_uuid', 'proc_sentence', 'proc_len'])
 
     for article in articles:
@@ -80,12 +79,12 @@ def process_wiki_files(wiki_file):
                                        chars)
 
         sentences = nltk.sent_tokenize(article)
-        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,clean_string(sentence, sw))]
+        # proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,clean_string(sentence, sw))]
+        proc_sentences = [clean_string(sentence, sw) for sentence in sentences]
         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
 
         temp_df = pd.DataFrame(
             {'article_uuid': [uuid] * len(proc_sentences),
-             # 'sentence': sentences,
              'proc_sentence': proc_sentences,
              'proc_len': proc_lens
              })
@@ -100,33 +99,33 @@ def validate_sentence(model,sentence):
     return True
 
 
-def process_wiki_files_reduced(model,wiki_file):
-    chars = ['\n']
-    global sw
-    with open(wiki_file, encoding='utf-8') as f:
-        content = f.read()
-
-    articles = splitkeepsep(content, '<doc id=')
-    df = pd.DataFrame(columns=['article_uuid',  'proc_sentence', 'proc_len'])
-
-    for article in articles:
-        uuid = uuid4()
-
-        article = remove_special_chars(remove_html_tags(article),
-                                       chars)
-
-        sentences = nltk.sent_tokenize(article)
-        proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(model,sentence)]
-        proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
-
-        temp_df = pd.DataFrame(
-            {'article_uuid': [uuid] * len(sentences),
-             'proc_sentence': proc_sentences,
-             'proc_len': proc_lens
-             })
-        df = df.append(temp_df)
-
-    return df
+# def process_wiki_files_reduced(model,wiki_file):
+#     chars = ['\n']
+#     global sw
+#     with open(wiki_file, encoding='utf-8') as f:
+#         content = f.read()
+#
+#     articles = splitkeepsep(content, '<doc id=')
+#     df = pd.DataFrame(columns=['article_uuid',  'proc_sentence', 'proc_len'])
+#
+#     for article in articles:
+#         uuid = uuid4()
+#
+#         article = remove_special_chars(remove_html_tags(article),
+#                                        chars)
+#
+#         sentences = nltk.sent_tokenize(article)
+#         proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(model,sentence)]
+#         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
+#
+#         temp_df = pd.DataFrame(
+#             {'article_uuid': [uuid] * len(sentences),
+#              'proc_sentence': proc_sentences,
+#              'proc_len': proc_lens
+#              })
+#         df = df.append(temp_df)
+#
+#     return df
 
 
 
@@ -160,7 +159,7 @@ for filename in glob.iglob('data/wiki/*/*', recursive=True):
 # sw_ru = set(stopwords.words('russian'))
 # sw = list(sw_ru.union(sw_en))
 sw = []
-w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt"  ,binary=True,limit=5000)
+# w2v_model = gensim.models.KeyedVectors.load_word2vec_format("wikipediaW2V.txt"  ,binary=True,limit=5000)
 # f = partial(process_wiki_files_reduced,w2v_model)
 df = list_multiprocessing(wiki_files,
                           process_wiki_files,
@@ -170,4 +169,4 @@ df = pd.concat(df).reset_index(drop=True)
 df=df[df.proc_len>1]
 df.article_uuid = df.article_uuid.astype(str)
 
-df.to_csv('wikipedia_sentences_reduced5K.csv')
+df.to_csv('wikipedia_sentences.csv')

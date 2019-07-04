@@ -3,25 +3,33 @@ import os
 import torch
 import pickle
 
-def plot_metric(y,fname,y_label):
+def plot_metric(y,fname,y_label,x_label):
     params = {'legend.fontsize': 'x-large',
               'figure.figsize': (13, 8),
               'axes.labelsize': 'x-large',
               'axes.titlesize': 'x-large',
-              'xtick.labelsize': 'x-large',
+              'xtick.labelsize': 'small',
               'ytick.labelsize': 'x-large',
               'font.family': 'serif'}
     plt.rcParams.update(params)
     plt.figure()
     x = [i +1 for i in range(len(y))]
-    plt.plot(x, y, color='b', linewidth=5,markersize=10, mew=1)
-    plt.xticks(x, fontsize=25)
+    plt.plot(x, y, color='b', linewidth=5,markersize=5, mew=1)
+    plt.xticks(x, fontsize=10)
     plt.yticks(fontsize=25)
     plt.ylabel(y_label, fontsize=30)
-    plt.xlabel("Epoch", fontsize=30)
+    plt.xlabel(x_label, fontsize=30)
     plt.savefig(fname+".png")
     plt.clf()
 
+
+def parse_loss_file(filename):
+    losses = []
+    with open(filename) as f:
+        for line in f:
+            loss = float(line.split()[-1].rstrip())
+            losses.append(loss)
+    return losses
 
 def save_loss_history(obj,epoch,lr,batch_size):
     dir_name = "loss_history/"+str(lr) + "_" + str(batch_size)+"/"
