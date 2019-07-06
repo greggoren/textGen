@@ -4,7 +4,7 @@ import nltk
 import pandas as pd
 from functools import partial,update_wrapper
 import sys
-from multiprocessing import Pool
+from multiprocessing import Pool,Manager
 from copy import deepcopy
 import logging
 import os
@@ -19,7 +19,7 @@ def cosine_similarity(v1,v2):
         return 0
     return sumxy/math.sqrt(sumxx*sumyy)
 
-def get_sentence_centroid(sentence):
+def get_sentence_centroid(sentence,model):
     sum_vector = None
     for token in sentence.rstrip().split():
         vector = model.wv[token]
@@ -29,7 +29,7 @@ def get_sentence_centroid(sentence):
             sum_vector+=vector
     return sum_vector/len(sentence.split())
 
-def centroid_similarity(s1,s2):
+def centroid_similarity(s1,s2,model):
     centroid1 = get_sentence_centroid(s1,model)
     centroid2 = get_sentence_centroid(s2,model)
     return cosine_similarity(centroid1,centroid2)
@@ -44,7 +44,7 @@ def jaccard_similiarity(s1,s2):
     denominator = len(tokens1.union(tokens2))
     return float(nominator)/denominator
 
-def minmax_query_token_similarity(maximum,sentence,query):
+def minmax_query_token_similarity(maximum,sentence,query,model):
     query_tokens = set(query.split())
     centroid = get_sentence_centroid(sentence,model)
     similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens]
@@ -79,16 +79,16 @@ def wrapped_partial(func, *args, **kwargs):
     update_wrapper(partial_func, func)
     return partial_func
 
-def get_predictors_values(input_sentence, candidate_sentence, query):
+def get_predictors_values(input_sentence, candidate_sentence, query,model):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
     funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
-            result[i]=func(candidate_sentence,query)
+            result[i]=func(candidate_sentence,query,model)
         elif func.__name__.__contains__("centroid"):
-            result[i] = func(input_sentence,candidate_sentence)
+            result[i] = func(input_sentence,candidate_sentence,model)
         else:
             result[i] = func(input_sentence,candidate_sentence)
     return result
@@ -106,28 +106,28 @@ def apply_borda_in_dict(results):
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
-def calculate_predictors(target_subset,row):
+def calculate_predictors(target_subset,row,model):
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
 
     for idx,target_row in target_subset.iterrows():
         target_sentence = target_row["input_sentence"]
-        results[idx] = get_predictors_values(input_sentence, target_sentence, query)
+        results[idx] = get_predictors_values(input_sentence, target_sentence, query,model)
     chosen_idx = apply_borda_in_dict(results)
     return target_subset.ix[chosen_idx]["input_sentence"]
 
 
-def get_true_subset(input_subset,target_subset):
-    f = lambda x:calculate_predictors(target_subset,x)
+def get_true_subset(input_subset,target_subset,model):
+    f = lambda x:calculate_predictors(target_subset,x,model)
     input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
-def apply_func_on_subset(input_dir,target_dir,query):
+def apply_func_on_subset(input_dir,target_dir,model,query):
     logger.info("Working on"+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
-    return get_true_subset(input_subset,target_subset)
+    return get_true_subset(input_subset,target_subset,model[0])
 
 
 def read_queries(fname):
@@ -141,8 +141,6 @@ def read_queries(fname):
 def initializer():
     global sw
     sw = set(nltk.corpus.stopwords.words('english'))
-    global model
-    model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
 
 
 
@@ -152,13 +150,17 @@ if __name__=="__main__":
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
+
     input_dir = sys.argv[1]
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
     queries = read_queries(queries_file)
-    func = partial(apply_func_on_subset,input_dir,target_dir)
 
+    model_tmp = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
+    manager = Manager()
+    model = manager.list([model_tmp,])
+    func = partial(apply_func_on_subset, input_dir, target_dir,model)
     with Pool(12,initializer,()) as pool:
         results = pool.map(func,queries)
         df = pd.concat(results)
