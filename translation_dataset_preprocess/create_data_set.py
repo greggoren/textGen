@@ -6,6 +6,7 @@ from functools import partial,update_wrapper
 import sys
 from multiprocessing import Pool
 from copy import deepcopy
+import logging
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -123,6 +124,7 @@ def get_true_subset(input_subset,target_subset,model):
     return input_subset
 
 def apply_func_on_subset(input_dir,target_dir,model,query):
+    logger.info("Working on"+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
     return get_true_subset(input_subset,target_subset,model)
@@ -142,6 +144,11 @@ def initializer():
 
 
 if __name__=="__main__":
+    program = os.path.basename(sys.argv[0])
+    logger = logging.getLogger(program)
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
+    logging.root.setLevel(level=logging.INFO)
+    logger.info("running %s" % ' '.join(sys.argv))
     input_dir = sys.argv[1]
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
