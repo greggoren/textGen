@@ -7,7 +7,7 @@ import sys
 from multiprocessing import Pool
 from copy import deepcopy
 import logging
-
+import os
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
     for i in range(len(v1)):
