@@ -139,8 +139,9 @@ def read_queries(fname):
     return result
 
 def initializer():
-    sw = set(nltk.corpus.stopwords.words('english'))
     global sw
+    sw = set(nltk.corpus.stopwords.words('english'))
+
 
 
 if __name__=="__main__":
