@@ -19,7 +19,7 @@ def cosine_similarity(v1,v2):
         return 0
     return sumxy/math.sqrt(sumxx*sumyy)
 
-def get_sentence_centroid(sentence,model):
+def get_sentence_centroid(sentence):
     sum_vector = None
     for token in sentence.rstrip().split():
         vector = model.wv[token]
@@ -29,7 +29,7 @@ def get_sentence_centroid(sentence,model):
             sum_vector+=vector
     return sum_vector/len(sentence.split())
 
-def centroid_similarity(s1,s2,model):
+def centroid_similarity(s1,s2):
     centroid1 = get_sentence_centroid(s1,model)
     centroid2 = get_sentence_centroid(s2,model)
     return cosine_similarity(centroid1,centroid2)
@@ -44,7 +44,7 @@ def jaccard_similiarity(s1,s2):
     denominator = len(tokens1.union(tokens2))
     return float(nominator)/denominator
 
-def minmax_query_token_similarity(maximum,sentence,query,model):
+def minmax_query_token_similarity(maximum,sentence,query):
     query_tokens = set(query.split())
     centroid = get_sentence_centroid(sentence,model)
     similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens]
@@ -79,16 +79,16 @@ def wrapped_partial(func, *args, **kwargs):
     update_wrapper(partial_func, func)
     return partial_func
 
-def get_predictors_values(input_sentence, candidate_sentence, query, model):
+def get_predictors_values(input_sentence, candidate_sentence, query):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
     funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
-            result[i]=func(candidate_sentence,query,model)
+            result[i]=func(candidate_sentence,query)
         elif func.__name__.__contains__("centroid"):
-            result[i] = func(input_sentence,candidate_sentence,model)
+            result[i] = func(input_sentence,candidate_sentence)
         else:
             result[i] = func(input_sentence,candidate_sentence)
     return result
@@ -106,28 +106,28 @@ def apply_borda_in_dict(results):
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
-def calculate_predictors(target_subset,model,row):
+def calculate_predictors(target_subset,row):
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
 
     for idx,target_row in target_subset.iterrows():
         target_sentence = target_row["input_sentence"]
-        results[idx] = get_predictors_values(input_sentence, target_sentence, query, model)
+        results[idx] = get_predictors_values(input_sentence, target_sentence, query)
     chosen_idx = apply_borda_in_dict(results)
     return target_subset.ix[chosen_idx]["input_sentence"]
 
 
-def get_true_subset(input_subset,target_subset,model):
-    f = lambda x:calculate_predictors(target_subset,model,x)
+def get_true_subset(input_subset,target_subset):
+    f = lambda x:calculate_predictors(target_subset,x)
     input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
-def apply_func_on_subset(input_dir,target_dir,model,query):
+def apply_func_on_subset(input_dir,target_dir,query):
     logger.info("Working on"+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
-    return get_true_subset(input_subset,target_subset,model)
+    return get_true_subset(input_subset,target_subset)
 
 
 def read_queries(fname):
@@ -141,6 +141,8 @@ def read_queries(fname):
 def initializer():
     global sw
     sw = set(nltk.corpus.stopwords.words('english'))
+    global model
+    model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
 
 
 
@@ -155,8 +157,7 @@ if __name__=="__main__":
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
     queries = read_queries(queries_file)
-    model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
-    func = partial(apply_func_on_subset,input_dir,target_dir,model)
+    func = partial(apply_func_on_subset,input_dir,target_dir)
 
     with Pool(12,initializer,()) as pool:
         results = pool.map(func,queries)
