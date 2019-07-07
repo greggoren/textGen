@@ -99,6 +99,7 @@ def wrapped_partial(func, *args, **kwargs):
 #     return result
 
 def get_predictors_values(input_sentence, query,args):
+    start = time()
     idx, candidate_sentence = args
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
@@ -111,6 +112,7 @@ def get_predictors_values(input_sentence, query,args):
             result[i] = func(input_sentence,candidate_sentence)
         else:
             result[i] = func(input_sentence,candidate_sentence)
+    logger.info("took: "+str(time()-start))
     return idx,result
 
 def indexes(res):

@@ -18,7 +18,7 @@ def indexes(res):
     return result
 
 
-a = {i:np.random.random() for i in range(150000)}
+a = {i:np.random.random() for i in range(100000)}
 s = []
 start = time()
 for j in range(5):
