@@ -24,6 +24,8 @@ def cosine_similarity(v1,v2):
 def get_sentence_centroid(sentence):
     sum_vector = None
     for token in sentence.rstrip().split():
+        if token not in model.wv:
+            continue
         vector = model.wv[token]
         if sum_vector is None:
             sum_vector=deepcopy(vector)
@@ -128,7 +130,7 @@ def get_true_subset(input_subset,target_subset):
 def apply_func_on_subset(input_dir,target_dir,query):
     global model
     global sw
-    logger.info("Working on"+query)
+    logger.info("Working on "+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
     return get_true_subset(input_subset,target_subset)
