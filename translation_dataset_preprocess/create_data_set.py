@@ -4,11 +4,12 @@ import nltk
 import pandas as pd
 from functools import partial,update_wrapper
 import sys
-from multiprocessing import Pool,Manager
+from multiprocessing import Pool
 from copy import deepcopy
 import logging
 import os
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -83,7 +84,22 @@ def wrapped_partial(func, *args, **kwargs):
     update_wrapper(partial_func, func)
     return partial_func
 
-def get_predictors_values(input_sentence, candidate_sentence, query):
+# def get_predictors_values(input_sentence, candidate_sentence, query):
+#     result={}
+#     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
+#     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
+#     funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
+#     for i,func in enumerate(funcs):
+#         if func.__name__.__contains__("query"):
+#             result[i]=func(candidate_sentence,query)
+#         elif func.__name__.__contains__("centroid"):
+#             result[i] = func(input_sentence,candidate_sentence)
+#         else:
+#             result[i] = func(input_sentence,candidate_sentence)
+#     return result
+
+def get_predictors_values(input_sentence, query,args):
+    idx, candidate_sentence = args
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
@@ -95,7 +111,9 @@ def get_predictors_values(input_sentence, candidate_sentence, query):
             result[i] = func(input_sentence,candidate_sentence)
         else:
             result[i] = func(input_sentence,candidate_sentence)
-    return result
+    return idx,result
+
+
 
 def apply_borda_in_dict(results):
     borda_counts = {}
@@ -110,16 +128,31 @@ def apply_borda_in_dict(results):
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
+# def calculate_predictors(target_subset,row):
+#     results={}
+#     query = row["query"]
+#     input_sentence = row["input_sentence"]
+#
+#     for idx,target_row in target_subset.iterrows():
+#         target_sentence = target_row["input_sentence"]
+#         results[idx] = get_predictors_values(input_sentence, target_sentence, query)
+#     chosen_idx = apply_borda_in_dict(results)
+#     return target_subset.ix[chosen_idx]["input_sentence"]
+
+
 def calculate_predictors(target_subset,row):
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
+    f = partial(get_predictors_values,input_sentence,query)
+    arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
+    with ThreadPoolExecutor(max_workers=5) as executer:
+        values = executer.map(f,arg_list)
+        for idx,result in values:
+            results[idx]=result
+        chosen_idx = apply_borda_in_dict(results)
+        return target_subset.ix[chosen_idx]["input_sentence"]
 
-    for idx,target_row in target_subset.iterrows():
-        target_sentence = target_row["input_sentence"]
-        results[idx] = get_predictors_values(input_sentence, target_sentence, query)
-    chosen_idx = apply_borda_in_dict(results)
-    return target_subset.ix[chosen_idx]["input_sentence"]
 
 
 def get_true_subset(input_subset,target_subset):
