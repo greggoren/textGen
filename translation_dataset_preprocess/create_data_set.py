@@ -8,7 +8,7 @@ from multiprocessing import Pool,Manager
 from copy import deepcopy
 import logging
 import os
-from multiprocessing.reduction import ForkingPickler
+import tqdm
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -126,6 +126,7 @@ def get_true_subset(input_subset,target_subset):
     return input_subset
 
 def apply_func_on_subset(input_dir,target_dir,query):
+    global model
     logger.info("Working on"+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
@@ -147,6 +148,25 @@ def initializer():
 
 
 
+def list_multiprocessing(param_lst,
+                         func,
+                         **kwargs):
+    workers = kwargs.pop('workers')
+
+    with Pool(workers) as p:
+        apply_lst = [([params], func, i, kwargs) for i, params in enumerate(param_lst)]
+        result = list(tqdm(p.imap(_apply_lst, apply_lst), total=len(apply_lst)))
+
+    # lists do not need such sorting, but this can be useful later
+    result = sorted(result, key=lambda x: x[0])
+    return [_[1] for _ in result]
+
+
+def _apply_lst(args):
+    params, func, num, kwargs = args
+    return num, func(*params, **kwargs)
+
+
 
 
 if __name__=="__main__":
@@ -162,11 +182,8 @@ if __name__=="__main__":
     model_file = sys.argv[4]
     queries = read_queries(queries_file)
 
-    model_tmp = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
-    manager = Manager()
-    model = manager.list([model_tmp,])
+    model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
-    with Pool(12,initializer,()) as pool:
-        results = pool.map(func,queries)
-        df = pd.concat(results)
-        df.to_csv("query_ks_translation.csv")
+    results = list_multiprocessing(queries,func,workers=12)
+    df = pd.concat(results).reset_index(drop=True)
+    df.to_csv("query_ks_translation.csv")
