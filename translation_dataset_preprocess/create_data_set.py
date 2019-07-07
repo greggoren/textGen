@@ -10,6 +10,7 @@ import logging
 import os
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+import numpy as np
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -143,7 +144,8 @@ def calculate_predictors(target_subset,row):
 
     for idx,target_row in target_subset.iterrows():
         target_sentence = target_row["input_sentence"]
-        results[idx] = get_predictors_values(input_sentence, target_sentence, query)
+        _,vals = get_predictors_values(input_sentence, query,idx,target_sentence)
+        results[idx] = vals
     chosen_idx = apply_borda_in_dict(results)
     return target_subset.ix[chosen_idx]["input_sentence"]
 
@@ -160,10 +162,20 @@ def calculate_predictors(target_subset,row):
 #         chosen_idx = apply_borda_in_dict(results)
 #         return target_subset.ix[chosen_idx]["input_sentence"]
 
+def parallelize(data, func):
+    data_split = np.array_split(data, len(data))
+    pool = ThreadPoolExecutor(max_workers=20)
+    results = list(tqdm(pool.map(func, data_split),total=len(data_split)))
+    data = pd.concat(results)
+    pool.close()
+    pool.join()
+    return data
 
 
-def get_true_subset(input_subset,target_subset):
-    f = lambda x:calculate_predictors(target_subset,x)
+
+def get_true_subset(target_subset,input_subset):
+    # f = lambda x:calculate_predictors(target_subset,x)
+    f = partial(calculate_predictors,target_subset)
     input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
@@ -173,7 +185,7 @@ def apply_func_on_subset(input_dir,target_dir,query):
     logger.info("Working on "+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
-    return get_true_subset(input_subset,target_subset)
+    return get_true_subset(target_subset,input_subset)
 
 
 def read_queries(fname):
