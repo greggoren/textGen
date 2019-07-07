@@ -162,21 +162,25 @@ def calculate_predictors(target_subset,row):
 #         chosen_idx = apply_borda_in_dict(results)
 #         return target_subset.ix[chosen_idx]["input_sentence"]
 
-def parallelize(data, func):
+def parallelize(data, func,wrapper):
     data_split = np.array_split(data, len(data))
+    wrap = partial(warpper,func)
     pool = ThreadPoolExecutor(max_workers=20)
-    results = list(tqdm(pool.map(func, data_split),total=len(data_split)))
+    results = list(tqdm(pool.map(wrap, data_split),total=len(data_split)))
     data = pd.concat(results)
     pool.close()
     pool.join()
     return data
 
 
+def warpper(f,df):
+    df["target_sentence"] = df.apply(f, axis=1)
 
 def get_true_subset(target_subset,input_subset):
     # f = lambda x:calculate_predictors(target_subset,x)
     f = partial(calculate_predictors,target_subset)
-    input_subset["target_sentence"] = input_subset.apply(f,axis=1)
+    input_subset = parallelize(input_subset,f,warpper)
+    # input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
 def apply_func_on_subset(input_dir,target_dir,query):
