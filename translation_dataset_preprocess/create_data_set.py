@@ -24,7 +24,7 @@ def cosine_similarity(v1,v2):
 def get_sentence_centroid(sentence):
     sum_vector = None
     for token in sentence.rstrip().split():
-        vector = model[0].wv[token]
+        vector = model.wv[token]
         if sum_vector is None:
             sum_vector=deepcopy(vector)
         else:
@@ -49,7 +49,7 @@ def jaccard_similiarity(s1,s2):
 def minmax_query_token_similarity(maximum,sentence,query):
     query_tokens = set(query.split())
     centroid = get_sentence_centroid(sentence)
-    similarities = [cosine_similarity(centroid,model[0].wv[token]) for token in query_tokens]
+    similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens]
     if maximum:
         return max(similarities)
     return min(similarities)
