@@ -144,7 +144,7 @@ def calculate_predictors(target_subset,row):
 
     for idx,target_row in target_subset.iterrows():
         target_sentence = target_row["input_sentence"]
-        _,vals = get_predictors_values(input_sentence, query,idx,target_sentence)
+        _,vals = get_predictors_values(input_sentence, query,(idx,target_sentence))
         results[idx] = vals
     chosen_idx = apply_borda_in_dict(results)
     return target_subset.ix[chosen_idx]["input_sentence"]
