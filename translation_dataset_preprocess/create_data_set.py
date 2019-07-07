@@ -113,18 +113,24 @@ def get_predictors_values(input_sentence, query,args):
             result[i] = func(input_sentence,candidate_sentence)
     return idx,result
 
+def indexes(res):
+    result = {}
+    for i,test in enumerate(res):
+        result[i]={}
+        for rank,idx in enumerate(test):
+            result[i][idx]=rank
+    return result
 
+def  get_count(idx,result,len):
+    return sum([len-1-result[t][idx] for t in result])
 
 def apply_borda_in_dict(results):
     borda_counts = {}
     num_of_tests = len(results[list(results.keys())[0]])
     ranked_sentences = [sorted(list(results.keys()),key=lambda x:(results[x][j],x),reverse=True) for j in range(num_of_tests)]
-    for idx in results:
-        count = 0
-        for test in ranked_sentences:
-            rank = test.index(idx)+1
-            count += (len(test)-rank)
-        borda_counts[idx]=count
+    ranks = indexes(ranked_sentences)
+    length = len(results)
+    borda_counts ={idx:get_count(idx,ranks,length) for idx in results}
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
