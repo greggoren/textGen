@@ -52,7 +52,9 @@ def jaccard_similiarity(s1,s2):
 def minmax_query_token_similarity(maximum,sentence,query):
     query_tokens = set(query.split())
     centroid = get_sentence_centroid(sentence)
-    similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens]
+    similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens if token in model.wv]
+    if not similarities:
+        return 0
     if maximum:
         return max(similarities)
     return min(similarities)
@@ -99,7 +101,6 @@ def wrapped_partial(func, *args, **kwargs):
 #     return result
 
 def get_predictors_values(input_sentence, query,args):
-    start = time()
     idx, candidate_sentence = args
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
@@ -112,7 +113,6 @@ def get_predictors_values(input_sentence, query,args):
             result[i] = func(input_sentence,candidate_sentence)
         else:
             result[i] = func(input_sentence,candidate_sentence)
-    logger.info("took: "+str(time()-start))
     return idx,result
 
 def indexes(res):
@@ -136,30 +136,29 @@ def apply_borda_in_dict(results):
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
-# def calculate_predictors(target_subset,row):
-#     results={}
-#     query = row["query"]
-#     input_sentence = row["input_sentence"]
-#
-#     for idx,target_row in target_subset.iterrows():
-#         target_sentence = target_row["input_sentence"]
-#         results[idx] = get_predictors_values(input_sentence, target_sentence, query)
-#     chosen_idx = apply_borda_in_dict(results)
-#     return target_subset.ix[chosen_idx]["input_sentence"]
-
-from time import time
 def calculate_predictors(target_subset,row):
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
-    f = partial(get_predictors_values,input_sentence,query)
-    arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
-    with ThreadPoolExecutor(max_workers=20) as executer:
-        values = executer.map(f,arg_list)
-        for idx,result in values:
-            results[idx]=result
-        chosen_idx = apply_borda_in_dict(results)
-        return target_subset.ix[chosen_idx]["input_sentence"]
+
+    for idx,target_row in target_subset.iterrows():
+        target_sentence = target_row["input_sentence"]
+        results[idx] = get_predictors_values(input_sentence, target_sentence, query)
+    chosen_idx = apply_borda_in_dict(results)
+    return target_subset.ix[chosen_idx]["input_sentence"]
+
+# def calculate_predictors(target_subset,row):
+#     results={}
+#     query = row["query"]
+#     input_sentence = row["input_sentence"]
+#     f = partial(get_predictors_values,input_sentence,query)
+#     arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
+#     with ThreadPoolExecutor(max_workers=1) as executer:
+#         values = executer.map(f,arg_list)
+#         for idx,result in values:
+#             results[idx]=result
+#         chosen_idx = apply_borda_in_dict(results)
+#         return target_subset.ix[chosen_idx]["input_sentence"]
 
 
 
