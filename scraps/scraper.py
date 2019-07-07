@@ -4,6 +4,15 @@ import numpy as np
 from  nltk.translate.bleu_score import sentence_bleu
 import random
 import pandas as pd
-a = pd.DataFrame(columns=["test"])
-a["test"]={0:{1:0,2:1},1:{1:0,2:1}}
-print(a)
+from time import time
+
+
+
+d  = [i for i in range(1000000)]
+start = time()
+d.index(500564)
+print("took",str(time()-start))
+a = {i:np.random.random() for i in range(1000000)}
+start = time()
+b = sorted(a.keys(),key=lambda x:a[x],reverse=True)
+print("took",str(time()-start))

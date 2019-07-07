@@ -118,7 +118,7 @@ def get_predictors_values(input_sentence, query,args):
 def apply_borda_in_dict(results):
     borda_counts = {}
     num_of_tests = len(results[list(results.keys())[0]])
-    ranked_sentences = [sorted([i for i in results],key=lambda x:(results[x][j],x),reverse=True) for j in range(num_of_tests)]
+    ranked_sentences = [sorted(list(results.keys()),key=lambda x:(results[x][j],x),reverse=True) for j in range(num_of_tests)]
     for idx in results:
         count = 0
         for test in ranked_sentences:
@@ -139,14 +139,14 @@ def apply_borda_in_dict(results):
 #     chosen_idx = apply_borda_in_dict(results)
 #     return target_subset.ix[chosen_idx]["input_sentence"]
 
-
+from time import time
 def calculate_predictors(target_subset,row):
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
     f = partial(get_predictors_values,input_sentence,query)
     arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
-    with ThreadPoolExecutor(max_workers=5) as executer:
+    with ThreadPoolExecutor(max_workers=20) as executer:
         values = executer.map(f,arg_list)
         for idx,result in values:
             results[idx]=result
@@ -209,7 +209,6 @@ if __name__=="__main__":
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
-
     input_dir = sys.argv[1]
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
@@ -218,6 +217,6 @@ if __name__=="__main__":
     sw = set(nltk.corpus.stopwords.words('english'))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
-    results = list_multiprocessing(queries,func,workers=12)
+    results = list_multiprocessing(queries,func,workers=20)
     df = pd.concat(results).reset_index(drop=True)
     df.to_csv("query_ks_translation.csv")
