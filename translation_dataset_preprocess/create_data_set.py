@@ -92,7 +92,7 @@ def shared_bigrams_count(s1,s2):
     for bigram in bigram1:
         if bigram in bigram2:
             count+=1
-    return count/len(bigram1)
+    return count
 
 
 def read_sentences(fname):
