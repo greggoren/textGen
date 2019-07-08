@@ -64,6 +64,8 @@ def clean_sentence(sentence):
 def tf_similarity(s1,s2):
     corpus = [" ".join(clean_sentence(s1))," ".join(clean_sentence(s2))]
     tf_matrix = vectorizer.fit_transform(corpus).toarray()
+    if len(tf_matrix)<2:
+        return 0
     return cosine_similarity(tf_matrix[0],tf_matrix[1])
 
 
@@ -72,6 +74,8 @@ def jaccard_similiarity(s1,s2):
     tokens2 = set(clean_sentence(s2))
     nominator = len(tokens1.intersection(tokens2))
     denominator = len(tokens1.union(tokens2))
+    if nominator==0:
+        return 0
     return float(nominator)/denominator
 
 def minmax_query_token_similarity(maximum,sentence,query):
