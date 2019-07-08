@@ -55,7 +55,7 @@ def clean_sentence(sentence):
 
 def tf_similarity(s1,s2):
     corpus = [" ".join(clean_sentence(s1))," ".join(clean_sentence(s2))]
-    tf_matrix = vectorizer.fit_transform(corpus)
+    tf_matrix = vectorizer.fit_transform(corpus).toarray()
     return cosine_similarity(tf_matrix[0],tf_matrix[1])
 
 
@@ -127,7 +127,7 @@ def get_predictors_values(input_sentence, query,args):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
-    funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim,tf_similarity]
+    funcs = [tf_similarity,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
