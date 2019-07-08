@@ -25,6 +25,7 @@ def cosine_similarity(v1,v2):
 
 def get_sentence_centroid(sentence):
     sum_vector = None
+    denom = 0
     for token in sentence.rstrip().split():
         if token not in model.wv:
             continue
@@ -33,7 +34,8 @@ def get_sentence_centroid(sentence):
             sum_vector=deepcopy(vector)
         else:
             sum_vector+=vector
-    return sum_vector/len(sentence.split())
+        denom+=1
+    return sum_vector/denom
 
 def centroid_similarity(s1,s2):
     centroid1 = get_sentence_centroid(s1)
@@ -149,18 +151,36 @@ def apply_borda_in_dict(results):
 #     chosen_idx = apply_borda_in_dict(results)
 #     return target_subset.ix[chosen_idx]["input_sentence"]
 
+
+def check_fit(series,s2):
+    res = []
+    for s1 in series:
+        intersection = set(clean_sentence(s1)).intersection(set(clean_sentence(s2)))
+        res.append(bool(intersection))
+    return pd.Series(res)
+
+
+def reduce_subset(df,row):
+    s1 = row["input_sentence"]
+    result = df[check_fit(df["input_sentence"],s1)]
+    return result
+
+
 def calculate_predictors(target_subset,row):
+    reduced_subset = reduce_subset(target_subset,row)
+    if reduced_subset.empty:
+        reduced_subset = target_subset
     results={}
     query = row["query"]
     input_sentence = row["input_sentence"]
     f = partial(get_predictors_values,input_sentence,query)
-    arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
-    with ThreadPoolExecutor(max_workers=2) as executer:
+    arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in reduced_subset.iterrows()]
+    with ThreadPoolExecutor(max_workers=1) as executer:
         values = executer.map(f,arg_list)
         for idx,result in values:
             results[idx]=result
         chosen_idx = apply_borda_in_dict(results)
-        return target_subset.ix[chosen_idx]["input_sentence"]
+        return reduced_subset.ix[chosen_idx]["input_sentence"]
 
 def parallelize(data, func,wrapper,name):
     translations_tmp_dir = "translations_ds/"
@@ -169,7 +189,7 @@ def parallelize(data, func,wrapper,name):
     tmp_fname = translations_tmp_dir+name+".csv"
     data_split = np.array_split(data, len(data))
     wrap = partial(wrapper,func)
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool:
         results = list(tqdm(pool.map(wrap, data_split),total=len(data_split)))
         data = pd.concat(results)
         data.to_csv(tmp_fname)
@@ -178,6 +198,7 @@ def parallelize(data, func,wrapper,name):
 
 def warpper(f,df):
     df["target_sentence"] = df.apply(f, axis=1)
+    return df
 
 def get_true_subset(target_subset,input_subset,query):
     # f = lambda x:calculate_predictors(target_subset,x)
@@ -188,8 +209,9 @@ def get_true_subset(target_subset,input_subset,query):
 
 def apply_func_on_subset(input_dir,target_dir,query):
     global model
-    global sw
-    logger.info("Working on "+query)
+    # global sw
+    global logger
+    # logger.info("Working on "+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
     return get_true_subset(target_subset,input_subset,query)
@@ -210,15 +232,11 @@ def initializer():
 
 
 
-def list_multiprocessing(param_lst,
-                         func,
-                         **kwargs):
+def list_multiprocessing(param_lst, func, **kwargs):
     workers = kwargs.pop('workers')
-
-    with Pool(workers) as p:
+    with Pool(workers,initializer,()) as p:
         apply_lst = [([params], func, i, kwargs) for i, params in enumerate(param_lst)]
         result = list(tqdm(p.imap(_apply_lst, apply_lst), total=len(apply_lst)))
-
     return [_[1] for _ in result]
 
 
@@ -240,7 +258,6 @@ if __name__=="__main__":
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
     queries = read_queries(queries_file)
-    sw = set(nltk.corpus.stopwords.words('english'))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()
