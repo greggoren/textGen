@@ -4,7 +4,7 @@ import nltk
 import pandas as pd
 from functools import partial,update_wrapper
 import sys
-from multiprocessing import Pool
+from multiprocessing import Pool,cpu_count
 from copy import deepcopy
 import logging
 import os
@@ -167,7 +167,7 @@ def parallelize(data, func,wrapper,name):
     if not os.path.exists(translations_tmp_dir):
         os.makedirs(translations_tmp_dir)
     tmp_fname = translations_tmp_dir+name+".csv"
-    data_split = np.array_split(data, 10)
+    data_split = np.array_split(data, len(data))
     wrap = partial(wrapper,func)
     with ThreadPoolExecutor(max_workers=3) as pool:
         results = list(tqdm(pool.map(wrap, data_split),total=len(data_split)))
@@ -243,6 +243,7 @@ if __name__=="__main__":
     sw = set(nltk.corpus.stopwords.words('english'))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
-    results = list_multiprocessing(queries,func,workers=20)
+    workers = cpu_count()
+    results = list_multiprocessing(queries,func,workers=workers)
     df = pd.concat(results).reset_index(drop=True)
     df.to_csv("query_ks_translation.csv")
