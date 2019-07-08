@@ -42,7 +42,15 @@ def get_sentence_centroid(sentence):
         else:
             sum_vector+=vector
         denom+=1
+    if sum_vector is None:
+        return 0
     return sum_vector/denom
+
+def pos_overlap(s1,s2):
+    tags1 = nltk.pos_tag(s1.split())
+    tags2 = nltk.pos_tag(s2.split())
+    return len(set(tags1).intersection(set(tags2)))
+
 
 def centroid_similarity(s1,s2):
     centroid1 = get_sentence_centroid(s1)
@@ -127,7 +135,7 @@ def get_predictors_values(input_sentence, query,args):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
-    funcs = [tf_similarity,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
+    funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
