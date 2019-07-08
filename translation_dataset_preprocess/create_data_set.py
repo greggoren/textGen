@@ -11,6 +11,13 @@ import os
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
+# from sklearn.metrics.pairwise import cosine_similarity as cs
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+
+
+
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -26,7 +33,7 @@ def cosine_similarity(v1,v2):
 def get_sentence_centroid(sentence):
     sum_vector = None
     denom = 0
-    for token in sentence.rstrip().split():
+    for token in clean_sentence(sentence):
         if token not in model.wv:
             continue
         vector = model.wv[token]
@@ -43,7 +50,14 @@ def centroid_similarity(s1,s2):
     return cosine_similarity(centroid1,centroid2)
 
 def clean_sentence(sentence):
-    return [token for token in sentence.split() if token not in sw]
+    return [token for token in sentence.rstrip().split() if token not in sw]
+
+
+def tf_similarity(s1,s2):
+    corpus = [" ".join(clean_sentence(s1))," ".join(clean_sentence(s2))]
+    tf_matrix = vectorizer.fit_transform(corpus)
+    return cosine_similarity(tf_matrix[0],tf_matrix[1])
+
 
 def jaccard_similiarity(s1,s2):
     tokens1 = set(clean_sentence(s1))
@@ -62,8 +76,13 @@ def minmax_query_token_similarity(maximum,sentence,query):
         return max(similarities)
     return min(similarities)
 
+
+
+
+
+
 def get_bigrams(sentence):
-    tokens = sentence.rstrip().split()
+    tokens = clean_sentence(sentence)
     return list(nltk.bigrams(tokens))
 
 def shared_bigrams_count(s1,s2):
@@ -73,7 +92,7 @@ def shared_bigrams_count(s1,s2):
     for bigram in bigram1:
         if bigram in bigram2:
             count+=1
-    return count
+    return count/len(bigram1)
 
 
 def read_sentences(fname):
@@ -108,7 +127,7 @@ def get_predictors_values(input_sentence, query,args):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
-    funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
+    funcs = [centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim,tf_similarity]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
@@ -227,9 +246,9 @@ def read_queries(fname):
 
 def initializer():
     global sw
+    global vectorizer
     sw = set(nltk.corpus.stopwords.words('english'))
-
-
+    vectorizer = CountVectorizer()
 
 
 def list_multiprocessing(param_lst, func, **kwargs):
