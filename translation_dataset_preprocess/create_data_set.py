@@ -137,49 +137,52 @@ def apply_borda_in_dict(results):
     chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
     return chosen_cand
 
-def calculate_predictors(target_subset,row):
-    results={}
-    query = row["query"]
-    input_sentence = row["input_sentence"]
-
-    for idx,target_row in target_subset.iterrows():
-        target_sentence = target_row["input_sentence"]
-        _,vals = get_predictors_values(input_sentence, query,(idx,target_sentence))
-        results[idx] = vals
-    chosen_idx = apply_borda_in_dict(results)
-    return target_subset.ix[chosen_idx]["input_sentence"]
-
 # def calculate_predictors(target_subset,row):
 #     results={}
 #     query = row["query"]
 #     input_sentence = row["input_sentence"]
-#     f = partial(get_predictors_values,input_sentence,query)
-#     arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
-#     with ThreadPoolExecutor(max_workers=1) as executer:
-#         values = executer.map(f,arg_list)
-#         for idx,result in values:
-#             results[idx]=result
-#         chosen_idx = apply_borda_in_dict(results)
-#         return target_subset.ix[chosen_idx]["input_sentence"]
+#
+#     for idx,target_row in target_subset.iterrows():
+#         target_sentence = target_row["input_sentence"]
+#         _,vals = get_predictors_values(input_sentence, query,(idx,target_sentence))
+#         results[idx] = vals
+#     chosen_idx = apply_borda_in_dict(results)
+#     return target_subset.ix[chosen_idx]["input_sentence"]
 
-def parallelize(data, func,wrapper):
-    data_split = np.array_split(data, len(data))
-    wrap = partial(warpper,func)
-    pool = ThreadPoolExecutor(max_workers=20)
-    results = list(tqdm(pool.map(wrap, data_split),total=len(data_split)))
-    data = pd.concat(results)
-    pool.close()
-    pool.join()
-    return data
+def calculate_predictors(target_subset,row):
+    results={}
+    query = row["query"]
+    input_sentence = row["input_sentence"]
+    f = partial(get_predictors_values,input_sentence,query)
+    arg_list = [(idx,target_row["input_sentence"]) for idx,target_row in target_subset.iterrows()]
+    with ThreadPoolExecutor(max_workers=2) as executer:
+        values = executer.map(f,arg_list)
+        for idx,result in values:
+            results[idx]=result
+        chosen_idx = apply_borda_in_dict(results)
+        return target_subset.ix[chosen_idx]["input_sentence"]
+
+def parallelize(data, func,wrapper,name):
+    translations_tmp_dir = "translations_ds/"
+    if not os.path.exists(translations_tmp_dir):
+        os.makedirs(translations_tmp_dir)
+    tmp_fname = translations_tmp_dir+name+".csv"
+    data_split = np.array_split(data, 10)
+    wrap = partial(wrapper,func)
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        results = list(tqdm(pool.map(wrap, data_split),total=len(data_split)))
+        data = pd.concat(results)
+        data.to_csv(tmp_fname)
+        return data
 
 
 def warpper(f,df):
     df["target_sentence"] = df.apply(f, axis=1)
 
-def get_true_subset(target_subset,input_subset):
+def get_true_subset(target_subset,input_subset,query):
     # f = lambda x:calculate_predictors(target_subset,x)
     f = partial(calculate_predictors,target_subset)
-    input_subset = parallelize(input_subset,f,warpper)
+    input_subset = parallelize(input_subset,f,warpper,name=query)
     # input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
@@ -189,7 +192,7 @@ def apply_func_on_subset(input_dir,target_dir,query):
     logger.info("Working on "+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
-    return get_true_subset(target_subset,input_subset)
+    return get_true_subset(target_subset,input_subset,query)
 
 
 def read_queries(fname):
