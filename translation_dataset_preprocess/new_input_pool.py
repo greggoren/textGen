@@ -144,7 +144,7 @@ if __name__=="__main__":
     input_file = sys.argv[5]
     queries = read_queries(queries_file)
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
-    df = pd.from_csv(input_file,delimiter = ",",header=0,chunksize=100000)
+    df = pd.read_csv(input_file,delimiter = ",",header=0,chunksize=100000)
     func = partial(find_most_similar_sentences,df, target_dir,input_dir)
     if not os.path.exists(input_dir):
         os.makedirs(input_dir)
