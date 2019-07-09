@@ -123,7 +123,9 @@ def find_most_similar_sentences(input_file,translation_dir,input_dir,query):
     min_val = -float("inf")
     for chunk in df:
         for row in chunk.itertuples():
-            sentence =row[1]
+            sentence =str(row[1])
+            if sentence=="":
+                continue
             sim = calculate_similarities(q,centroid=centroid,sentence=sentence)
             queue,min_val=insert_to_queue(queue,sim,sentence,min_val)
     rows ={}
