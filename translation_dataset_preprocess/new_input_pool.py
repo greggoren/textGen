@@ -113,8 +113,9 @@ def insert_to_queue(q,sim,sentence,min_val):
         return q[1:],q[1][0]
     return q,min_val
 
-def find_most_similar_sentences(df,translation_dir,input_dir,query):
+def find_most_similar_sentences(input_file,translation_dir,input_dir,query):
     global model
+    df = pd.read_csv(input_file,delimiter = ",",header=0,chunksize=100000)
     cluster = read_df(translation_dir+query)
     centroid = get_centroid_of_cluster(cluster)
     queue = []
@@ -144,8 +145,7 @@ if __name__=="__main__":
     input_file = sys.argv[5]
     queries = read_queries(queries_file)
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
-    df = pd.read_csv(input_file,delimiter = ",",header=0,chunksize=100000)
-    func = partial(find_most_similar_sentences,df, target_dir,input_dir)
+    func = partial(find_most_similar_sentences,input_file, target_dir,input_dir)
     if not os.path.exists(input_dir):
         os.makedirs(input_dir)
     workers = cpu_count()
