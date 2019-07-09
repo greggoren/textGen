@@ -1,5 +1,5 @@
 import pandas as pd
-import tqdm
+from tqdm import tqdm
 import nltk
 from multiprocessing import Pool,cpu_count
 from copy import deepcopy
