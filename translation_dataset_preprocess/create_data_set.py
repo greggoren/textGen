@@ -83,6 +83,8 @@ def jaccard_similiarity(s1,s2):
 def minmax_query_token_similarity(maximum,sentence,query):
     query_tokens = set(query.split())
     centroid = get_sentence_centroid(sentence)
+    if centroid is None:
+        return 0
     similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens if token in model.wv]
     if not similarities:
         return 0
