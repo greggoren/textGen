@@ -43,7 +43,7 @@ def get_sentence_centroid(sentence):
             sum_vector+=vector
         denom+=1
     if sum_vector is None:
-        return 0
+        return None
     return sum_vector/denom
 
 def pos_overlap(s1,s2):
@@ -55,6 +55,8 @@ def pos_overlap(s1,s2):
 def centroid_similarity(s1,s2):
     centroid1 = get_sentence_centroid(s1)
     centroid2 = get_sentence_centroid(s2)
+    if centroid1 is None or centroid2 is None:
+        return 0
     return cosine_similarity(centroid1,centroid2)
 
 def clean_sentence(sentence):
@@ -94,7 +96,7 @@ def minmax_query_token_similarity(maximum,sentence,query):
 
 
 def get_bigrams(sentence):
-    tokens = clean_sentence(sentence)
+    tokens = sentence.rstrip().split()
     return list(nltk.bigrams(tokens))
 
 def shared_bigrams_count(s1,s2):
