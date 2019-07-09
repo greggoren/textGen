@@ -149,7 +149,7 @@ if __name__=="__main__":
     if not os.path.exists(input_dir):
         os.makedirs(input_dir)
     workers = cpu_count()
-    list_multiprocessing(func,queries,workers=workers)
+    list_multiprocessing(queries,func,workers=workers)
 
 
 
