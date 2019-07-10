@@ -282,7 +282,7 @@ def _apply_lst(args):
 
 
 def recovery_mode(queries,output_dir,target_dir):
-    finished = [f for f in os.listdir(output_dir)]
+    finished = [f.replace(".csv","") for f in os.listdir(output_dir)]
     updated_queries = [q for q in queries if q not in finished and os.path.isfile(target_dir+q)]
     return updated_queries
 
