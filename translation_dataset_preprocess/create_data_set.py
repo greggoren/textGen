@@ -299,8 +299,11 @@ if __name__=="__main__":
     model_file = sys.argv[4]
     recvery = bool(sys.argv[5])
     queries = read_queries(queries_file)
+
+    logger.info("Working on queries:"+str(queries))
     if recvery:
         queries = recovery_mode(queries,"translations_ds",target_dir)
+        logger.info("Recovery mode detected working on updated queries:" + str(queries))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()
