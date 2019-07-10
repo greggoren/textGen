@@ -214,7 +214,11 @@ def calculate_predictors(target_subset,row):
         values = executer.map(f,arg_list)
         for idx,result in values:
             results[idx]=result
-        chosen_idx = apply_borda_in_dict(results)
+        try:
+            chosen_idx = apply_borda_in_dict(results)
+        except:
+            logger.error("problem in "+query+" and input sentence "+input_sentence)
+            sys.exit(1)
         return reduced_subset.ix[chosen_idx]["input_sentence"]
 
 def parallelize(data, func,wrapper,name):
@@ -300,10 +304,10 @@ if __name__=="__main__":
     recvery = bool(sys.argv[5])
     queries = read_queries(queries_file)
 
-    logger.info("Working on queries:"+str(queries))
+    logger.info("Number of queries:"+str(len(queries)))
     if recvery:
         queries = recovery_mode(queries,"translations_ds",target_dir)
-        logger.info("Recovery mode detected working on updated queries:" + str(queries))
+        logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()
