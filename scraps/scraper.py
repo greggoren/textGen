@@ -6,7 +6,17 @@ import random
 import pandas as pd
 from time import time
 
-df = pd.DataFrame({'num_legs': [4, 2], 'num_wings': [0, 2]},index=['dog', 'hawk'])
-print(df)
-for row in df.itertuples():
-    print(row[0])
+
+
+
+rows ={}
+i=0
+row={}
+row["query"]="q"
+row["input_sentence"] = "hi girl"
+rows[0]=row
+row={}
+row["query"]="q"
+row["input_sentence"] = "bye girl"
+rows[1]=row
+pd.DataFrame.from_dict(rows,orient="index").to_csv("test.csv")

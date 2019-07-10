@@ -136,7 +136,7 @@ def find_most_similar_sentences(input_file,translation_dir,input_dir,query):
         row["input_sentence"] = item[1]
         rows[i]=row
         i+=1
-    pd.DataFrame.from_dict(rows).to_csv(input_dir+query)
+    pd.DataFrame.from_dict(rows,orient="index").to_csv(input_dir+query)
 
 
 if __name__=="__main__":
