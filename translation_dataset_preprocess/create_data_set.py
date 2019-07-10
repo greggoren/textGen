@@ -281,6 +281,11 @@ def _apply_lst(args):
 
 
 
+def recovery_mode(queries,output_dir,target_dir):
+    finished = [f for f in os.listdir(output_dir)]
+    updated_queries = [q for q in queries if q not in finished and os.path.isfile(target_dir+q)]
+    return updated_queries
+
 
 if __name__=="__main__":
     program = os.path.basename(sys.argv[0])
@@ -292,7 +297,10 @@ if __name__=="__main__":
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
+    recvery = bool(sys.argv[5])
     queries = read_queries(queries_file)
+    if recvery:
+        queries = recovery_mode(queries,"translations_ds",target_dir)
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()
