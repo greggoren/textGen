@@ -32,7 +32,7 @@ class TranslationQuery(Text2TextProblem):
         del tmp_dir
         del dataset_split
 
-        dataset_file = "yahoo.csv"
+        dataset_file = "data/yahoo.csv"
         reader = pd.read_csv(dataset_file,header=0,delimiter=",",chunksize=100000)
         for df in reader:
             for row in df.itertuples():
