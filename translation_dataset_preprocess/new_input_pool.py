@@ -138,6 +138,11 @@ def find_most_similar_sentences(input_file,translation_dir,input_dir,query):
         i+=1
     pd.DataFrame.from_dict(rows,orient="index").to_csv(input_dir+query)
 
+def recovery_mode(queries,output_dir,target_dir):
+    finished = [f.replace(".csv","") for f in os.listdir(output_dir)]
+    updated_queries = [q for q in queries if q not in finished and os.path.isfile(target_dir+q)]
+    return updated_queries
+
 
 if __name__=="__main__":
     input_dir = sys.argv[1]
@@ -145,7 +150,12 @@ if __name__=="__main__":
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
     input_file = sys.argv[5]
+    recovery = bool(sys.argv[6])
+
     queries = read_queries(queries_file)
+    if recovery:
+        queries = recovery_mode(queries,"new_input_pull",target_dir)
+        print("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
     func = partial(find_most_similar_sentences,input_file, target_dir,input_dir)
     if not os.path.exists(input_dir):

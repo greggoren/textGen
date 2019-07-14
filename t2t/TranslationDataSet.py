@@ -2,9 +2,9 @@ from tensor2tensor.data_generators import problem
 from tensor2tensor.data_generators.problem import Text2TextProblem
 from tensor2tensor.utils import registry
 import pandas as pd
+
 @registry.register_problem
 class TranslationQuery(Text2TextProblem):
-    """Predict next line of poetry from the last line. From Gutenberg texts."""
 
     @property
     def approx_vocab_size(self):
