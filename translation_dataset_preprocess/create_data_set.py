@@ -222,7 +222,7 @@ def calculate_predictors(target_subset,row):
         return reduced_subset.ix[chosen_idx]["input_sentence"]
 
 def parallelize(data, func,wrapper,name):
-    translations_tmp_dir = "translations_ds/"
+    translations_tmp_dir = "translations_new_ds/"
     if not os.path.exists(translations_tmp_dir):
         os.makedirs(translations_tmp_dir)
     tmp_fname = translations_tmp_dir+name+".csv"
@@ -301,16 +301,16 @@ if __name__=="__main__":
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
-    recvery = bool(sys.argv[5])
+    recovery = sys.argv[5]
     queries = read_queries(queries_file)
 
     logger.info("Number of queries:"+str(len(queries)))
-    if recvery:
-        queries = recovery_mode(queries,"translations_ds",target_dir)
+    if recovery=="True":
+        queries = recovery_mode(queries,"translations_new_ds",target_dir)
         logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()
     results = list_multiprocessing(queries,func,workers=workers)
     df = pd.concat(results).reset_index(drop=True)
-    df.to_csv("query_ks_translation.csv")
+    df.to_csv("query_ks_translation_new.csv")
