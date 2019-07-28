@@ -1,7 +1,8 @@
 import os
 input_dir = "new_input_pull/"
 new_input_dir = "input_dir/"
-
+if not os.path.exists(new_input_dir):
+    os.makedirs(new_input_dir)
 for file in os.listdir(input_dir):
     new_file_name = new_input_dir+file
     with open(input_dir+file) as original_file:
