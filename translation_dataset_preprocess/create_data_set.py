@@ -143,7 +143,8 @@ def get_predictors_values(input_sentence, query,args):
     result={}
     max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
     min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
-    funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
+    # funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
+    funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
@@ -310,7 +311,7 @@ if __name__=="__main__":
         logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file,binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
-    workers = cpu_count()
+    workers = cpu_count()-1
     results = list_multiprocessing(queries,func,workers=workers)
     df = pd.concat(results).reset_index(drop=True)
     df.to_csv("query_ks_translation_new.csv")
