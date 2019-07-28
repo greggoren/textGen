@@ -153,6 +153,7 @@ if __name__=="__main__":
     recovery = bool(sys.argv[6])
 
     queries = read_queries(queries_file)
+    print("there are ",str(len(queries)),"queries",flush=True)
     if recovery:
         queries = recovery_mode(queries,"new_input_pull",target_dir)
         print("Recovery mode detected, updated number of queries:" + str(len(queries)))
