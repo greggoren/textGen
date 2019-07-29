@@ -2,7 +2,7 @@ from tensor2tensor.data_generators import problem
 from tensor2tensor.data_generators.problem import Text2TextProblem
 from tensor2tensor.utils import registry
 import pandas as pd
-
+import os
 @registry.register_problem
 class TranslationQuery(Text2TextProblem):
 
@@ -32,13 +32,15 @@ class TranslationQuery(Text2TextProblem):
         del tmp_dir
         del dataset_split
 
-        dataset_file = "data/yahoo.csv"
-        reader = pd.read_csv(dataset_file,header=0,delimiter=",",chunksize=100000)
-        for df in reader:
-            for row in df.itertuples():
-                input = row[1]
-                target = row[2]
-                yield {
-                    "inputs": input,
-                    "targets": target,
-                }
+        dataset_dir = "data/"
+        for file in os.listdir(dataset_dir):
+            dataset_file = dataset_dir+file
+            reader = pd.read_csv(dataset_file,header=0,delimiter=",",chunksize=100000)
+            for df in reader:
+                for row in df.itertuples():
+                    input = row[1]
+                    target = row[2]
+                    yield {
+                        "inputs": input,
+                        "targets": target,
+                    }
