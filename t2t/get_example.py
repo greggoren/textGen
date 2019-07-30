@@ -21,4 +21,5 @@ with tf.Session() as sess:
             data_record = sess.run(next_element)
             print(data_record)
     except:
-        pass
+        raise
+
