@@ -1,10 +1,12 @@
-src = open("input.txt","w")
-trgt = open("input.txt","w")
-with open("") as file:
+q = []
+with open("example/queries_file") as file:
     for line in file:
-        s = line.split(",")[2]
-        t = line.split(",")[3].rstrip()
-        src.write(s+"\n")
-        trgt.write(t+"\n")
-    src.close()
-    trgt.close()
+        q.append(line.rstrip())
+acc = 0
+c =0
+with open("input_encoded.out") as file:
+    for i,line in enumerate(file):
+        if q[i] in line:
+            acc+=1
+        c+=1
+    print(acc/c)
