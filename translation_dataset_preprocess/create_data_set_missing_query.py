@@ -21,8 +21,8 @@ def create_ds(raw_target_directory,target_directory ,queries):
         if file not in queries:
             continue
         rows = {}
-        with open(raw_target_directory+file) as file:
-            for row,line in enumerate(file):
+        with open(raw_target_directory+file) as qfile:
+            for row,line in enumerate(qfile):
                 rows[row]={}
                 target = line.split("\t")[1].rstrip()
                 query =line.split("\t")[0]
