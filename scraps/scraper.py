@@ -7,9 +7,6 @@ import pandas as pd
 from time import time
 
 
-
-
-a = "False"
-b = bool(a)
-if b:
-    print("fuck")
+a ="the world"
+b = a.replace("the","")
+print(a,b)

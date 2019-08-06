@@ -6,7 +6,7 @@ def parse_loss_file(filename):
     with open(filename) as file:
         for line in file:
             cleaned = line.replace(",","")
-            loss = float(cleaned.split()[2])
+            loss = float(cleaned.split("loss = ")[1].split()[0])
             losses.append(loss)
         x = [i*100 for i,a in enumerate(losses)]
         return losses,x
@@ -56,12 +56,28 @@ def plot_metric(y,x,fname,y_label,x_label,legends=None,colors=None,jumps=15):
     plt.clf()
 
 eval_filename = "results/eval.out"
+random_eval_filename = "results/evaluation_random.txt"
 loss_filename = "results/loss.out"
+random_loss_filename = "results/loss_random.txt"
 
 losses,steps = parse_loss_file(loss_filename)
+rlosses,rsteps = parse_loss_file(random_loss_filename)
 bleus,losses_,accs,steps_ = parse_metrics(eval_filename)
+rbleus,rlosses_,raccs,rsteps_ = parse_metrics(random_eval_filename)
 
-plot_metric(losses,steps,"loss_train","CELoss","Steps",None,None,500)
-plot_metric(losses_,steps_,"loss_test","CELoss","Steps",None,None,50)
-plot_metric(bleus,steps_,"bleu_test","BLEU","Steps",None,None,50)
-plot_metric(accs,steps_,"acc_per_seq_test","Accuracy","Steps",None,None,50)
+
+
+legends = ["Borda","Random"]
+colors = ["b","r"]
+items = min(len(steps),len(rsteps))
+obj = [losses[:items],rlosses[:items]]
+
+plot_metric(obj,steps[:items],"loss_train","CELoss","Steps",legends,colors,500)
+
+items = min(len(steps_),len(rsteps_))
+obj = [losses_[:items],rlosses_[:items]]
+plot_metric(obj,steps_[:items],"loss_test","CELoss","Steps",legends,colors,50)
+
+# plot_metric(bleus,steps_,"bleu_test","BLEU","Steps",None,None,50)
+obj = [accs[:items],raccs[:items]]
+plot_metric(obj,steps_[:items],"acc_per_seq_test","Accuracy","Steps",legends,colors,50)

@@ -29,7 +29,7 @@ def match(input_dir,target_dir,new_target_dir):
             rows[row]["input_sentence"]=sentence
             rows[row]["target_sentence"]=target_sentence
             row+=1
-        df = pd.DataFrame.from_dict(rows)
+        df = pd.DataFrame.from_dict(rows,orient="rows")
         df.to_csv(new_target_dir+file+".csv")
 
 if __name__=="__main__":
@@ -37,5 +37,6 @@ if __name__=="__main__":
     target_dir = sys.argv[2]
     new_target_dir = sys.argv[3]
     match(input_dir,target_dir,new_target_dir)
+
 
 
