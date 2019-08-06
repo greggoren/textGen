@@ -8,7 +8,8 @@ def read_queries(fname):
             amount = int(line.split(":")[1].rstrip())
             if amount < 10000:
                 continue
-            queries.append(query)
+
+            queries.append("_".join(query.split()))
     return queries
 
 
