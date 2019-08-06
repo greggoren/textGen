@@ -27,7 +27,9 @@ def create_ds(raw_target_directory,target_directory ,queries):
                 rows[row]={}
                 target = line.split("\t")[1].rstrip()
                 query =line.split("\t")[0]
-                inp = target.replace(query,"")+" "+query
+                inp = target
+                for q in query.split():
+                    inp = inp.replace(q,"")+" "+q
                 rows[row]["query"]=query
                 rows[row]["input_sentence"]=inp
                 rows[row]["target_sentence"]=target
