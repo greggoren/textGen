@@ -89,7 +89,7 @@ if __name__=="__main__":
         checkpoints = retrieve_all_checkpoints(train_dir)
         for checkpoint in checkpoints:
             create_checkpoint_file(train_dir,checkpoint)
-            run_decode_script(decode_script)
+            run_decode_script(decode_script,translations_dir,checkpoint)
     if "range" in mode.lower():
         lower_checkpoint = mode.split("_")[1]
         upper_checkpoint = mode.split("_")[2]
@@ -97,11 +97,11 @@ if __name__=="__main__":
         checkpoints=filter_checkpoints(checkpoints,lower_checkpoint,upper_checkpoint)
         for checkpoint in checkpoints:
             create_checkpoint_file(train_dir, checkpoint)
-            run_decode_script(decode_script)
+            run_decode_script(decode_script,translations_dir,checkpoint)
     if "specific" in mode.lower():
         checkpoint = mode.split("_")[1]
         create_checkpoint_file(train_dir, checkpoint)
-        run_decode_script(decode_script)
+        run_decode_script(decode_script,translations_dir,checkpoint)
 
 
 
