@@ -22,7 +22,7 @@ def run_bash_command(command):
 def run_decode_script(decode_script,translation_dir,checkpoint):
     command = "./"+decode_script
     logger.info("Running script "+command +" "+translation_dir+" "+checkpoint)
-    out = run_bash_command(command)
+    out = run_bash_command(command +" "+translations_dir+" "+checkpoint)
     logger.info(out)
 
 
@@ -85,7 +85,7 @@ if __name__=="__main__":
     translations_dir=options.translations_dir
     if not os.path.exists(translations_dir):
         os.makedirs(translations_dir)
-    if mode=="ALL" or mode=="all":
+    if mode.lower()=="all":
         checkpoints = retrieve_all_checkpoints(train_dir)
         for checkpoint in checkpoints:
             create_checkpoint_file(train_dir,checkpoint)
