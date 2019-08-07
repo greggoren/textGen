@@ -31,11 +31,11 @@ def run_decode_script(decode_script):
 def create_checkpoint_file(train_dir,wanted_checkpoint):
     backup_file = train_dir+"checkpoint_bkup"
     working_file = train_dir+"checkpoint"
-    if os.path.isfile(working_file):
-        run_bash_command("mv "+working_file+" "+backup_file)
-    run_bash_command("touch "+train_dir+"checkpoint")
-    run_bash_command('echo "model_checkpoint_path: "model.ckpt-'+wanted_checkpoint+'"" >> '+working_file)
-    run_bash_command('tail -n2 '+backup_file+ ' >> '+working_file)
+    # if os.path.isfile(working_file):
+    run_bash_command("mv "+working_file+" "+backup_file)
+    run_bash_command("touch "+working_file)
+    run_bash_command('echo "model_checkpoint_path: \"model.ckpt-'+wanted_checkpoint+'\"" >> '+working_file)
+    run_bash_command('tail -n+2 '+backup_file+ ' >> '+working_file)
 
 def retrieve_all_checkpoints(train_dir):
     checkpoints=[]
