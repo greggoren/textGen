@@ -75,7 +75,7 @@ if __name__=="__main__":
     parser = OptionParser()
     parser.add_option("-m", "--mode", dest="mode",
                       help="set running mode")
-    parser.add_option("-m", "--train_dir",dest="train_dir")
+    parser.add_option("-k", "--train_dir",dest="train_dir")
     parser.add_option("-d", "--decode_script",dest = "decode_script")
     parser.add_option("-t", "--translations_dir",dest = "translations_dir")
     (options, args) = parser.parse_args()
