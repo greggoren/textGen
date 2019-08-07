@@ -72,20 +72,12 @@ if __name__=="__main__":
     parser = OptionParser()
     parser.add_option("-m", "--mode", dest="mode",
                       help="set running mode")
-    parser.add_option("-td", "--train_dir")
-    parser.add_option("-ds", "--decode_script")
+    parser.add_option("-td", "--train_dir",dest="train_dir")
+    parser.add_option("-ds", "--decode_script",dest = "decode_script")
     (options, args) = parser.parse_args()
-    for opt,arg in options:
-        logger.info("going over "+opt+" "+arg)
-        if opt=="-mode":
-            mode = arg
-        elif opt=="-train_dir":
-            train_dir=arg
-        elif opt=="-decode_script":
-            decode_script = arg
-        else:
-            print("Wrong options inserted! - check command")
-            sys.exit(1)
+    mode = options.mode
+    train_dir=options.train_dir
+    decode_script = options.decode_script
     if mode=="ALL" or mode=="all":
         checkpoints = retrieve_all_checkpoints(train_dir)
         for checkpoint in checkpoints:
