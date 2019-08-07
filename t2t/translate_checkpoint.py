@@ -1,4 +1,6 @@
 import sys, getopt,os,logging
+from optparse import OptionParser
+
 import subprocess
 
 def run_command(command):
@@ -63,11 +65,17 @@ if __name__=="__main__":
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
-    opts, args = getopt.getopt(sys.argv, "mode:train_dir:decode_script:")
+    # opts, args = getopt.getopt(sys.argv, "mode:train_dir:decode_script:")
     mode = ''
     train_dir=''
     decode_script=''
-    for opt,arg in opts:
+    parser = OptionParser()
+    parser.add_option("-m", "--mode", dest="mode",
+                      help="set running mode")
+    parser.add_option("-td", "--train_dir")
+    parser.add_option("-ds", "--decode_script")
+    (options, args) = parser.parse_args()
+    for opt,arg in options:
         logger.info("going over "+opt+" "+arg)
         if opt=="-mode":
             mode = arg
