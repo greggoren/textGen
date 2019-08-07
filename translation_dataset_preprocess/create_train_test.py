@@ -32,4 +32,4 @@ if __name__=="__main__":
     train_index = floor(0.9*len(queries))
     train = queries[:train_index]
     data_dir = "missing_query_ds/"
-
+    split_sets(train,data_dir,"missing_query_ds_train/","missing_query_ds_test/")

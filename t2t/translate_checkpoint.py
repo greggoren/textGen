@@ -68,6 +68,7 @@ if __name__=="__main__":
     train_dir=''
     decode_script=''
     for opt,arg in opts:
+        logger.info("going over "+opt+" "+arg)
         if opt=="-mode":
             mode = arg
         elif opt=="-train_dir":
