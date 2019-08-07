@@ -19,9 +19,9 @@ def run_bash_command(command):
     return out
 
 
-def run_decode_script(decode_script):
+def run_decode_script(decode_script,translation_dir,checkpoint):
     command = "./"+decode_script
-    logger.info("Running script "+command)
+    logger.info("Running script "+command +" "+translation_dir+" "+checkpoint)
     out = run_bash_command(command)
     logger.info(out)
 
@@ -71,15 +71,20 @@ if __name__=="__main__":
     mode = ''
     train_dir=''
     decode_script=''
+    translations_dir = ''
     parser = OptionParser()
     parser.add_option("-m", "--mode", dest="mode",
                       help="set running mode")
-    parser.add_option("-t", "--train_dir",dest="train_dir")
+    parser.add_option("-m", "--train_dir",dest="train_dir")
     parser.add_option("-d", "--decode_script",dest = "decode_script")
+    parser.add_option("-t", "--translations_dir",dest = "translations_dir")
     (options, args) = parser.parse_args()
     mode = options.mode
     train_dir=options.train_dir
     decode_script = options.decode_script
+    translations_dir=options.translations_dir
+    if not os.path.exists(translations_dir):
+        os.makedirs(translations_dir)
     if mode=="ALL" or mode=="all":
         checkpoints = retrieve_all_checkpoints(train_dir)
         for checkpoint in checkpoints:
