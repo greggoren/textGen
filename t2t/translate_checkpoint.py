@@ -1,22 +1,8 @@
 import sys, getopt,os,logging
 from optparse import OptionParser
 
-import subprocess
+from t2t.utils import run_bash_command
 
-def run_command(command):
-    p = subprocess.Popen(command,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
-                         shell=True)
-    return iter(p.stdout.readline, b'')
-
-def run_bash_command(command):
-    p = subprocess.Popen(command,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT, shell=True)
-
-    out, err = p.communicate()
-    return out
 
 
 def run_decode_script(decode_script,translation_dir,checkpoint):
