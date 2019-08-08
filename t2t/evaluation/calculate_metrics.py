@@ -1,17 +1,16 @@
-import os
+import os,sys,logging
 from t2t.utils import run_bash_command
 import time
 from optparse import OptionParser
 from multiprocessing import Pool
 from functools import partial
-
 def run_bleu(reference,script,translation):
     out = run_bash_command(script+" --translation="+translation+" --reference="+reference)
 
     for line in str(out).split("\n"):
         if "BLEU_uncased" in line:
             score = float(line.split()[2].rstrip())
-            print(score)
+            logger.info("score="+str(score))
             return score,translation
 
 
@@ -54,6 +53,11 @@ def calculate_bleu(translations_dir,reference_file,bleu_script_bin,write_flag):
 
 
 if __name__=="__main__":
+    program = os.path.basename(sys.argv[0])
+    logger = logging.getLogger(program)
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
+    logging.root.setLevel(level=logging.INFO)
+    logger.info("running %s" % ' '.join(sys.argv))
     parser = OptionParser()
     parser.add_option("-m", "--metric", dest="metric",
                       help="set running mode")
