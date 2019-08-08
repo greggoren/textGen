@@ -54,7 +54,7 @@ def calculate_bleu_multiprocess(translations_dir,reference_file,bleu_script_bin,
         results = pool.map(func,files)
         if write_flag:
             for result in results:
-                bleu_results_file.write(result[1]+"\t"+result[0]+"\n")
+                bleu_results_file.write(result[1]+"\t"+str(result[0])+"\n")
             bleu_results_file.close()
         return results
 
