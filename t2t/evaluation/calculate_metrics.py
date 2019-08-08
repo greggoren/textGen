@@ -10,7 +10,12 @@ def run_bleu(reference,script,translation):
     for line in str(out).split("\n"):
         logger.info("line="+line+"\n")
         if "BLEU_uncased" in line:
-            score = float(line.split()[-1].rstrip()[:-2])
+            score=''
+            score_raw = line.split()[-1].rstrip()
+            for c in score_raw:
+                if c.isdigit() or c=='.':
+                    score+=c
+            score = float(score)
             return score,translation
 
 
@@ -34,7 +39,7 @@ def get_accuracy_per_sequence(target_file,translation_file):
         sequence_acc = current_sum/current_sum
         total_sum+=sequence_acc
         total_counter+=1
-    return
+    return total_sum/total_counter
 
 
 
