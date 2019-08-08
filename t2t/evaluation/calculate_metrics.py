@@ -10,18 +10,16 @@ def run_bleu(reference,script,translation):
     for line in str(out).split("\n"):
         if "BLEU_uncased" in line:
             score = float(line.split()[2].rstrip())
-            logger.info("score="+str(score))
             return score,translation
 
 
 
 
 def calculate_bleu_multiprocess(translations_dir,reference_file,bleu_script_bin,write_flag,processes):
-    files = [file for file in os.listdir(translations_dir)]
+    files = [translation_dir+file for file in os.listdir(translations_dir)]
     if write_flag:
         ts = time.time()
-        bleu_results_file = open("BLEU_RESULTS_"+str(ts),
-                                 'w')
+        bleu_results_file = open("BLEU_RESULTS_"+str(ts),'w')
     func = partial(run_bleu,reference_file,bleu_script_bin)
     with Pool(processes=processes) as pool:
         results = pool.map(func,files)
