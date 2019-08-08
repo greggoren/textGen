@@ -10,7 +10,7 @@ def run_bleu(reference,script,translation):
     for line in str(out).split("\n"):
         logger.info("line="+line+"\n")
         if "BLEU_uncased" in line:
-            score = float(line.split()[2].rstrip())
+            score = float(line.split()[-1].rstrip())
             return score,translation
 
 
