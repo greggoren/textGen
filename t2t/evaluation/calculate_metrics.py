@@ -8,10 +8,21 @@ def run_bleu(reference,script,translation):
     out = run_bash_command(script+" --translation="+translation+" --reference="+reference)
 
     for line in str(out).split("\n"):
+        logger.info("line="+line+"\n")
         if "BLEU_uncased" in line:
             score = float(line.split()[2].rstrip())
             return score,translation
 
+
+def get_accuracy_per_sequence(target_file,translation_file):
+    translation_lines = open(translation_file).readlines()
+    target_lines = open(target_file).readlines()
+    total_sum = 0
+    total_counter = 0
+    for row,translated_sequence in enumerate(translation_lines):
+        target_sequence = translation_lines[row]
+        current_sum = 0
+        current_counter = 0
 
 
 
