@@ -7,9 +7,11 @@ from functools import partial
 
 def run_bleu(reference,script,translation):
     out = run_bash_command(script+" --translation="+translation+" --reference="+reference)
+
     for line in str(out).split("\n"):
         if "BLEU_uncased" in line:
             score = float(line.split()[2].rstrip())
+            print(score)
             return score,translation
 
 
