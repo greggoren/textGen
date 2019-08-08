@@ -4,6 +4,7 @@ import time
 from optparse import OptionParser
 from multiprocessing import Pool
 from functools import partial
+
 def run_bleu(reference,script,translation):
     out = run_bash_command(script+" --translation="+translation+" --reference="+reference)
     for line in str(out).split("\n"):
@@ -16,8 +17,6 @@ def run_bleu(reference,script,translation):
 
 def calculate_bleu_multiprocess(translations_dir,reference_file,bleu_script_bin,write_flag,processes):
     files = [file for file in os.listdir(translations_dir)]
-    files = sorted(files)
-    bleus = []
     if write_flag:
         ts = time.time()
         bleu_results_file = open("BLEU_RESULTS_"+str(ts),
@@ -29,8 +28,7 @@ def calculate_bleu_multiprocess(translations_dir,reference_file,bleu_script_bin,
             for result in results:
                 bleu_results_file.write(result[1]+"\t"+result[0]+"\n")
             bleu_results_file.close()
-    return bleus
-
+        return results
 
 def calculate_bleu(translations_dir,reference_file,bleu_script_bin,write_flag):
     files = [file for file in os.listdir(translations_dir)]
