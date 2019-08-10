@@ -42,7 +42,7 @@ def get_accuracy_per_sequence(target_file,translation_file):
             if transleted_tokens[index].rstrip()==target_token.rstrip():
                 current_sum+=1
             current_counter+=1
-        sequence_acc = current_sum/current_sum
+        sequence_acc = current_sum/current_counter
         total_sum+=sequence_acc
         total_counter+=1
     return total_sum/total_counter
