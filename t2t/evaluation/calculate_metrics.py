@@ -157,9 +157,15 @@ def get_similarity( target_file, queries_file,translation_file):
     for row,target_sequence in enumerate(target_lines):
         query = queries_lines[row]
         translated_sequence = translation_lines[row]
-        centroid_translated = get_sentence_centroid(translated_sequence,model)
+        translated_centroid = get_sentence_centroid(translated_sequence,model)
+        if translated_centroid is None:
+            logger.info("None situations in row"+str(row))
+            continue
         query_centroid = get_sentence_centroid(query,model)
-        similarity = cosine_similarity(centroid_translated,query_centroid)
+        if query_centroid is None:
+            logger.info("None situations in query" + str(query))
+            continue
+        similarity = cosine_similarity(translated_centroid,query_centroid)
         if query not in per_query_similarity:
             per_query_similarity[query]=[]
         per_query_similarity[query].append(similarity)
@@ -172,13 +178,13 @@ def get_similarity( target_file, queries_file,translation_file):
 def calculate_similarity_multiprocess(translations_dir,reference_file,write_flag,ts,query_file,processes):
     files = [translation_dir+file for file in os.listdir(translations_dir)]
     if write_flag:
-        bleu_results_file = open("SIMILARITY_RESULTS_"+str(ts),'w')
+        results_file = open("SIMILARITY_RESULTS_"+str(ts),'w')
     func = partial(get_similarity,reference_file,query_file)
     results = list_multiprocessing(files,func,workers=processes)
     if write_flag:
         for result in results:
-            bleu_results_file.write(result[1]+"\t"+str(result[0])+"\n")
-        bleu_results_file.close()
+            results_file.write(result[1]+"\t"+str(result[0])+"\n")
+        results_file.close()
     return results
 
 
@@ -238,6 +244,13 @@ if __name__=="__main__":
     if metric.lower()=="coverage":
         query_file = options.query_file
         calculate_seq_query_coverage_multiprocess(translation_dir,reference_file,write_flag,ts,query_file,int(options.multi))
+    if metric.lower()=="similarity":
+        model_file = options.model_file
+        model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+
+        calculate_similarity_multiprocess(translation_dir, reference_file, write_flag, ts, query_file,
+                                          int(options.multi))
+
     if metric.lower()=="all":
         calculate_bleu_multiprocess(translation_dir, reference_file, bleu_script_path, write_flag, ts,
                                     int(options.multi))
