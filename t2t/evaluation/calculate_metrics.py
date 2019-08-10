@@ -45,7 +45,7 @@ def get_accuracy_per_sequence(target_file,translation_file):
         sequence_acc = current_sum/current_counter
         total_sum+=sequence_acc
         total_counter+=1
-    return total_sum/total_counter
+    return total_sum/total_counter,translation_file
 
 def get_accuracy_query_terms(target_file,queries_file,translation_file):
     translation_lines = open(translation_file).readlines()
