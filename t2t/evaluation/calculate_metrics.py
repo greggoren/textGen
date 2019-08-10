@@ -245,6 +245,7 @@ if __name__=="__main__":
         query_file = options.query_file
         calculate_seq_query_coverage_multiprocess(translation_dir,reference_file,write_flag,ts,query_file,int(options.multi))
     if metric.lower()=="similarity":
+        query_file = options.query_file
         model_file = options.model_file
         model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
 
