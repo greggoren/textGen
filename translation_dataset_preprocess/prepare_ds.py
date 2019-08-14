@@ -7,7 +7,7 @@ def make_new_file(old_file,new_file):
                 input_sequence = line.split(",")[2]
                 query = line.split(",")[1]
                 new_input_sequence = input_sequence+" "+query
-                new_row = ",".join([line.split(",")[0],line.split(",")[1],new_input_sequence,line.split(",")[3]])+"\n"
+                new_row = ",".join([line.split(",")[0],line.split(",")[1],new_input_sequence,line.split(",")[3]])
                 nfile.write(new_row)
 
 def prepare_query_based_ds(original_dir,new_dir):
