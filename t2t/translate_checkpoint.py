@@ -5,9 +5,9 @@ from t2t.utils import run_bash_command
 
 
 
-def run_decode_script(decode_script,translation_dir,checkpoint):
+def run_decode_script(decode_script,translation_dir,checkpoint,train_dir,model):
     command = "./"+decode_script
-    logger.info("Running script "+command +" "+translation_dir+" "+checkpoint)
+    logger.info("Running script "+command +" "+translation_dir+" "+checkpoint +" "+train_dir+" "+model)
     out = run_bash_command(command +" "+translations_dir+" "+checkpoint)
     logger.info(out)
 
@@ -64,18 +64,20 @@ if __name__=="__main__":
     parser.add_option("-k", "--train_dir",dest="train_dir")
     parser.add_option("-d", "--decode_script",dest = "decode_script")
     parser.add_option("-t", "--translations_dir",dest = "translations_dir")
+    parser.add_option("-a", "--model",dest = "model")
     (options, args) = parser.parse_args()
     mode = options.mode
     train_dir=options.train_dir
     decode_script = options.decode_script
     translations_dir=options.translations_dir
+    model = options.model
     if not os.path.exists(translations_dir):
         os.makedirs(translations_dir)
     if mode.lower()=="all":
         checkpoints = retrieve_all_checkpoints(train_dir)
         for checkpoint in checkpoints:
             create_checkpoint_file(train_dir,checkpoint)
-            run_decode_script(decode_script,translations_dir,checkpoint)
+            run_decode_script(decode_script,translations_dir,checkpoint,train_dir,model)
     if "range" in mode.lower():
         lower_checkpoint = mode.split("_")[1]
         upper_checkpoint = mode.split("_")[2]
@@ -83,11 +85,11 @@ if __name__=="__main__":
         checkpoints=filter_checkpoints(checkpoints,lower_checkpoint,upper_checkpoint)
         for checkpoint in checkpoints:
             create_checkpoint_file(train_dir, checkpoint)
-            run_decode_script(decode_script,translations_dir,checkpoint)
+            run_decode_script(decode_script,translations_dir,checkpoint,train_dir,model)
     if "specific" in mode.lower():
         checkpoint = mode.split("_")[1]
         create_checkpoint_file(train_dir, checkpoint)
-        run_decode_script(decode_script,translations_dir,checkpoint)
+        run_decode_script(decode_script,translations_dir,checkpoint,train_dir,model)
 
 
 
