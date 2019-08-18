@@ -8,7 +8,7 @@ from t2t.utils import run_bash_command
 def run_decode_script(decode_script,translation_dir,checkpoint,train_dir,model,data_dir):
     command = "./"+decode_script
     logger.info("Running script "+command +" "+translation_dir+" "+checkpoint +" "+train_dir+" "+model+" "+data_dir)
-    out = run_bash_command(command +" "+translations_dir+" "+checkpoint)
+    out = run_bash_command(command +" "+translations_dir+" "+checkpoint+" "+train_dir+" "+model+" "+data_dir)
     logger.info(out)
 
 
