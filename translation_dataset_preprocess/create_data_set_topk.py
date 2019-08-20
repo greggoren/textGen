@@ -141,10 +141,8 @@ def wrapped_partial(func, *args, **kwargs):
 def get_predictors_values(input_sentence, query,args):
     idx, candidate_sentence = args
     result={}
-    max_query_token_sim = wrapped_partial(minmax_query_token_similarity,True)
-    min_query_token_sim = wrapped_partial(minmax_query_token_similarity,False)
     # funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
-    funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity]
+    funcs = [tf_similarity,centroid_similarity,shared_bigrams_count,jaccard_similiarity]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
@@ -165,27 +163,16 @@ def indexes(res):
 def  get_count(idx,result,len):
     return sum([len-1-result[t][idx] for t in result])
 
-def apply_borda_in_dict(results):
+def apply_borda_in_dict(results,k=10):
     borda_counts = {}
     num_of_tests = len(results[list(results.keys())[0]])
     ranked_sentences = [sorted(list(results.keys()),key=lambda x:(results[x][j],x),reverse=True) for j in range(num_of_tests)]
     ranks = indexes(ranked_sentences)
     length = len(results)
     borda_counts ={idx:get_count(idx,ranks,length) for idx in results}
-    chosen_cand = max(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x))
-    return chosen_cand
+    chosen_cands = sorted(list(borda_counts.keys()),key=lambda x:(borda_counts[x],x),reverse=True)[:k]
+    return chosen_cands
 
-# def calculate_predictors(target_subset,row):
-#     results={}
-#     query = row["query"]
-#     input_sentence = row["input_sentence"]
-#
-#     for idx,target_row in target_subset.iterrows():
-#         target_sentence = target_row["input_sentence"]
-#         _,vals = get_predictors_values(input_sentence, query,(idx,target_sentence))
-#         results[idx] = vals
-#     chosen_idx = apply_borda_in_dict(results)
-#     return target_subset.ix[chosen_idx]["input_sentence"]
 
 
 def check_fit(series,s2):
@@ -220,7 +207,7 @@ def calculate_predictors(target_subset,row):
         except:
             logger.error("problem in "+query+" and input sentence "+input_sentence)
             sys.exit(1)
-        return reduced_subset.ix[chosen_idx]["input_sentence"]
+        return ".".join([reduced_subset.ix[idx]["input_sentence"] for idx in chosen_idx])
 
 def parallelize(data, func,wrapper,name):
     translations_tmp_dir = "translations_new_ds/"
