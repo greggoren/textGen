@@ -287,11 +287,11 @@ if __name__=="__main__":
     logger.info("running %s" % ' '.join(sys.argv))
     input_dir = sys.argv[1]
     target_dir = sys.argv[2]
-    queries_file = sys.argv[3]
-    model_file = sys.argv[4]
-    recovery = sys.argv[5]
-    queries = read_queries(queries_file)
-
+    # queries_file = sys.argv[3]
+    model_file = sys.argv[3]
+    recovery = sys.argv[4]
+    # queries = read_queries(queries_file)
+    queries = [f for f in os.listdir(target_dir)]
     logger.info("Number of queries:"+str(len(queries)))
     if recovery=="True":
         queries = recovery_mode(queries,"translations_new_ds",target_dir)
