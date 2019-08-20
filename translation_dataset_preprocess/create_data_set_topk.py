@@ -296,7 +296,7 @@ if __name__=="__main__":
     if recovery=="True":
         queries = recovery_mode(queries,"translations_new_ds",target_dir)
         logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
-        model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+    model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
     func = partial(apply_func_on_subset, input_dir, target_dir)
     workers = cpu_count()-1
     results = list_multiprocessing(queries,func,workers=workers)
