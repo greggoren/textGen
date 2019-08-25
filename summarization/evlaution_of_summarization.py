@@ -101,12 +101,25 @@ def get_query_include_on_all_output(qfname,out_fname):
         numerator+=is_query_included(query,out_line)
     return numerator/(row+1)
 
+def get_abstractive_ratio_on_all_output(input_fname,out_fname):
+    out_lines = read_file(out_fname)
+    input_lines = read_file(input_fname)
+    numerator = 0
+    for row, out_line in enumerate(out_lines):
+        input_line = input_lines[row]
+        numerator+=abstractive_fraction(input_line,out_line)
+    return numerator/(row+1)
+
+
 def get_average_length_on_all_output(out_fname,segments):
     out_lines = read_file(out_fname)
     numerator = 0
     for row, out_line in enumerate(out_lines):
         numerator+=output_length(out_line,segments)
     return numerator/(row+1)
+
+
+
 
 if __name__=="__main__":
     out_fname = sys.argv[1]
@@ -120,7 +133,8 @@ if __name__=="__main__":
     segments = ["<t>","</t>"]
     with open(metric_file,'w') as mfile:
         mfile.write("similarity average to source: "+str(get_semantic_similarity_on_all_output(out_fname,source_fname,segments,model))+"\n")
-        mfile.write("average output length: "+str(get_average_length_on_all_output(out_fname,segments)))
+        mfile.write("average output length: "+str(get_average_length_on_all_output(out_fname,segments))+"\n")
         mfile.write("average coverage ratio:"+str(get_query_coverage_on_all_output(qfname,out_fname))+"\n")
         mfile.write("average inclusion ratio:"+str(get_query_include_on_all_output(qfname,out_fname))+"\n")
+        mfile.write("average abstractive ratio:"+str(get_abstractive_ratio_on_all_output(input_fname,out_fname))+"\n")
 
