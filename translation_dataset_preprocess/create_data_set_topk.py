@@ -163,6 +163,9 @@ def indexes(res):
 def  get_count(idx,result,len):
     return sum([len-1-result[t][idx] for t in result])
 
+
+# def diversify_topk(borda_counts,)
+
 def apply_borda_in_dict(results,k=10):
     borda_counts = {}
     num_of_tests = len(results[list(results.keys())[0]])
