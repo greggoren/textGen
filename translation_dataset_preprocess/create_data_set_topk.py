@@ -255,7 +255,7 @@ def read_queries(fname,target_dir):
         for line in f:
             query = line.split(":")[1].rstrip()
             result.append("_".join(query.split()))
-    updated_queries = [q for q in queries if q not in result and os.path.isfile(target_dir+q)]
+    updated_queries = [q for q in result if q not in result and os.path.isfile(target_dir+q)]
     return updated_queries
 
 def initializer():
