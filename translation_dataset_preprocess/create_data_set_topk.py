@@ -299,7 +299,7 @@ if __name__=="__main__":
     translations_tmp_dir = sys.argv[6]
     recovery = sys.argv[7]
 
-    queries = read_queries(queries_file)
+    queries = read_queries(queries_file)[:30]
     # queries = [f for f in os.listdir(target_dir)]
     logger.info("Number of queries:"+str(len(queries)))
     if recovery=="True":
