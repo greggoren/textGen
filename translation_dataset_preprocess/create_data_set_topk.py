@@ -112,6 +112,8 @@ def shared_bigrams_count(s1,s2):
 
 
 def read_sentences(fname):
+    if not os.path.isfile(fname):
+        return pd.DataFrame(columns=["query","input_sentence"])
     df = pd.read_csv(fname,delimiter="\t",names=["query","input_sentence"])
     return df
 
@@ -192,7 +194,7 @@ def reduce_subset(df,row):
     return result
 
 
-def calculate_predictors(target_subset,row):
+def calculate_predictors(target_subset,k,row):
     reduced_subset = reduce_subset(target_subset,row)
     if reduced_subset.empty:
         reduced_subset = target_subset
@@ -206,14 +208,14 @@ def calculate_predictors(target_subset,row):
         for idx,result in values:
             results[idx]=result
         try:
-            chosen_idx = apply_borda_in_dict(results)
+            chosen_idx = apply_borda_in_dict(results,k)
         except:
             logger.error("problem in "+query+" and input sentence "+input_sentence)
             sys.exit(1)
         return ".".join([reduced_subset.ix[idx]["input_sentence"] for idx in chosen_idx])
 
-def parallelize(data, func,wrapper,name):
-    translations_tmp_dir = "translations_new_ds/"
+def parallelize(data, func,wrapper,translations_tmp_dir,name):
+    # translations_tmp_dir = "translations_new_ds/"
     if not os.path.exists(translations_tmp_dir):
         os.makedirs(translations_tmp_dir)
     tmp_fname = translations_tmp_dir+name+".csv"
@@ -230,30 +232,31 @@ def warpper(f,df):
     df["target_sentence"] = df.apply(f, axis=1)
     return df
 
-def get_true_subset(target_subset,input_subset,query):
+def get_true_subset(target_subset,input_subset,k,translations_tmp_dir,query):
     # f = lambda x:calculate_predictors(target_subset,x)
-    f = partial(calculate_predictors,target_subset)
-    input_subset = parallelize(input_subset,f,warpper,name=query)
+    f = partial(calculate_predictors,target_subset,k)
+    input_subset = parallelize(input_subset,f,warpper,translations_tmp_dir,name=query)
     # input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
-def apply_func_on_subset(input_dir,target_dir,query):
+def apply_func_on_subset(input_dir,target_dir,k,translations_tmp_dir,query):
     global model
     # global sw
     global logger
     # logger.info("Working on "+query)
     input_subset = read_sentences(input_dir+query)
     target_subset = read_sentences(target_dir+query)
-    return get_true_subset(target_subset,input_subset,query)
+    return get_true_subset(target_subset,input_subset,k,translations_tmp_dir,query)
 
 
-def read_queries(fname):
+def read_queries(fname,target_dir):
     result=[]
     with open(fname) as f:
         for line in f:
             query = line.split(":")[1].rstrip()
             result.append("_".join(query.split()))
-    return result
+    updated_queries = [q for q in queries if q not in result and os.path.isfile(target_dir+q)]
+    return updated_queries
 
 def initializer():
     global sw
@@ -290,18 +293,21 @@ if __name__=="__main__":
     logger.info("running %s" % ' '.join(sys.argv))
     input_dir = sys.argv[1]
     target_dir = sys.argv[2]
-    # queries_file = sys.argv[3]
-    model_file = sys.argv[3]
-    recovery = sys.argv[4]
-    # queries = read_queries(queries_file)
-    queries = [f for f in os.listdir(target_dir)]
+    queries_file = sys.argv[3]
+    model_file = sys.argv[4]
+    k = int(sys.argv[5])
+    translations_tmp_dir = sys.argv[6]
+    recovery = sys.argv[7]
+
+    queries = read_queries(queries_file)
+    # queries = [f for f in os.listdir(target_dir)]
     logger.info("Number of queries:"+str(len(queries)))
     if recovery=="True":
         queries = recovery_mode(queries,"translations_new_ds",target_dir)
         logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
-    func = partial(apply_func_on_subset, input_dir, target_dir)
+    func = partial(apply_func_on_subset, input_dir, target_dir,k,translations_tmp_dir)
     workers = cpu_count()-1
     results = list_multiprocessing(queries,func,workers=workers)
     df = pd.concat(results).reset_index(drop=True)
-    df.to_csv("query_ks_translation_new.csv")
+    df.to_csv("top_"+str(k)+"_borda"+".csv")
