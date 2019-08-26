@@ -249,14 +249,14 @@ def apply_func_on_subset(input_dir,target_dir,k,translations_tmp_dir,query):
     return get_true_subset(target_subset,input_subset,k,translations_tmp_dir,query)
 
 
-def read_queries(fname,target_dir):
-    result=[]
+def read_queries(fname):
+    result={}
     with open(fname) as f:
         for line in f:
-            query = line.split(":")[1].rstrip()
-            result.append("_".join(query.split()))
-    updated_queries = [q for q in result if q not in result and os.path.isfile(target_dir+q)]
-    return updated_queries
+            query = line.split(":")[0]
+            result["_".join(query.split())]=int(line.split(":")[1].rstrip())
+
+    return sorted(list(result.keys()),key=lambda x:(result[x],x),reverse=True)
 
 def initializer():
     global sw
@@ -299,7 +299,7 @@ if __name__=="__main__":
     translations_tmp_dir = sys.argv[6]
     recovery = sys.argv[7]
 
-    queries = read_queries(queries_file,target_dir)[:30]
+    queries = read_queries(queries_file)[:30]
     # queries = [f for f in os.listdir(target_dir)]
     logger.info("Number of queries:"+str(len(queries)))
     if recovery=="True":
