@@ -25,11 +25,11 @@ def _trim_string(string):
 
 def clean_string(input_string,
                  stop_words_list,
-                 min_len=2,
-                 max_len=30):
+                 min_len=0,
+                 max_len=150):
     # input_string = _remove_non_printed_chars(input_string)
     # input_string = _remove_stop_words(input_string, stop_words_list)
-    # input_string = _trim_string(input_string)
+    input_string = _trim_string(input_string)
 
     # also remove short words, most likely containing addresses / crap / left-overs / etc remaining after removal
     # gensim mostly does the same as above, it is used here for simplicity
@@ -78,14 +78,15 @@ def process_wiki_files(wiki_file):
         article = remove_special_chars(remove_html_tags(article),
                                        chars)
 
-        sentences = nltk.sent_tokenize(article)
+        # sentences = nltk.sent_tokenize(article)
+        sentences = article.splitlines()
         # proc_sentences = [clean_string(sentence, sw) for sentence in sentences if validate_sentence(w2v_model,clean_string(sentence, sw))]
         proc_sentences = [clean_string(sentence, sw) for sentence in sentences]
         proc_lens = [len(sentence.split(' ')) for sentence in proc_sentences]
 
         temp_df = pd.DataFrame(
             {'article_uuid': [uuid] * len(proc_sentences),
-             'proc_sentence': proc_sentences,
+             'proc_paragraph': proc_sentences,
              'proc_len': proc_lens
              })
         df = df.append(temp_df)
