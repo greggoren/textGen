@@ -111,10 +111,13 @@ def shared_bigrams_count(s1,s2):
     return count
 
 
-def read_sentences(fname):
+def read_sentences(fname,inp=False):
     if not os.path.isfile(fname):
         return pd.DataFrame(columns=["query","input_sentence"])
-    df = pd.read_csv(fname,delimiter="\t",names=["query","input_sentence"])
+    if inp:
+        df = pd.read_csv(fname,delimiter="\t",names=["query","input_sentence"],nrows=101)
+    else:
+        df = pd.read_csv(fname, delimiter="\t", names=["query", "input_sentence"])
     return df
 
 def return_subset_dataframes(df,col_name):
@@ -144,7 +147,7 @@ def get_predictors_values(input_sentence, query,args):
     idx, candidate_sentence = args
     result={}
     # funcs = [tf_similarity,pos_overlap,centroid_similarity,shared_bigrams_count,jaccard_similiarity,max_query_token_sim,min_query_token_sim]
-    funcs = [tf_similarity,centroid_similarity,shared_bigrams_count,jaccard_similiarity]
+    funcs = [tf_similarity,centroid_similarity,jaccard_similiarity]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
@@ -244,7 +247,7 @@ def apply_func_on_subset(input_dir,target_dir,k,translations_tmp_dir,query):
     # global sw
     global logger
     # logger.info("Working on "+query)
-    input_subset = read_sentences(input_dir+query)
+    input_subset = read_sentences(input_dir+query,True)
     target_subset = read_sentences(target_dir+query)
     return get_true_subset(target_subset,input_subset,k,translations_tmp_dir,query)
 
