@@ -73,6 +73,7 @@ def process_wiki_files(wiki_file):
     df = pd.DataFrame(columns=['article_uuid', 'proc_sentence', 'proc_len'])
 
     for article in articles:
+
         uuid = uuid4()
 
         article = remove_special_chars(remove_html_tags(article),
@@ -90,7 +91,7 @@ def process_wiki_files(wiki_file):
              'proc_len': proc_lens
              })
         df = df.append(temp_df)
-
+        break
     return df
 
 def validate_sentence(model,sentence):
