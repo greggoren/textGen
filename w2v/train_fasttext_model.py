@@ -25,7 +25,8 @@ if __name__ == '__main__':
         sys.exit(1)
     inp, outp = sys.argv[1:3]
     model = FastText(size=300, window=8, min_count=5)
-    model.train(LineSentence(inp),epochs=5)
+    model.build_vocab(corpus_path=inp)
+    model.train(LineSentence(inp),epochs=5,total_examples=model.corpus_count)
     # trim unneeded model memory = use (much) less RAM
     model.init_sims(replace=True)
     model.wv.save_word2vec_format(outp,binary=True)
