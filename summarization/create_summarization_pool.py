@@ -35,7 +35,7 @@ def write_file(queries,df):
                 fname = data_dir + "_".join([q.rstrip() for q in query.split()])
                 f = open(fname, 'a')
                 lock.acquire()
-                f.write(query + '\t' + paragraph + "\n")
+                f.write(query + '\t' + paragraph.replace("\"","") + "\n")
                 lock.release()
                 f.close()
 
