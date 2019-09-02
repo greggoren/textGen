@@ -10,6 +10,13 @@ from functools import partial
 import os
 
 def clean_text(text):
+    text = text.replace("(","")
+    text = text.replace(")","")
+    text = text.replace("[","")
+    text = text.replace("]","")
+    text = text.replace("!","")
+    text = text.replace(".","")
+    text = text.replace(",","")
     return [token for token in text.rstrip().split() if token not in sw and not contain_digits(token)]
 
 
@@ -20,8 +27,6 @@ def contain_digits(token):
 def initializer():
     global sw
     sw = set(nltk.corpus.stopwords.words('english'))
-    sw.add(".")
-    sw.add(",")
     sw.add("s")
 
 
@@ -154,8 +159,6 @@ def recovery_mode(queries,output_dir,target_dir):
 
 if __name__=="__main__":
     input_dir = sys.argv[1]
-    if not os.path.exists(input_dir):
-        os.makedirs(input_dir)
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
