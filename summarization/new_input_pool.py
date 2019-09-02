@@ -17,6 +17,13 @@ def clean_text(text):
     text = text.replace("!","")
     text = text.replace(".","")
     text = text.replace(",","")
+    text = text.replace("="," ")
+    text = text.replace("#"," ")
+    text = text.replace("$"," ")
+    text = text.replace("%"," ")
+    text = text.replace("&"," and ")
+    text = text.replace("*","  ")
+    text = text.replace("^","  ")
     return [token for token in text.rstrip().split() if token not in sw and not contain_digits(token)]
 
 
