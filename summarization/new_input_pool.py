@@ -54,8 +54,8 @@ def get_paragraph_centroid(paragraph):
     sum_vector = None
     denom = 0
     for token in clean_paragraph(paragraph):
-        if token not in model.wv:
-            continue
+        # if token not in model.wv:
+        #     continue
         vector = model.wv[token]
         if sum_vector is None:
             sum_vector=deepcopy(vector)
@@ -106,7 +106,7 @@ def calculate_similarities(query, centroid, sentence):
 
 
 def insert_to_queue(q,sim,paragraph,min_val):
-    if len(q)<10000:
+    if len(q)<100:
         q.append((sim,paragraph))
         min_val = min(q,key=lambda x:x[0])[0]
         return q,min_val
