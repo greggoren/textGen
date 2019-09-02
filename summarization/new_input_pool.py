@@ -9,8 +9,12 @@ import gensim
 from functools import partial
 import os
 
-def clean_paragraph(paragraph):
-    return [token for token in paragraph.rstrip().split() if token not in sw]
+def clean_text(text):
+    return [token for token in text.rstrip().split() if token not in sw and not contain_digits(token)]
+
+
+def contain_digits(token):
+    return any(char.isdigit() for char in token)
 
 
 def initializer():
@@ -19,6 +23,7 @@ def initializer():
     sw.add(".")
     sw.add(",")
     sw.add("s")
+
 
 
 def read_df(fname):
@@ -50,10 +55,10 @@ def get_args(translations_dir,queries):
     return [translations_dir+query for query in queries]
 
 
-def get_paragraph_centroid(paragraph):
+def get_text_centroid(paragraph):
     sum_vector = None
     denom = 0
-    for token in clean_paragraph(paragraph):
+    for token in clean_text(paragraph):
         # if token not in model.wv:
         #     continue
         vector = model.wv[token]
@@ -71,7 +76,7 @@ def get_centroid_of_cluster(df):
     sum_vector = None
     denom = 0
     for idx,row in df.iterrows():
-        vector = get_paragraph_centroid(row["input_paragraph"])
+        vector = get_text_centroid(row["input_paragraph"])
         if sum_vector is None:
             sum_vector = deepcopy(vector)
         else:
@@ -99,7 +104,7 @@ def is_in(query,text):
 def calculate_similarities(query, centroid, sentence):
     if is_in(query, sentence):
         return -float("inf")
-    cent_paragraph = get_paragraph_centroid(sentence)
+    cent_paragraph = get_text_centroid(sentence)
     if cent_paragraph is None:
         return -float("inf")
     return cosine_similarity(centroid,sentence)
@@ -116,7 +121,7 @@ def insert_to_queue(q,sim,paragraph,min_val):
         return q[1:],q[1][0]
     return q,min_val
 
-def find_most_similar_paragraphs(input_file,translation_dir,input_dir,query):
+def find_most_similar_sentences(input_file, translation_dir, input_dir, query):
     global model
     df = pd.read_csv(input_file,delimiter = ",",header=0,chunksize=100000)
     cluster = read_df(translation_dir+query)
@@ -163,7 +168,7 @@ if __name__=="__main__":
         queries = recovery_mode(queries,input_dir,target_dir)
         print("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.wrappers.FastText.load_fasttext_format(model_file)
-    func = partial(find_most_similar_paragraphs,input_file, target_dir,input_dir)
+    func = partial(find_most_similar_sentences, input_file, target_dir, input_dir)
     if not os.path.exists(input_dir):
         os.makedirs(input_dir)
     workers = cpu_count()
