@@ -8,7 +8,7 @@ import sys
 import gensim
 from functools import partial
 import os
-
+import numpy as np
 def clean_text(text):
     text = text.replace("(","")
     text = text.replace(")","")
@@ -27,7 +27,7 @@ def clean_text(text):
     text = text.replace("\\","")
     text = text.replace("-","  ")
     text = text.replace("+","  ")
-    return [token for token in text.rstrip().split() if token not in sw and not contain_digits(token)]
+    return [token for token in text.rstrip().split() if token not in sw]
 
 
 def contain_digits(token):
@@ -81,9 +81,8 @@ def get_text_centroid(paragraph):
         except KeyError:
             continue
         if sum_vector is None:
-            sum_vector=deepcopy(vector)
-        else:
-            sum_vector+=vector
+            sum_vector=np.zeros(vector.shape[0])
+        sum_vector+=vector
         denom+=1
     if sum_vector is None:
         return None
@@ -96,9 +95,8 @@ def get_centroid_of_cluster(df):
     for idx,row in df.iterrows():
         vector = get_text_centroid(row["input_paragraph"])
         if sum_vector is None:
-            sum_vector = deepcopy(vector)
-        else:
-            sum_vector+=vector
+            sum_vector = np.zeros(vector.shape[0])
+        sum_vector+=vector
         denom+=1
     return sum_vector/denom
 
@@ -176,11 +174,10 @@ if __name__=="__main__":
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
     input_file = sys.argv[5]
-    recovery = bool(sys.argv[6])
-
+    recovery = sys.argv[6]
     queries = read_queries(queries_file)
     print("there are ",str(len(queries)),"queries",flush=True)
-    if recovery:
+    if recovery == "True":
         queries = recovery_mode(queries,input_dir,target_dir)
         print("Recovery mode detected, updated number of queries:" + str(len(queries)))
     model = gensim.models.wrappers.FastText.load_fasttext_format(model_file)
