@@ -105,7 +105,7 @@ def get_centroid_of_cluster(df):
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
     for i in range(len(v1)):
-        x = float(v1[i]); y = float(v2[i])
+        x = v1[i]; y = v2[i]
         sumxx += x*x
         sumyy += y*y
         sumxy += x*y
@@ -122,10 +122,10 @@ def is_in(query,text):
 def calculate_similarities(query, centroid, sentence):
     if is_in(query, sentence):
         return -float("inf")
-    cent_paragraph = get_text_centroid(sentence)
-    if cent_paragraph is None:
+    cent_sentence = get_text_centroid(sentence)
+    if cent_sentence is None:
         return -float("inf")
-    return cosine_similarity(centroid,sentence)
+    return cosine_similarity(centroid,cent_sentence)
 
 
 def insert_to_queue(q,sim,paragraph,min_val):
