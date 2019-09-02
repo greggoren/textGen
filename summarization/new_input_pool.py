@@ -24,6 +24,9 @@ def clean_text(text):
     text = text.replace("&"," and ")
     text = text.replace("*","  ")
     text = text.replace("^","  ")
+    text = text.replace("\\","")
+    text = text.replace("-","  ")
+    text = text.replace("+","  ")
     return [token for token in text.rstrip().split() if token not in sw and not contain_digits(token)]
 
 
@@ -73,7 +76,10 @@ def get_text_centroid(paragraph):
     for token in clean_text(paragraph):
         # if token not in model.wv:
         #     continue
-        vector = model.wv[token]
+        try:
+            vector = model.wv[token]
+        except KeyError:
+            continue
         if sum_vector is None:
             sum_vector=deepcopy(vector)
         else:
