@@ -16,8 +16,22 @@ def retrieve_queries(fname):
 
 
 def get_appearance_indicator(paragraph, query):
-    res = set(paragraph.replace("\"","/").split()).intersection(set(query.split()))
+    res = set(paragraph.split()).intersection(set(query.split()))
     return bool(res)
+
+
+def clean_text(text):
+    text=text.replace(":","")
+    text=text.replace("'s","")
+    text=text.replace("'","")
+    text=text.replace("!","")
+    text=text.replace(";","")
+    text=text.replace(" ( ","")
+    text=text.replace(" ) ","")
+    text=text.replace(" [ ","")
+    text=text.replace(" ] ","")
+    text=text.replace("\"","")
+    return text
 
 
 def write_file(queries,df):
@@ -29,16 +43,15 @@ def write_file(queries,df):
     seen = set([])
     for i, row in df.iterrows():
         paragraph = row["proc_paragraph"]
+        paragraph = clean_text(paragraph)
         for query in queries:
             if get_appearance_indicator(paragraph, query) and paragraph not in seen:
-
                 fname = data_dir + "_".join([q.rstrip() for q in query.split()])
                 f = open(fname, 'a')
                 lock.acquire()
-                f.write(query + '\t' + paragraph.replace("\"","") + "\n")
+                f.write(query + '\t' + paragraph + "\n")
                 lock.release()
                 f.close()
-
                 seen.add(paragraph)
 
 
