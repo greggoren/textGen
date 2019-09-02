@@ -8,7 +8,7 @@ import multiprocessing
 from gensim.corpora import WikiCorpus
 from gensim.models import FastText
 from gensim.models.word2vec import LineSentence
-
+from gensim.test.utils import get_tmpfile
 if __name__ == '__main__':
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
@@ -28,5 +28,6 @@ if __name__ == '__main__':
     model.build_vocab(corpus_path=inp)
     model.train(sentences=LineSentence(inp),epochs=5,total_examples=model.corpus_count)
     # trim unneeded model memory = use (much) less RAM
-    model.init_sims(replace=True)
-    model.wv.save_word2vec_format(outp,binary=True)
+    # model.init_sims(replace=True)
+    fname = get_tmpfile(outp)
+    model.save(fname)
