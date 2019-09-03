@@ -10,6 +10,7 @@ from optparse import OptionParser
 import gensim
 from functools import partial
 from time import time
+import nltk
 
 def row_to_path(row_num,number_of_folders):
     return str(row_num%number_of_folders)+"/"
@@ -36,10 +37,10 @@ def clean_text(text,sw):
 
 
 
-def get_text_centroid(text):
+def get_text_centroid(text,sw):
     sum_vector = None
     denom = 0
-    for token in clean_text(text):
+    for token in clean_text(text,sw):
         try:
             vector = model.wv[token]
         except KeyError:
@@ -53,11 +54,14 @@ def get_text_centroid(text):
     return sum_vector/denom
 
 
-def get_centroid_of_cluster(df):
+def get_centroid_of_cluster(df,sw):
     sum_vector = None
     denom = 0
     for idx,row in df.iterrows():
-        vector = get_text_centroid(row["input_text"])
+        vector = get_text_centroid(row["input_text"],sw)
+        if vector is None:
+            logger.error("problem with text: "+row["input_text"])
+            continue
         if sum_vector is None:
             sum_vector = np.zeros(vector.shape[0])
         sum_vector = sum_vector + vector
@@ -90,22 +94,27 @@ def read_df(fname):
 def save_cluster_vector(cluster_dir,output_dir,query):
     global model
     df = read_df(cluster_dir+"/"+query)
-    cluster_centroid = get_centroid_of_cluster(df)
+    cluster_centroid = get_centroid_of_cluster(df,sw)
     save_vector(cluster_centroid,0,output_dir,query=query)
 
-
+def initializer():
+    global sw
+    sw = set(nltk.corpus.stopwords.words('english'))
+    sw.add('s')
 
 def save_vectors(input_file,number_of_folders,output_dir):
     global model
     df = pd.read_csv(input_file, delimiter=",", header=0, chunksize=100000)
     global_index =0
     start = time()
+    sw = set(nltk.corpus.stopwords.words('english'))
+
     for chunk in df:
         for row in chunk.itertuples():
             text = str(row[4])
             if text == "":
                 continue
-            text_vector = get_text_centroid(text)
+            text_vector = get_text_centroid(text,sw)
             save_vector(text_vector,number_of_folders,output_dir,rnum=global_index)
             global_index+=1
             if global_index%1000==0:
@@ -121,7 +130,7 @@ def _apply_lst(args):
 
 def list_multiprocessing(param_lst, func, **kwargs):
     workers = kwargs.pop('workers')
-    with Pool(workers) as p:
+    with Pool(workers,initializer()) as p:
         apply_lst = [([params], func, i, kwargs) for i, params in enumerate(param_lst)]
         result = list(tqdm(p.imap(_apply_lst, apply_lst), total=len(apply_lst)))
     return [_[1] for _ in result]
