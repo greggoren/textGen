@@ -158,7 +158,7 @@ if __name__=="__main__":
     output_dir = options.output_dir
     if options.mode == "file":
         input_file = options.input_file
-        number_of_folders = options.nfolders
+        number_of_folders = int(options.nfolders)
         save_vectors(input_file,number_of_folders,output_dir)
     elif options.mode == "cluster":
         cluster_dir = options.cluster_dir
