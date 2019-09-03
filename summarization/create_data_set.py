@@ -127,7 +127,7 @@ def shared_bigrams_count(s1,s2):
 
 def read_texts(fname, inp=False):
     if not os.path.isfile(fname):
-        return pd.DataFrame(columns=["query","input_sentence"])
+        return pd.DataFrame(columns=["query","input_paragraph"])
     if inp:
         df = pd.read_csv(fname,delimiter=",",names=["query","input_paragraph"])
     else:
@@ -236,18 +236,14 @@ def warpper(f,df):
     return df
 
 def get_true_subset(target_subset,input_subset,output_dir,query):
-    # f = lambda x:calculate_predictors(target_subset,x)
     f = partial(calculate_predictors,target_subset)
     input_subset = parallelize(input_subset,f,warpper,name=query,translations_tmp_dir=output_dir)
-    # input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
 def apply_func_on_subset(input_dir,target_dir,output_dir,query):
     global model
-    # global sw
     global logger
-    # logger.info("Working on "+query)
-    input_subset = read_texts(input_dir + query)
+    input_subset = read_texts(input_dir + query,True)
     target_subset = read_texts(target_dir + query)
     return get_true_subset(target_subset,input_subset,output_dir,query)
 
