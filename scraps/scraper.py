@@ -6,19 +6,18 @@ import random
 import pandas as pd
 from copy import deepcopy
 from time import time
-
-def add(a,b):
-    return [i+j for i,j in zip(a,b)]
+import pickle
 
 def div(a,d):
     return [i/d for i in a]
 
-a = np.random.rand(10000)
+a = np.random.rand(300)
 b = np.random.rand(10000)
-start = time()
-avg = deepcopy(a)
-print("numpy took:",start-time())
+with open("test.pkl",'wb') as t:
+    pickle.dump(a,t)
 
 start = time()
-avg = np.zeros(10000)
-print("add took:",start-time())
+with open("test.pkl",'rb') as t:
+    c = pickle.load(t)
+print("took:",start-time())
+
