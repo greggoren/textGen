@@ -56,7 +56,7 @@ def get_term_frequency(text,term):
     return text.split().count(term)
 
 def query_term_freq(mode,text,query):
-    freqs = [get_term_frequency(text,q) for q in query.split()]
+    freqs = [get_term_frequency(text,q)/len(text.split()) for q in query.split()]
     if mode=="max":
         return max(freqs)
     if mode=="min":
