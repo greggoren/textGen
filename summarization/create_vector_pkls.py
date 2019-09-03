@@ -144,7 +144,7 @@ if __name__=="__main__":
     parser.add_option("-t", "--input_file", dest="input_file")
     parser.add_option("-i", "--cluster_dir", dest="cluster_dir")
     (options, args) = parser.parse_args()
-    model = gensim.models.wrappers.FastText.load_fasttext_format(options.embeddings_file)
+    model = gensim.models.FastText.load_fasttext_format(options.embeddings_file)
     output_dir = options.output_dir
     if options.mode == "file":
         input_file = options.input_file
