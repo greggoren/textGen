@@ -218,8 +218,7 @@ def calculate_predictors(target_subset,row):
             sys.exit(1)
         return reduced_subset.ix[chosen_idx]["input_paragraph"]
 
-def parallelize(data, func,wrapper,name):
-    translations_tmp_dir = "translations_new_ds/"
+def parallelize(data, func,wrapper,name,translations_tmp_dir):
     if not os.path.exists(translations_tmp_dir):
         os.makedirs(translations_tmp_dir)
     tmp_fname = translations_tmp_dir+name+".csv"
@@ -236,21 +235,21 @@ def warpper(f,df):
     df["target_paragraph"] = df.apply(f, axis=1)
     return df
 
-def get_true_subset(target_subset,input_subset,query):
+def get_true_subset(target_subset,input_subset,output_dir,query):
     # f = lambda x:calculate_predictors(target_subset,x)
     f = partial(calculate_predictors,target_subset)
-    input_subset = parallelize(input_subset,f,warpper,name=query)
+    input_subset = parallelize(input_subset,f,warpper,name=query,translations_tmp_dir=output_dir)
     # input_subset["target_sentence"] = input_subset.apply(f,axis=1)
     return input_subset
 
-def apply_func_on_subset(input_dir,target_dir,query):
+def apply_func_on_subset(input_dir,target_dir,output_dir,query):
     global model
     # global sw
     global logger
     # logger.info("Working on "+query)
     input_subset = read_texts(input_dir + query)
     target_subset = read_texts(target_dir + query)
-    return get_true_subset(target_subset,input_subset,query)
+    return get_true_subset(target_subset,input_subset,output_dir,query)
 
 
 def read_queries(fname):
@@ -298,15 +297,17 @@ if __name__=="__main__":
     target_dir = sys.argv[2]
     queries_file = sys.argv[3]
     model_file = sys.argv[4]
-    recovery = sys.argv[5]
+    output_dir = sys.argv[5]
+    recovery = sys.argv[6]
+
     queries = read_queries(queries_file)
 
     logger.info("Number of queries:"+str(len(queries)))
     if recovery=="True":
-        queries = recovery_mode(queries,"translations_new_ds",target_dir)
+        queries = recovery_mode(queries,output_dir,target_dir)
         logger.info("Recovery mode detected, updated number of queries:" + str(len(queries)))
         model = gensim.models.FastText.load_fasttext_format(model_file)
-    func = partial(apply_func_on_subset, input_dir, target_dir)
+    func = partial(apply_func_on_subset, input_dir, target_dir,output_dir)
     workers = cpu_count()-1
     results = list_multiprocessing(queries,func,workers=workers)
     df = pd.concat(results).reset_index(drop=True)
