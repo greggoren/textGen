@@ -34,17 +34,17 @@ def get_sentence_centroid(sentence):
     sum_vector = None
     denom = 0
     for token in clean_sentence(sentence):
-        if token not in model.wv:
+        try:
+            vector = model.wv[token]
+        except KeyError:
             continue
-        vector = model.wv[token]
         if sum_vector is None:
-            sum_vector=deepcopy(vector)
-        else:
-            sum_vector+=vector
-        denom+=1
+            sum_vector = np.zeros(vector.shape[0])
+        sum_vector = sum_vector + vector
+        denom += 1
     if sum_vector is None:
         return None
-    return sum_vector/denom
+    return sum_vector / denom
 
 def pos_overlap(s1,s2):
     tags1 = nltk.pos_tag(s1.split())
@@ -129,7 +129,7 @@ def read_texts(fname, inp=False):
     if not os.path.isfile(fname):
         return pd.DataFrame(columns=["query","input_paragraph"])
     if inp:
-        df = pd.read_csv(fname,delimiter=",",names=["query","input_paragraph"])
+        df = pd.read_csv(fname,delimiter=",",header=0)
     else:
         df = pd.read_csv(fname, delimiter="\t", names=["query", "input_paragraph"])
     return df
