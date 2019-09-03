@@ -70,20 +70,18 @@ def get_centroid_of_cluster(df,sw):
 
 
 
-
-
-
 def save_vector(vector,number_of_folders,output_dir,rnum=None,query=None):
     if rnum is not None:
         folder = row_to_path(rnum,number_of_folders)
         path = output_dir + folder
         fname = path + str(rnum) + ".pkl"
-        if os.path.exists(path):
-            os.makedirs(path)
     elif query is not None:
+        path = output_dir
         fname = output_dir+query+".pkl"
     else:
         sys.exit(1)
+    if not os.path.exists(path):
+        os.makedirs(path)
     with open(fname,'wb') as vector_file:
         pickle.dump(vector,vector_file)
 
