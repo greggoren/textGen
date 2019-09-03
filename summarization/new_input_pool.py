@@ -82,7 +82,7 @@ def get_text_centroid(paragraph):
             continue
         if sum_vector is None:
             sum_vector=np.zeros(vector.shape[0])
-        sum_vector+=vector
+        sum_vector = sum_vector + vector
         denom+=1
     if sum_vector is None:
         return None
@@ -96,7 +96,7 @@ def get_centroid_of_cluster(df):
         vector = get_text_centroid(row["input_paragraph"])
         if sum_vector is None:
             sum_vector = np.zeros(vector.shape[0])
-        sum_vector+=vector
+        sum_vector = sum_vector + vector
         denom+=1
     return sum_vector/denom
 
