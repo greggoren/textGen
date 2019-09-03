@@ -93,6 +93,7 @@ def read_df(fname):
 
 def save_cluster_vector(cluster_dir,output_dir,query):
     global model
+    global sw
     df = read_df(cluster_dir+"/"+query)
     cluster_centroid = get_centroid_of_cluster(df,sw)
     save_vector(cluster_centroid,0,output_dir,query=query)
