@@ -64,6 +64,8 @@ def similarity_to_source(source,output,model,segments):
         output = output.replace(segment,"")
     source_centroid = get_sentence_centroid(source,model)
     output_centroid = get_sentence_centroid(output,model)
+    if source_centroid is None or output_centroid is None:
+        return 0
     return cosine_similarity(source_centroid,output_centroid)
 
 def read_file(fname):
