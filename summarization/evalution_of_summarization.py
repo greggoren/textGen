@@ -2,6 +2,7 @@ import math
 from copy import deepcopy
 import gensim
 import sys
+import numpy as np
 def abstractive_fraction(document,output,segments):
     numerator =0
     for segment in segments:
@@ -46,17 +47,17 @@ def get_sentence_centroid(sentence,model):
     sum_vector = None
     denom = 0
     for token in sentence.split():
-        if token not in model.wv:
+        try:
+            vector = model.wv[token]
+        except KeyError:
             continue
-        vector = model.wv[token]
         if sum_vector is None:
-            sum_vector=deepcopy(vector)
-        else:
-            sum_vector+=vector
-        denom+=1
+            sum_vector = np.zeros(vector.shape[0])
+        sum_vector = sum_vector + vector
+        denom += 1
     if sum_vector is None:
         return None
-    return sum_vector/denom
+    return sum_vector / denom
 
 def similarity_to_source(source,output,model,segments):
     for segment in segments:
@@ -129,7 +130,7 @@ if __name__=="__main__":
     model_file = sys.argv[5]
     metric_file = sys.argv[6]
 
-    model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+    model = gensim.models.FastText.load_fasttext_format(model_file)
     segments = ["<t>","</t>"]
     with open(metric_file,'w') as mfile:
         mfile.write("similarity average to source: "+str(get_semantic_similarity_on_all_output(out_fname,source_fname,segments,model))+"\n")
