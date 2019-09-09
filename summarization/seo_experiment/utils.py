@@ -104,12 +104,28 @@ def create_trec_eval_file(results,trec_file):
 
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt", "")
+    final+="sorted.txt"
     command = "sort -k1,1 -k5nr -k2,1 " + trec_file + " > " + final
     for line in run_command(command):
         print(line)
     return final
 
+def retrieve_scores(test_indices, score_file):
+    with open(score_file) as scores:
+        results = {test_indices[i]: float(score.split()[2].rstrip()) for i, score in enumerate(scores)}
+        return results
 
+
+def create_index_to_doc_name_dict(data_set_file):
+    doc_name_index={}
+    index = 0
+    with open(data_set_file) as ds:
+        for line in ds:
+            rec = line.split("# ")
+            doc_name = rec[1].rstrip()
+            doc_name_index[index] = doc_name
+            index += 1
+        return doc_name_index
 
 def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
     java_path = home_path+"/"+java_path+"/bin/java"

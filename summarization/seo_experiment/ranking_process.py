@@ -1,4 +1,4 @@
-from summarization.seo_experiment.utils import create_index,merge_indices,run_model,create_features_file
+from summarization.seo_experiment.utils import create_index,merge_indices,run_model,create_features_file,create_trec_eval_file,create_index_to_doc_name_dict,retrieve_scores,order_trec_file
 import sys,os,logging
 from optparse import OptionParser
 
@@ -14,11 +14,24 @@ def rank(options):
     logger.info("creating features")
     features_file = create_features_file(options.features_dir, options.merged_index, options.queries_file,
                                          options.new_features_file, options.workingset_file, options.scripts_path)
+    logger.info("creating docname index")
+    docname_index = create_index_to_doc_name_dict(features_file)
+    logger.info("docname index creation is completed")
     logger.info("features creation completed")
     logger.info("running ranking model on features file")
-    run_model(features_file, options.home_path, options.java_path, options.jar_path, options.score_file,
+    score_file = run_model(features_file, options.home_path, options.java_path, options.jar_path, options.score_file,
               options.model_file)
     logger.info("ranking completed")
+    logger.info("retrieving scores")
+    scores = retrieve_scores(docname_index,score_file)
+    logger.info("scores retrieval completed")
+    logger.info("creating trec_eval file")
+    tmp_trec=create_trec_eval_file(scores,options.trec_file)
+    logger.info("trec file creation is completed")
+    logger.info("ordering trec file")
+    order_trec_file(tmp_trec)
+    logger.info("ranking procedure completed")
+
 
 if __name__=="__main__":
     program = os.path.basename(sys.argv[0])
@@ -44,6 +57,7 @@ if __name__=="__main__":
     parser.add_option("-z", "--java_path", dest="java_path")
     parser.add_option("-c", "--jar_path", dest="jar_path")
     parser.add_option("-s", "--score_file", dest="score_file")
+    parser.add_option("-r", "--trec_file", dest="trec_file")
 
     (options, args) = parser.parse_args()
     mode = options.mode
