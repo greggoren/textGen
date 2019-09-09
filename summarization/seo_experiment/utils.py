@@ -80,11 +80,11 @@ def create_index(trec_text_file,index_path,new_index_name,home_path = '/home/gre
     return index
 
 
-def merge_indices(new_index_name, base_index, index_path, home_path ='/home/greg/', indri_path ="indri_test"):
+def merge_indices(merged_index,new_index_name, base_index, home_path ='/home/greg/', indri_path ="indri_test"):
     """
     merges two different indri indices into one
     """
-    new_index_name = home_path +'/' + index_path +'/' + new_index_name
+    # new_index_name = home_path +'/' + index_path +'/' + new_index_name
     command = home_path+"/"+indri_path+'/bin/dumpindex '+new_index_name +' merge ' + new_index_name + ' ' + base_index
     print("##merging command:",command+"##",flush=True)
     out=run_bash_command(command)
@@ -123,4 +123,17 @@ def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
     return score_file
 
 
-def run_summarization_model(model_file,)
+def run_summarization_model(script_file,model_file,input_file,output_file,**kwargs):
+    """
+     cmd example:
+     nohup python ~/OpenNMT-py/translate.py --replace_unk  -beam_size 10 --model ~/OpenNMT-py/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt
+      --src input_transformer.txt --output transformer_real_par2.txt
+      --batch_size 1  -min_length 1  -gpu 0 &
+    """
+    command = "python "+script_file+" --replace_unk  -beam_size 10 --model "+model_file+" --src "+input_file+" --output "+output_file+" --batch_size 1 -gpu 0 "
+    for key, value in kwargs.items():
+        command+="--"+key+" "+value+" "
+    print("##Running summarization command: "+command+"##",flush=True)
+    out = run_bash_command(command)
+    print("Summarization output= "+out,flush=True)
+
