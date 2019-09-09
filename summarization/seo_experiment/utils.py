@@ -1,5 +1,5 @@
 import os
-from utils import run_bash_command
+from utils import run_bash_command,run_command
 
 
 def create_features_file(features_dir, index_path, queries_file, new_features_file, working_set_file, scripts_path):
@@ -90,3 +90,37 @@ def merge_indices(new_index_name, base_index, index_path, home_path ='/home/greg
     out=run_bash_command(command)
     print("merging command output:"+out,flush=True)
     return new_index_name
+
+
+def create_trec_eval_file(results,trec_file):
+    trec_file_access = open(trec_file, 'w')
+    for doc in results:
+        query = doc.split("-")[2]
+        trec_file_access.write(query
+             + " Q0 " + doc + " " + str(0) + " " + str(
+                results[doc]) + " summarizarion_task\n")
+    trec_file_access.close()
+    return trec_file
+
+def order_trec_file(trec_file):
+    final = trec_file.replace(".txt", "")
+    command = "sort -k1,1 -k5nr -k2,1 " + trec_file + " > " + final
+    for line in run_command(command):
+        print(line)
+    return final
+
+
+
+def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
+    java_path = home_path+"/"+java_path+"/bin/java"
+    if not os.path.exists(os.path.dirname(score_file)):
+        os.makedirs(os.path.dirname(score_file))
+    features = test_file
+    run_bash_command('touch ' + score_file)
+    command = java_path + " -jar " + jar_path + " -load " + model_path + " -rank " + features + " -score " + score_file
+    out = run_bash_command(command)
+    print(out)
+    return score_file
+
+
+def run_summarization_model(model_file,)
