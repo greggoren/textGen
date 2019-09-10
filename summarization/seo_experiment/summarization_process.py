@@ -1,4 +1,3 @@
-import xml.etree.ElementTree as ET
 from nltk import sent_tokenize
 import os
 import numpy as np
@@ -32,18 +31,7 @@ def get_reference_doc(trec_file,index):
     stats = read_trec_file(trec_file)
     return reference_docs_calculation(stats,index)
 
-def load_file(filename):
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    docs={}
-    for doc in root:
-        name =""
-        for att in doc:
-            if att.tag == "DOCNO":
-                name=att.text
-            else:
-                docs[name]=att.text
-    return docs
+
 
 
 

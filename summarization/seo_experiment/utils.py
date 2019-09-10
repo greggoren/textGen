@@ -1,5 +1,6 @@
 import os
 from gen_utils import run_bash_command,run_command
+import xml.etree.ElementTree as ET
 
 
 def create_features_file(features_dir, index_path, queries_file, new_features_file, working_set_file, scripts_path):
@@ -72,7 +73,6 @@ def create_index(trec_text_file,index_path,new_index_name,home_path = '/home/gre
     if not os.path.exists(indri_path):
         os.makedirs(index_path)
     stemmer =  'krovetz'
-    # run_bash_command()
     if not  os.path.exists(home_path+"/"+index_path):
         os.makedirs(home_path+"/"+index_path)
     command = indri_build_index + ' -corpus.path=' + corpus_path + ' -corpus.class=' + corpus_class + ' -index=' + index + ' -memory=' + memory + ' -stemmer.name=' + stemmer
@@ -155,3 +155,15 @@ def run_summarization_model(script_file,model_file,input_file,output_file,**kwar
     out = run_bash_command(command)
     print("Summarization output= "+str(out),flush=True)
 
+def load_file(filename):
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    docs={}
+    for doc in root:
+        name =""
+        for att in doc:
+            if att.tag == "DOCNO":
+                name=att.text
+            else:
+                docs[name]=att.text
+    return docs
