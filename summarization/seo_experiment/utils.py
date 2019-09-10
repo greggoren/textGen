@@ -85,7 +85,9 @@ def merge_indices(merged_index,new_index_name, base_index, home_path ='/home/gre
     merges two different indri indices into one
     """
     # new_index_name = home_path +'/' + index_path +'/' + new_index_name
-    command = home_path+"/"+indri_path+'/bin/dumpindex '+new_index_name +' merge ' + new_index_name + ' ' + base_index
+    if not os.path.exists(os.path.dirname(merged_index)):
+        os.makedirs(os.path.dirname(merged_index))
+    command = home_path+"/"+indri_path+'/bin/dumpindex '+merged_index +' merge ' + new_index_name + ' ' + base_index
     print("##merging command:",command+"##",flush=True)
     out=run_bash_command(command)
     print("merging command output:"+out,flush=True)
