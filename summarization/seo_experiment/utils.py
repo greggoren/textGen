@@ -1,5 +1,5 @@
 import os
-from utils import run_bash_command,run_command
+from gen_utils import run_bash_command,run_command
 
 
 def create_features_file(features_dir, index_path, queries_file, new_features_file, working_set_file, scripts_path):
