@@ -96,15 +96,13 @@ def create_trec_eval_file(results,trec_file):
     trec_file_access = open(trec_file, 'w')
     for doc in results:
         query = doc.split("-")[2]
-        trec_file_access.write(query
-             + " Q0 " + doc + " " + str(0) + " " + str(
-                results[doc]) + " summarizarion_task\n")
+        trec_file_access.write(query+ " Q0 " + doc + " " + str(0) + " " + str(results[doc]) + " summarizarion_task\n")
     trec_file_access.close()
     return trec_file
 
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt", "")
-    final+="sorted.txt"
+    final+="_sorted.txt"
     command = "sort -k1,1 -k5nr -k2,1 " + trec_file + " > " + final
     for line in run_command(command):
         print(line)
