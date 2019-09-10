@@ -7,6 +7,8 @@ def get_working_items(texts,rounded=True):
     if rounded:
         for docid in texts:
             epoch = docid.split("-")[1]
+            if int(epoch)==0:
+                continue
             query = docid.split("-")[2]
             updated_query = str(int(query))+epoch
             if updated_query not in workingset:
@@ -27,7 +29,7 @@ if __name__=="__main__":
     parser = OptionParser()
     parser.add_option("--rounded", dest="rounded")
     parser.add_option("--trectext_file", dest="trectext_file")
-    parser.add_option("--out_file", dest="put_file")
+    parser.add_option("--out_file", dest="out_file")
     (options, args) = parser.parse_args()
 
     doc_texts = load_file(options.trectext_file)
