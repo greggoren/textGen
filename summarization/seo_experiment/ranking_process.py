@@ -46,7 +46,7 @@ if __name__=="__main__":
     parser.add_option("-t", "--new_index", dest="new_index")
     parser.add_option("-j", "--merged_index", dest="merged_index")
     parser.add_option("-p", "--home_path", dest="home_path")
-    parser.add_option("-t", "--indri_path", dest="indri_path")
+    parser.add_option("--indri_path", dest="indri_path")
     parser.add_option("-a", "--script_path", dest="script_path")
     parser.add_option("-i", "-model_file", dest="model_file")
     parser.add_option("-a", "--workingset_file", dest="workingset_file")
