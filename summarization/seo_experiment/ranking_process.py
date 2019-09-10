@@ -57,7 +57,7 @@ if __name__=="__main__":
     parser.add_option("-z", "--java_path", dest="java_path")
     parser.add_option("-c", "--jar_path", dest="jar_path")
     parser.add_option("-s", "--score_file", dest="score_file")
-    parser.add_option("-r", "--trec_file", dest="trec_file")
+    parser.add_option("--trec_file", dest="trec_file")
 
     (options, args) = parser.parse_args()
     mode = options.mode
