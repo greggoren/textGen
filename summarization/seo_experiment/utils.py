@@ -76,7 +76,7 @@ def create_index(trec_text_file,index_path,new_index_name,home_path = '/home/gre
     command = indri_build_index + ' -corpus.path=' + corpus_path + ' -corpus.class=' + corpus_class + ' -index=' + index + ' -memory=' + memory + ' -stemmer.name=' + stemmer
     print("##Running IndriBuildIndex command ="+command+"##",flush=True)
     out=run_bash_command(command)
-    print("IndriBuildIndex output:"+out,flush=True)
+    print("IndriBuildIndex output:"+str(out),flush=True)
     return index
 
 
@@ -90,7 +90,7 @@ def merge_indices(merged_index,new_index_name, base_index, home_path ='/home/gre
     command = home_path+"/"+indri_path+'/bin/dumpindex '+merged_index +' merge ' + new_index_name + ' ' + base_index
     print("##merging command:",command+"##",flush=True)
     out=run_bash_command(command)
-    print("merging command output:"+out,flush=True)
+    print("merging command output:"+str(out),flush=True)
     return new_index_name
 
 
@@ -135,7 +135,7 @@ def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
     run_bash_command('touch ' + score_file)
     command = java_path + " -jar " + jar_path + " -load " + model_path + " -rank " + features + " -score " + score_file
     out = run_bash_command(command)
-    print(out)
+    print(str(out))
     return score_file
 
 
@@ -151,5 +151,5 @@ def run_summarization_model(script_file,model_file,input_file,output_file,**kwar
         command+="--"+key+" "+value+" "
     print("##Running summarization command: "+command+"##",flush=True)
     out = run_bash_command(command)
-    print("Summarization output= "+out,flush=True)
+    print("Summarization output= "+str(out),flush=True)
 
