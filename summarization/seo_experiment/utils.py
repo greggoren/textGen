@@ -70,7 +70,7 @@ def create_index(trec_text_file,index_path,new_index_name,home_path = '/home/gre
     memory = '1G'
     index = home_path+"/"+index_path+"/"+new_index_name
     stemmer =  'krovetz'
-    run_bash_command()
+    # run_bash_command()
     if not  os.path.exists(home_path+"/"+index_path):
         os.makedirs(home_path+"/"+index_path)
     command = indri_build_index + ' -corpus.path=' + corpus_path + ' -corpus.class=' + corpus_class + ' -index=' + index + ' -memory=' + memory + ' -stemmer.name=' + stemmer
