@@ -104,7 +104,7 @@ def create_trec_eval_file(results,trec_file):
         os.makedirs(os.path.dirname(trec_file))
     trec_file_access = open(trec_file, 'w')
     for doc in results:
-        query = doc.split("-")[2]
+        query = str(int(doc.split("-")[2]))+doc.split("-")[1]
         trec_file_access.write(query+ " Q0 " + doc + " " + str(0) + " " + str(results[doc]) + " summarizarion_task\n")
     trec_file_access.close()
     return trec_file
