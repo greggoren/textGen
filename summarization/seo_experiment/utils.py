@@ -98,6 +98,8 @@ def merge_indices(merged_index,new_index_name, base_index, home_path ='/home/gre
 
 
 def create_trec_eval_file(results,trec_file):
+    if not os.path.exists(os.path.dirname(trec_file)):
+        os.makedirs(os.path.dirname(trec_file))
     trec_file_access = open(trec_file, 'w')
     for doc in results:
         query = doc.split("-")[2]
