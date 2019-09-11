@@ -92,10 +92,10 @@ def create_summarization_dataset(input_dataset_file,candidates_dir):
         with open(os.path.dirname(input_dataset_file)+"/queries.txt",'w') as queries:
             with open(os.path.dirname(input_dataset_file)+"/source.txt",'w') as source:
                 with open(os.path.dirname(input_dataset_file)+"/input_paragraphs.txt",'w') as inp_paragraphs:
-                    header = "\t".join(input_df.columns)+"\tinput_paragraph\n"
+                    header = "\t".join([str(col) for col in input_df.columns])+"\tinput_paragraph\n"
                     complete.write(header)
                     for i,row in input_df.iterrows():
-                        complete_data="\t".join([row[col] for col in input_df.columns])
+                        complete_data="\t".join([str(row[str(col)]) for col in input_df.columns])
                         query = row["query"]
                         query="_".join(query.split())
                         sentence = row["sentence"]
