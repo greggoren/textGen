@@ -43,7 +43,7 @@ def get_reference_docs(trec_file, index):
 def chosen_sentence_for_replacement(sentences, query):
     sentence_scores={}
     for i,sentence in enumerate(sentences):
-        tokens = sentence.split()
+        tokens = clean_texts(sentence.lower()).split()
         sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
     return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
 
@@ -71,7 +71,7 @@ def write_input_dataset_file(replacements,reference_docs,texts):
             index = replacements[query]
             docname = reference_docs[query]
             text = texts[docname]
-            sentence = sent_tokenize(text)[index]
+            sentence = clean_texts(sent_tokenize(text)[index])
             file.write("\t".join([query,docname,str(index),sentence])+'\n')
     return input_dir+'senteces_for_replace.txt'
 
@@ -106,32 +106,28 @@ def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text)
                         for paragraph in paragraphs.split("\n##\n"):
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
 
-def clean_texts(texts):
-    lowered ={}
-    for docid in texts:
-        text=texts[docid].lower()
-        text = text.replace(".", " ")
-        text = text.replace("-", " ")
-        text = text.replace(",", " ")
-        text = text.replace(":", " ")
-        text = text.replace("?", " ")
-        text = text.replace("$", " ")
-        text = text.replace("%", " ")
-        text = text.replace("<", " ")
-        text = text.replace(">", " ")
-        text = text.replace("\\", " ")
-        text = text.replace("*", " ")
-        text = text.replace(";", " ")
-        text = text.replace("`", "")
-        text = text.replace("'", "")
-        text = text.replace("@", " ")
-        text = text.replace("\n", " ")
-        text = text.replace("\"", "")
-        text = text.replace("/", " ")
-        text = text.replace("(", "")
-        text = text.replace(")", "")
-        lowered[docid] = text
-    return lowered
+def clean_texts(text):
+    text = text.replace(".", " ")
+    text = text.replace("-", " ")
+    text = text.replace(",", " ")
+    text = text.replace(":", " ")
+    text = text.replace("?", " ")
+    text = text.replace("$", " ")
+    text = text.replace("%", " ")
+    text = text.replace("<", " ")
+    text = text.replace(">", " ")
+    text = text.replace("\\", " ")
+    text = text.replace("*", " ")
+    text = text.replace(";", " ")
+    text = text.replace("`", "")
+    text = text.replace("'", "")
+    text = text.replace("@", " ")
+    text = text.replace("\n", " ")
+    text = text.replace("\"", "")
+    text = text.replace("/", " ")
+    text = text.replace("(", "")
+    text = text.replace(")", "")
+    return text
 
 def transform_query_text(queries_raw_text):
     transformed = {}
@@ -157,7 +153,6 @@ if __name__=="__main__":
     raw_queries=read_queries_file(options.queries_file)
     queries=transform_query_text(raw_queries)
     doc_texts = load_file(options.trectext_file)
-    doc_texts = clean_texts(doc_texts)
     reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
