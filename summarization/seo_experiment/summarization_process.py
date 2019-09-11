@@ -23,7 +23,7 @@ def read_trec_file(trec_file):
 def transform_stats(stats):
     transformed = {}
     for query in stats:
-        ranked_list = sorted(list(stats[query].keys()),key=lambda x:(stats[query][x],x),reverese = True)
+        ranked_list = sorted(list(stats[query].keys()),key=lambda x:(stats[query][x],x),reverse = True)
         transformed[query]=ranked_list
     return transformed
 
