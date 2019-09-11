@@ -10,9 +10,9 @@ def read_queries_file(queries_file):
     with open(queries_file) as file:
         for line in file:
             if "<number>" in line:
-                last_number_state = line.replace('<number>','').replace('</number>',"").split("_")[0].rstrip()
+                last_number_state = line.replace('<number>','').replace('</number>',"").split("_")[0].rstrip().replace("\t","").replace(" ","")
             if '<text>' in line:
-                stats[last_number_state]=line.replace('<text>','').replace('</text>','').rstrip()
+                stats[last_number_state]=line.replace('<text>','').replace('</text>','').rstrip().replace("\t","").replace(" ","")
     return stats
 
 def modify_queries_file(texts,queries_stats,queries_out_file):
