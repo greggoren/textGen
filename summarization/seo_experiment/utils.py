@@ -112,7 +112,7 @@ def create_trec_eval_file(results,trec_file):
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt", "")
     final+="_sorted.txt"
-    command = "sort -k1,1 -k5nr -k2,1 " + trec_file + " > " + final
+    command = "sort -k1,1n -k5nr -k2,1 " + trec_file + " > " + final
     for line in run_command(command):
         print(line)
     return final
