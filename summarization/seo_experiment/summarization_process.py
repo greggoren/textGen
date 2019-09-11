@@ -8,6 +8,7 @@ import pandas as pd
 from functools import partial
 from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.borda_mechanism import calculate_predictors
+import gensim
 
 
 def read_trec_file(trec_file):
@@ -127,6 +128,7 @@ if __name__=="__main__":
     parser.add_option("--trec_file", dest="trec_file")
     parser.add_option("--ref_index", dest="ref_index")
     parser.add_option("--candidate_dir", dest="candidate_dir")
+    parser.add_option("--model_file", dest="model_file")
     (options, args) = parser.parse_args()
     raw_queries=read_queries_file(options.queries_file)
     queries=transform_query_text(raw_queries)
@@ -134,5 +136,6 @@ if __name__=="__main__":
     reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
+    model = gensim.models.FastText.load_fasttext_format(options.model_file)
     create_summarization_dataset(input_file,options.candidate_dir,queries,model)
 
