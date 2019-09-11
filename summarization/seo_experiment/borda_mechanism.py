@@ -5,7 +5,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, update_wrapper
 from multiprocessing import Pool, cpu_count
-
+from summarization.seo_experiment.utils import clean_texts
 import gensim
 import nltk
 import numpy as np
@@ -51,7 +51,7 @@ def get_term_frequency(text,term):
     return text.split().count(term)
 
 def query_term_freq(mode,text,query):
-    freqs = [get_term_frequency(text,q)/len(text.split()) for q in query.split()]
+    freqs = [get_term_frequency(text,q)/len(text.split()) for q in query.split("_")]
     if mode=="max":
         return max(freqs)
     if mode=="min":
@@ -69,7 +69,8 @@ def centroid_similarity(s1,s2):
         return 0
     return cosine_similarity(centroid1,centroid2)
 
-def clean_sentence(sentence,sw):
+def clean_sentence(sentence):
+    sw = set(nltk.corpus.stopwords.words('english'))
     return [token for token in sentence.rstrip().split() if token not in sw]
 
 
@@ -135,7 +136,7 @@ def wrapped_partial(func, *args, **kwargs):
 
 
 def get_predictors_values(input_sentence, query,args):
-    idx, candidate_sentence = args
+    idx, candidate_sentence,model = args
     result={}
     max_query_token_tf = wrapped_partial(query_term_freq,"max")
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
@@ -145,7 +146,7 @@ def get_predictors_values(input_sentence, query,args):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
         elif func.__name__.__contains__("centroid"):
-            result[i] = func(input_sentence,candidate_sentence)
+            result[i] = func(input_sentence,candidate_sentence,model)
         else:
             result[i] = func(input_sentence,candidate_sentence)
     return result
@@ -187,13 +188,13 @@ def reduce_subset(df,row):
     return result
 
 
-def calculate_predictors(target_subset, input_sentence, query):
+def calculate_predictors(target_subset, input_sentence, query,model):
     reduced_subset = reduce_subset(target_subset, input_sentence)
     if reduced_subset.empty:
         reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
-        result = get_predictors_values(input_sentence,query,(idx,target_row["input_paragraph"]))
+        result = get_predictors_values(input_sentence,query,(idx,clean_texts(target_row["input_paragraph"].lower()),model))
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])

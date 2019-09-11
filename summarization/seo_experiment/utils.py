@@ -172,3 +172,27 @@ def load_file(filename):
             else:
                 docs[name]=att.text
     return docs
+
+
+def clean_texts(text):
+    text = text.replace(".", " ")
+    text = text.replace("-", " ")
+    text = text.replace(",", " ")
+    text = text.replace(":", " ")
+    text = text.replace("?", " ")
+    text = text.replace("$", " ")
+    text = text.replace("%", " ")
+    text = text.replace("<", " ")
+    text = text.replace(">", " ")
+    text = text.replace("\\", " ")
+    text = text.replace("*", " ")
+    text = text.replace(";", " ")
+    text = text.replace("`", "")
+    text = text.replace("'", "")
+    text = text.replace("@", " ")
+    text = text.replace("\n", " ")
+    text = text.replace("\"", "")
+    text = text.replace("/", " ")
+    text = text.replace("(", "")
+    text = text.replace(")", "")
+    return text

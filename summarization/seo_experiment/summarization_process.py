@@ -1,6 +1,6 @@
 import sys
 from optparse import OptionParser
-from summarization.seo_experiment.utils import load_file
+from summarization.seo_experiment.utils import load_file,clean_texts
 from nltk import sent_tokenize
 import os,logging
 import numpy as np
@@ -88,7 +88,7 @@ def write_files(**kwargs):
     for key,val in kwargs.items():
         val[0].write(val[1]+"\n")
 
-def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text):
+def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text,model):
     input_df = read_texts(input_dataset_file,True)
     with open(os.path.dirname(input_dataset_file)+"/all_data.txt",'w') as complete:
         with open(os.path.dirname(input_dataset_file)+"/queries.txt",'w') as queries:
@@ -102,32 +102,10 @@ def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text)
                         query="_".join(query.split())
                         sentence = row["sentence"]
                         query_paragraph_df = read_texts(candidates_dir+query)
-                        paragraphs = calculate_predictors(query_paragraph_df,sentence)
+                        paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
                         for paragraph in paragraphs.split("\n##\n"):
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
 
-def clean_texts(text):
-    text = text.replace(".", " ")
-    text = text.replace("-", " ")
-    text = text.replace(",", " ")
-    text = text.replace(":", " ")
-    text = text.replace("?", " ")
-    text = text.replace("$", " ")
-    text = text.replace("%", " ")
-    text = text.replace("<", " ")
-    text = text.replace(">", " ")
-    text = text.replace("\\", " ")
-    text = text.replace("*", " ")
-    text = text.replace(";", " ")
-    text = text.replace("`", "")
-    text = text.replace("'", "")
-    text = text.replace("@", " ")
-    text = text.replace("\n", " ")
-    text = text.replace("\"", "")
-    text = text.replace("/", " ")
-    text = text.replace("(", "")
-    text = text.replace(")", "")
-    return text
 
 def transform_query_text(queries_raw_text):
     transformed = {}
@@ -156,5 +134,5 @@ if __name__=="__main__":
     reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
-    create_summarization_dataset(input_file,options.candidate_dir,queries)
+    create_summarization_dataset(input_file,options.candidate_dir,queries,model)
 
