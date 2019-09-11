@@ -1,5 +1,8 @@
+import sys
+from optparse import OptionParser
+from summarization.seo_experiment.utils import load_file
 from nltk import sent_tokenize
-import os
+import os,logging
 import numpy as np
 import pandas as pd
 from functools import partial
@@ -27,7 +30,7 @@ def transform_stats(stats):
 def reference_docs_calculation(stats,ref_index):
     return {q:stats[q][ref_index] for q in stats}
 
-def get_reference_doc(trec_file,index):
+def get_reference_docs(trec_file, index):
     stats = read_trec_file(trec_file)
     return reference_docs_calculation(stats,index)
 
@@ -101,4 +104,26 @@ def create_summarization_dataset(input_dataset_file,candidates_dir):
                         for paragraph in paragraphs.split("\n##\n"):
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
 
+
+
+
+
+if __name__=="__main__":
+    program = os.path.basename(sys.argv[0])
+    logger = logging.getLogger(program)
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
+    logging.root.setLevel(level=logging.INFO)
+    logger.info("running %s" % ' '.join(sys.argv))
+    parser = OptionParser()
+    parser.add_option("--mode", dest="mode")
+    parser.add_option("--trectext_file", dest="trectext_file")
+    parser.add_option("--trec_file", dest="trec_file")
+    parser.add_option("--ref_index", dest="ref_index")
+    parser.add_option("--candidate_dir", dest="candidate_dir")
+    (options, args) = parser.parse_args()
+    doc_texts = load_file(options.trectext_file)
+    reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
+    senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
+    input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
+    create_summarization_dataset(input_file,options.candidate_dir)
 
