@@ -12,7 +12,6 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 # from sklearn.metrics.pairwise import cosine_similarity as cs
-
 from sklearn.feature_extraction.text import CountVectorizer
 
 

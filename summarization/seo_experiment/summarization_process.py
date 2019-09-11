@@ -6,7 +6,9 @@ import os,logging
 import numpy as np
 import pandas as pd
 from functools import partial
+from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.borda_mechanism import calculate_predictors
+
 
 def read_trec_file(trec_file):
     stats = {}
@@ -86,7 +88,7 @@ def write_files(**kwargs):
     for key,val in kwargs.items():
         val[0].write(val[1]+"\n")
 
-def create_summarization_dataset(input_dataset_file,candidates_dir):
+def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text):
     input_df = read_texts(input_dataset_file,True)
     with open(os.path.dirname(input_dataset_file)+"/all_data.txt",'w') as complete:
         with open(os.path.dirname(input_dataset_file)+"/queries.txt",'w') as queries:
@@ -96,7 +98,7 @@ def create_summarization_dataset(input_dataset_file,candidates_dir):
                     complete.write(header)
                     for i,row in input_df.iterrows():
                         complete_data="\t".join([str(row[str(col)]) for col in input_df.columns])
-                        query = row["query"]
+                        query = queries_text[row["query"]]
                         query="_".join(query.split())
                         sentence = row["sentence"]
                         query_paragraph_df = read_texts(candidates_dir+query)
@@ -104,8 +106,17 @@ def create_summarization_dataset(input_dataset_file,candidates_dir):
                         for paragraph in paragraphs.split("\n##\n"):
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
 
+def lowercase_texts(texts):
+    lowered ={}
+    for docid in texts:
+        lowered[docid]=texts[docid].lower()
+    return lowered
 
-
+def transform_query_text(queries_raw_text):
+    transformed = {}
+    for qid in queries_raw_text:
+        transformed[qid]=queries_raw_text[qid].replace("#combine( ","").replace(" )","")
+    return transformed
 
 
 if __name__=="__main__":
@@ -117,13 +128,17 @@ if __name__=="__main__":
     parser = OptionParser()
     parser.add_option("--mode", dest="mode")
     parser.add_option("--trectext_file", dest="trectext_file")
+    parser.add_option("--queries_file", dest="queries_file")
     parser.add_option("--trec_file", dest="trec_file")
     parser.add_option("--ref_index", dest="ref_index")
     parser.add_option("--candidate_dir", dest="candidate_dir")
     (options, args) = parser.parse_args()
+    raw_queries=read_queries_file(options.queries_file)
+    queries=transform_query_text(raw_queries)
     doc_texts = load_file(options.trectext_file)
+    doc_texts = lowercase_texts(doc_texts)
     reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
-    create_summarization_dataset(input_file,options.candidate_dir)
+    create_summarization_dataset(input_file,options.candidate_dir,queries)
 
