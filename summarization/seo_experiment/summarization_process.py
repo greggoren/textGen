@@ -106,10 +106,31 @@ def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text)
                         for paragraph in paragraphs.split("\n##\n"):
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
 
-def lowercase_texts(texts):
+def clean_texts(texts):
     lowered ={}
     for docid in texts:
-        lowered[docid]=texts[docid].lower()
+        text=texts[docid].lower()
+        text = text.replace(".", " ")
+        text = text.replace("-", " ")
+        text = text.replace(",", " ")
+        text = text.replace(":", " ")
+        text = text.replace("?", " ")
+        text = text.replace("$", " ")
+        text = text.replace("%", " ")
+        text = text.replace("<", " ")
+        text = text.replace(">", " ")
+        text = text.replace("\\", " ")
+        text = text.replace("*", " ")
+        text = text.replace(";", " ")
+        text = text.replace("`", "")
+        text = text.replace("'", "")
+        text = text.replace("@", " ")
+        text = text.replace("\n", " ")
+        text = text.replace("\"", "")
+        text = text.replace("/", " ")
+        text = text.replace("(", "")
+        text = text.replace(")", "")
+        lowered[docid] = text
     return lowered
 
 def transform_query_text(queries_raw_text):
@@ -136,7 +157,7 @@ if __name__=="__main__":
     raw_queries=read_queries_file(options.queries_file)
     queries=transform_query_text(raw_queries)
     doc_texts = load_file(options.trectext_file)
-    doc_texts = lowercase_texts(doc_texts)
+    doc_texts = clean_texts(doc_texts)
     reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
