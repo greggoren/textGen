@@ -10,7 +10,8 @@ def create_features_file(features_dir, index_path, queries_file, new_features_fi
     run_bash_command("rm -r "+features_dir)
     if not os.path.exists(features_dir):
         os.makedirs(features_dir)
-
+    if not os.path.exists(os.path.dirname(new_features_file)):
+        os.makedirs(os.path.dirname(new_features_file))
     command= scripts_path+"LTRFeatures "+ queries_file + ' -stream=doc -index=' + index_path + ' -repository='+ index_path +' -useWorkingSet=true -workingSetFile='+working_set_file + ' -workingSetFormat=trec'
     print(command)
     out = run_bash_command(command)
@@ -24,6 +25,7 @@ def create_features_file(features_dir, index_path, queries_file, new_features_fi
     print(command)
     out = run_bash_command(command)
     print(out)
+    run_bash_command("mv featureID "+os.path.dirname(new_features_file))
     return new_features_file
 
 
