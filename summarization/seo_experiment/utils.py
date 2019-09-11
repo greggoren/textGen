@@ -24,6 +24,7 @@ def create_features_file(features_dir, index_path, queries_file, new_features_fi
     print(command)
     out = run_bash_command(command)
     print(out)
+    return new_features_file
 
 
 
