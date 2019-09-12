@@ -107,8 +107,9 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                         paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
                         for paragraph in paragraphs.split("\n##\n"):
                             if sum_model == 'transformer':
-                                paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>\n"
+                                paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>"
                                 paragraph = paragraph.replace('</t> </t>','')
+                                paragraph = paragraph.replace('<t> </t>','')
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
                         if i%10==0:
                             logger.info("finished "+str(i+1)+" sentences in borda data set")
