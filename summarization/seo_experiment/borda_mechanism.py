@@ -62,9 +62,9 @@ def query_term_freq(mode,text,query):
         return sum(freqs)
 
 
-def centroid_similarity(s1,s2):
-    centroid1 = get_sentence_centroid(s1)
-    centroid2 = get_sentence_centroid(s2)
+def centroid_similarity(s1,s2,model):
+    centroid1 = get_sentence_centroid(s1,model)
+    centroid2 = get_sentence_centroid(s2,model)
     if centroid1 is None or centroid2 is None:
         return 0
     return cosine_similarity(centroid1,centroid2)
