@@ -162,7 +162,10 @@ if __name__=="__main__":
     elif options.mode=="all":
         input_file = summarization_ds(options)
         summary_model = summarization_models[sum_model]
-        run_summarization_model(options.summary_script_file,summary_model,input_file,options.summary_output_file,**summary_kwargs[sum_model])
+        output_file = options.summary_output_file+"_"+sum_model+".txt"
+        if not os.path.exists(os.path.dirname(output_file)):
+            os.makedirs(os.path.dirname(output_file))
+        run_summarization_model(options.summary_script_file,summary_model,input_file,,**summary_kwargs[sum_model])
 
 
 
