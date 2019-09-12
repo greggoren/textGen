@@ -165,7 +165,7 @@ if __name__=="__main__":
         output_file = options.summary_output_file+"_"+sum_model+".txt"
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
-        run_summarization_model(options.summary_script_file,summary_model,input_file,,**summary_kwargs[sum_model])
+        run_summarization_model(options.summary_script_file,summary_model,input_file,output_file,**summary_kwargs[sum_model])
 
 
 
