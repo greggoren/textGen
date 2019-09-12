@@ -127,7 +127,7 @@ def summarization_ds(options):
     raw_queries = read_queries_file(options.queries_file)
     logger.info("transforming queries")
     queries = transform_query_text(raw_queries)
-    logger("reading trectext file")
+    logger.info("reading trectext file")
     doc_texts = load_file(options.trectext_file)
     logger.info("calculating reference docs")
     reference_docs = get_reference_docs(options.trec_file, int(options.ref_index))
