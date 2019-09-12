@@ -183,7 +183,7 @@ def check_fit(series,s2):
 
 
 def reduce_subset(df,row):
-    s1 = row["input_paragraph"]
+    s1 = row
     result = df[check_fit(df["input_paragraph"],s1)]
     return result
 

@@ -89,12 +89,12 @@ def write_files(**kwargs):
     for key,val in kwargs.items():
         val[0].write(val[1]+"\n")
 
-def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text,model,mode):
+def create_summarization_dataset(input_dataset_file, candidates_dir, queries_text, model, sum_model):
     input_df = read_texts(input_dataset_file,True)
-    with open(os.path.dirname(input_dataset_file)+"/all_data_"+mode+".txt",'w') as complete:
-        with open(os.path.dirname(input_dataset_file)+"/queries_"+mode+".txt",'w') as queries:
-            with open(os.path.dirname(input_dataset_file)+"/source_"+mode+".txt",'w') as source:
-                with open(os.path.dirname(input_dataset_file)+"/input_paragraphs_"+mode+".txt",'w') as inp_paragraphs:
+    with open(os.path.dirname(input_dataset_file) +"/all_data_" + sum_model + ".txt", 'w') as complete:
+        with open(os.path.dirname(input_dataset_file) +"/queries_" + sum_model + ".txt", 'w') as queries:
+            with open(os.path.dirname(input_dataset_file) +"/source_" + sum_model + ".txt", 'w') as source:
+                with open(os.path.dirname(input_dataset_file) +"/input_paragraphs_" + sum_model + ".txt", 'w') as inp_paragraphs:
                     header = "\t".join([str(col) for col in input_df.columns])+"\tinput_paragraph\n"
                     complete.write(header)
                     for i,row in input_df.iterrows():
@@ -105,7 +105,7 @@ def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text,
                         query_paragraph_df = read_texts(candidates_dir+query)
                         paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
                         for paragraph in paragraphs.split("\n##\n"):
-                            if mode == 'transformer':
+                            if sum_model == 'transformer':
                                 paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>\n"
                                 paragraph = paragraph.replace('</t> </t>','')
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
@@ -126,6 +126,7 @@ if __name__=="__main__":
     logger.info("running %s" % ' '.join(sys.argv))
     parser = OptionParser()
     parser.add_option("--mode", dest="mode")
+    parser.add_option("--sum_model", dest="sum_model")
     parser.add_option("--trectext_file", dest="trectext_file")
     parser.add_option("--queries_file", dest="queries_file")
     parser.add_option("--trec_file", dest="trec_file")
@@ -133,7 +134,7 @@ if __name__=="__main__":
     parser.add_option("--candidate_dir", dest="candidate_dir")
     parser.add_option("--model_file", dest="model_file")
     (options, args) = parser.parse_args()
-    mode = options.mode
+    sum_model = options.sum_model
     raw_queries=read_queries_file(options.queries_file)
     queries=transform_query_text(raw_queries)
     doc_texts = load_file(options.trectext_file)
@@ -141,5 +142,5 @@ if __name__=="__main__":
     senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
     input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
-    create_summarization_dataset(input_file,options.candidate_dir,queries,model,mode)
+    create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
 
