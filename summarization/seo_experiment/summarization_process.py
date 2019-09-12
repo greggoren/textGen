@@ -99,7 +99,7 @@ def create_summarization_dataset(input_dataset_file,candidates_dir,queries_text,
                     complete.write(header)
                     for i,row in input_df.iterrows():
                         complete_data="\t".join([str(row[str(col)]) for col in input_df.columns])
-                        query = queries_text[row["query"]]
+                        query = queries_text[str(row["query"])]
                         query="_".join(query.split())
                         sentence = row["sentence"]
                         query_paragraph_df = read_texts(candidates_dir+query)
