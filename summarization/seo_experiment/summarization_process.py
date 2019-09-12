@@ -51,14 +51,15 @@ def chosen_sentence_for_replacement(sentences, query):
 
 
 
-def get_sentences_for_replacement(doc_texts,reference_docs):
+def get_sentences_for_replacement(doc_texts,reference_docs,query_text):
     replacements = {}
-    for query in reference_docs:
-        doc = reference_docs[query]
+    for qid in reference_docs:
+        doc = reference_docs[qid]
         text = doc_texts[doc]
         sentences = sent_tokenize(text)
+        query = query_text[qid]
         chosen_index = chosen_sentence_for_replacement(sentences=sentences, query=query)
-        replacements[query]=chosen_index
+        replacements[qid]=chosen_index
     return replacements
 
 
@@ -79,9 +80,9 @@ def write_input_dataset_file(replacements,reference_docs,texts):
 
 def read_texts(fname,inp=False):
     if inp:
-        df = pd.read_csv(fname, delimiter="\t", header =0)
+        df = pd.read_csv(fname, delimiter="\t", header =0,encoding='unicode_escape')
     else:
-        df = pd.read_csv(fname,delimiter="\t",names=["query", "input_paragraph"])
+        df = pd.read_csv(fname,delimiter="\t",names=["query", "input_paragraph"],encoding='unicode_escape')
     return df
 
 
@@ -89,12 +90,17 @@ def write_files(**kwargs):
     for key,val in kwargs.items():
         val[0].write(val[1]+"\n")
 
+
+
+
+
 def create_summarization_dataset(input_dataset_file, candidates_dir, queries_text, model, sum_model):
+    current_query =None
     input_df = read_texts(input_dataset_file,True)
-    with open(os.path.dirname(input_dataset_file) +"/all_data_" + sum_model + ".txt", 'w') as complete:
-        with open(os.path.dirname(input_dataset_file) +"/queries_" + sum_model + ".txt", 'w') as queries:
-            with open(os.path.dirname(input_dataset_file) +"/source_" + sum_model + ".txt", 'w') as source:
-                with open(os.path.dirname(input_dataset_file) +"/input_paragraphs_" + sum_model + ".txt", 'w') as inp_paragraphs:
+    with open(os.path.dirname(input_dataset_file) +"/all_data_" + sum_model + ".txt", 'w',encoding="utf-8") as complete:
+        with open(os.path.dirname(input_dataset_file) +"/queries_" + sum_model + ".txt", 'w',encoding="utf-8") as queries:
+            with open(os.path.dirname(input_dataset_file) +"/source_" + sum_model + ".txt", 'w',encoding="utf-8") as source:
+                with open(os.path.dirname(input_dataset_file) +"/input_paragraphs_" + sum_model + ".txt", 'w',encoding="utf-8") as inp_paragraphs:
                     header = "\t".join([str(col) for col in input_df.columns])+"\tinput_paragraph\n"
                     complete.write(header)
                     for i,row in input_df.iterrows():
@@ -103,7 +109,9 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                         query = queries_text[str(row["query"])]
                         query="_".join(query.split())
                         sentence = str(row["sentence"]).rstrip()
-                        query_paragraph_df = read_texts(candidates_dir+query)
+                        if query != current_query:
+                            query_paragraph_df = read_texts(candidates_dir+query)
+                            current_query=query
                         paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
                         for paragraph in paragraphs.split("\n##\n"):
                             if sum_model == 'transformer':
@@ -133,10 +141,11 @@ def summarization_ds(options):
     logger.info("calculating reference docs")
     reference_docs = get_reference_docs(options.trec_file, int(options.ref_index))
     logger.info("calculating sentences for replacement")
-    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs)
+    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries)
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt",binary=True)
     logger.info("writing all files")
     return create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
 

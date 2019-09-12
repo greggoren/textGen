@@ -194,7 +194,7 @@ def calculate_predictors(target_subset, input_sentence, query,model):
         reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
-        result = get_predictors_values(input_sentence,query,(idx,clean_texts(target_row["input_paragraph"].lower()),model))
+        result = get_predictors_values(clean_texts(input_sentence).lower(),query,(idx,clean_texts(target_row["input_paragraph"].lower()),model))
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])
