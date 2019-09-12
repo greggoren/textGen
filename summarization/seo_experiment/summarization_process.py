@@ -98,10 +98,11 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                     header = "\t".join([str(col) for col in input_df.columns])+"\tinput_paragraph\n"
                     complete.write(header)
                     for i,row in input_df.iterrows():
-                        complete_data="\t".join([str(row[str(col)]) for col in input_df.columns])
+
+                        complete_data="\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
                         query = queries_text[str(row["query"])]
                         query="_".join(query.split())
-                        sentence = row["sentence"]
+                        sentence = str(row["sentence"]).rstrip()
                         query_paragraph_df = read_texts(candidates_dir+query)
                         paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
                         for paragraph in paragraphs.split("\n##\n"):
@@ -109,6 +110,8 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                                 paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>\n"
                                 paragraph = paragraph.replace('</t> </t>','')
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
+                        if i%10==0:
+                            logger.info("finished "+str(i+1)+" sentences in borda data set")
     return os.path.dirname(input_dataset_file) +"/input_paragraphs_" + sum_model + ".txt"
 
 def transform_query_text(queries_raw_text):
@@ -118,14 +121,22 @@ def transform_query_text(queries_raw_text):
     return transformed
 
 def summarization_ds(options):
+
     sum_model = options.sum_model
+    logger.info("reading queries file")
     raw_queries = read_queries_file(options.queries_file)
+    logger.info("transforming queries")
     queries = transform_query_text(raw_queries)
+    logger("reading trectext file")
     doc_texts = load_file(options.trectext_file)
+    logger.info("calculating reference docs")
     reference_docs = get_reference_docs(options.trec_file, int(options.ref_index))
+    logger.info("calculating sentences for replacement")
     senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs)
+    logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    logger.info("writing all files")
     return create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
 
 
@@ -157,6 +168,7 @@ if __name__=="__main__":
     elif options.mode=="summary":
         summary_model = summarization_models[sum_model]
         input_file = options.summary_input_file
+        logger.info("starting summarization")
         run_summarization_model(options.summary_script_file, summary_model, input_file, options.summary_output_file,
                                 **summary_kwargs[sum_model])
     elif options.mode=="all":
@@ -165,6 +177,7 @@ if __name__=="__main__":
         output_file = options.summary_output_file+"_"+sum_model+".txt"
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
+        logger.info("starting summarization")
         run_summarization_model(options.summary_script_file,summary_model,input_file,output_file,**summary_kwargs[sum_model])
 
 
