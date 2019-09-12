@@ -1,6 +1,6 @@
 import sys
 from optparse import OptionParser
-from summarization.seo_experiment.utils import load_file,clean_texts
+from summarization.seo_experiment.utils import load_file,clean_texts,run_summarization_model
 from nltk import sent_tokenize
 import os,logging
 import numpy as np
@@ -109,13 +109,24 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                                 paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>\n"
                                 paragraph = paragraph.replace('</t> </t>','')
                             write_files(complete=(complete,complete_data+"\t"+paragraph),queries = (queries,query),source=(source,sentence),inp_paragraphs=(inp_paragraphs,paragraph))
-
+    return os.path.dirname(input_dataset_file) +"/input_paragraphs_" + sum_model + ".txt"
 
 def transform_query_text(queries_raw_text):
     transformed = {}
     for qid in queries_raw_text:
         transformed[qid]=queries_raw_text[qid].replace("#combine( ","").replace(" )","")
     return transformed
+
+def summarization_ds(options):
+    sum_model = options.sum_model
+    raw_queries = read_queries_file(options.queries_file)
+    queries = transform_query_text(raw_queries)
+    doc_texts = load_file(options.trectext_file)
+    reference_docs = get_reference_docs(options.trec_file, int(options.ref_index))
+    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs)
+    input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
+    model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    return create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
 
 
 if __name__=="__main__":
@@ -132,15 +143,26 @@ if __name__=="__main__":
     parser.add_option("--trec_file", dest="trec_file")
     parser.add_option("--ref_index", dest="ref_index")
     parser.add_option("--candidate_dir", dest="candidate_dir")
+    parser.add_option("--summary_script_file", dest="summary_script_file")
     parser.add_option("--model_file", dest="model_file")
+    parser.add_option("--summary_output_file", dest="summary_output_file")
+    parser.add_option("--summary_input_file", dest="summary_input_file")
     (options, args) = parser.parse_args()
+    #TODO: make it more generic later
+    summarization_models = {"lstm":"summarizations_models/gigaword_copy_acc_51.78_ppl_11.71_e20.pt","transformer":"summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt"}
+    summary_kwargs = {"lstm":{"min_length" :"10","block_ngram_repeat": "2"},"transformer":{"min_length" :"1"}}
     sum_model = options.sum_model
-    raw_queries=read_queries_file(options.queries_file)
-    queries=transform_query_text(raw_queries)
-    doc_texts = load_file(options.trectext_file)
-    reference_docs  = get_reference_docs(options.trec_file, int(options.ref_index))
-    senteces_for_replacement = get_sentences_for_replacement(doc_texts,reference_docs)
-    input_file = write_input_dataset_file(senteces_for_replacement,reference_docs,doc_texts)
-    model = gensim.models.FastText.load_fasttext_format(options.model_file)
-    create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
+    if options.mode =="ds":
+        summarization_ds(options)
+    elif options.mode=="summary":
+        summary_model = summarization_models[sum_model]
+        input_file = options.summary_input_file
+        run_summarization_model(options.summary_script_file, summary_model, input_file, options.summary_output_file,
+                                **summary_kwargs[sum_model])
+    elif options.mode=="all":
+        input_file = summarization_ds(options)
+        summary_model = summarization_models[sum_model]
+        run_summarization_model(options.summary_script_file,summary_model,input_file,options.summary_output_file,**summary_kwargs[sum_model])
+
+
 
