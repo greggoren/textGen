@@ -80,9 +80,9 @@ def write_input_dataset_file(replacements,reference_docs,texts):
 
 def read_texts(fname,inp=False):
     if inp:
-        df = pd.read_csv(fname, delimiter="\t", header =0,encoding='unicode_escape')
+        df = pd.read_csv(fname, delimiter="\t", header =0)
     else:
-        df = pd.read_csv(fname,delimiter="\t",names=["query", "input_paragraph"],encoding='unicode_escape')
+        df = pd.read_csv(fname,delimiter="\t",names=["query", "input_paragraph"])
     return df
 
 
