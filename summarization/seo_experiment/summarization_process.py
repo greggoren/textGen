@@ -95,6 +95,8 @@ def write_files(dict,**kwargs):
 
 def creaion_parrallel(queries_text,candidates_dir,input_df,files,row):
     global model
+    logger.info("row = ")
+    logger.info(row)
     complete_data = "\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
     results =[]
     query = queries_text[str(row["query"])]
