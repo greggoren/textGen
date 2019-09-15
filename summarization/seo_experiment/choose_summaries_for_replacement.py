@@ -47,7 +47,7 @@ def get_top_docs(trec_file,number_of_top_docs):
             query = line.split()[1]
             if query not in top_docs_per_query:
                 top_docs_per_query[query]=[]
-            if len(top_docs_per_query[query]<number_of_top_docs):
+            if len(top_docs_per_query[query])<number_of_top_docs:
                 doc = line.split()[2]
                 top_docs_per_query[query].append(doc)
     return top_docs_per_query
