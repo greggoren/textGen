@@ -29,7 +29,7 @@ def read_summaries_data(summaries_file, input_data_file, summaries_tfidf_dir,que
                     if query not in summary_tfidf_fname_index:
                         summary_tfidf_fname_index[query]={}
                     summary_tfidf_fname_index[query][i]= summaries_tfidf_dir + doc + "_" + index + "_" + str(i)
-                    indexes[doc]=int(index)
+                    indexes[query]=int(index)
                     if query not in summary_stats:
                         summary_stats[query]=[]
                     summary_stats[query].append(summary)
