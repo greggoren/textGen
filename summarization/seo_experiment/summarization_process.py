@@ -230,7 +230,7 @@ if __name__=="__main__":
     (options, args) = parser.parse_args()
     #TODO: make it more generic later
     summarization_models = {"lstm":"summarizations_models/gigaword_copy_acc_51.78_ppl_11.71_e20.pt","transformer":"summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt"}
-    summary_kwargs = {"lstm":{"min_length" :"10","block_ngram_repeat": "2"},"transformer":{"min_length" :"1"}}
+    summary_kwargs = {"lstm":{"min_length" :"10","block_ngram_repeat": "2"},"transformer":{"min_length" :"3"}}
     sum_model = options.sum_model
     if options.mode =="ds":
         model = gensim.models.FastText.load_fasttext_format(options.model_file)
@@ -238,8 +238,10 @@ if __name__=="__main__":
     elif options.mode=="summary":
         summary_model = summarization_models[sum_model]
         input_file = options.summary_input_file
+        output_file = options.summary_output_file + "_" + sum_model + ".txt"
         logger.info("starting summarization")
-        run_summarization_model(options.summary_script_file, summary_model, input_file, options.summary_output_file,
+
+        run_summarization_model(options.summary_script_file, summary_model, input_file, output_file,
                                 **summary_kwargs[sum_model])
     elif options.mode=="all":
         model = gensim.models.FastText.load_fasttext_format(options.model_file)
