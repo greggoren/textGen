@@ -1,4 +1,7 @@
 import os
+
+import javaobj
+
 from gen_utils import run_bash_command,run_command
 import xml.etree.ElementTree as ET
 
@@ -173,6 +176,10 @@ def load_file(filename):
                 docs[name]=att.text
     return docs
 
+def get_java_object(obj_file):
+    with open(obj_file, 'rb') as fd:
+        obj = javaobj.load(fd)
+        return obj
 
 def clean_texts(text):
     text = text.replace(".", " ")
@@ -195,4 +202,6 @@ def clean_texts(text):
     text = text.replace("/", " ")
     text = text.replace("(", "")
     text = text.replace(")", "")
-    return text
+    text = text.replace("<t>","")
+    text = text.replace("</t>","")
+    return text.lower()

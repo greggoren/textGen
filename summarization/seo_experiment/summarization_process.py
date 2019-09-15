@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from functools import partial
 from summarization.seo_experiment.workingset_creator import read_queries_file
-from summarization.seo_experiment.borda_mechanism import calculate_predictors
+from summarization.seo_experiment.borda_mechanism import calculate_summarization_predictors
 import gensim
 
 
@@ -112,14 +112,11 @@ def create_summarization_dataset(input_dataset_file, candidates_dir, queries_tex
                         if query != current_query:
                             query_paragraph_df = read_texts(candidates_dir+query)
                             current_query=query
-                        paragraphs = calculate_predictors(query_paragraph_df,sentence,query,model)
+                        paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence, query, model)
                         for paragraph in paragraphs.split("\n##\n"):
                             if sum_model == 'transformer':
                                 sentences = sent_tokenize(paragraph)
                                 paragraph = " ".join(["<t> "+s+" </t>" for s in sentences])
-                                # paragraph = "<t> "+ paragraph.replace(".",". </t> <t>").rstrip() +" </t>"
-                                # paragraph = paragraph.replace('</t> </t>','')
-                                # paragraph = paragraph.replace('<t> </t>','')
                             write_files(complete=(complete,complete_data+"\t"+paragraph),
                                         queries = (queries," ".join(query.split("_"))),source=(source,sentence),
                                         inp_paragraphs=(inp_paragraphs,paragraph))

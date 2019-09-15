@@ -5,14 +5,59 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, update_wrapper
 from multiprocessing import Pool, cpu_count
-from summarization.seo_experiment.utils import clean_texts
+from summarization.seo_experiment.utils import clean_texts,get_java_object
+
 import gensim
 import nltk
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+import javaobj
 from tqdm import tqdm
 
+def dict_norm(dict):
+    sum=0
+    for token in dict:
+        sum+=(dict[token]**2)
+    return sum
+
+
+
+
+def dict_cosine_similarity(d1,d2):
+    """
+    cosine similarity between document vectors represented as dictionaries
+    """
+    sumxx = dict_norm(d1)
+    sumyy = dict_norm(d2)
+    if sumxx==0 or sumyy==0:
+        return 0
+    sumxy=0
+    shared_token = set(d1.keys()).intersection(set(d2.keys()))
+    for token in shared_token:
+        tfidf1 = float(d1[token])
+        tfidf2 = float(d2[token])
+        sumxy+=tfidf1*tfidf2
+    return sumxy/math.sqrt(sumyy*sumxx)
+
+def add_dict(d1,d2):
+    for token in d2:
+        if token in d1:
+            d1[token]=float(d1[token])+float(d2[token])
+        else:
+            d1[token]=d2[token]
+    return d1
+
+def normalize_dict(dict,n):
+    for token in dict:
+        dict[token] = dict[token]/n
+    return dict
+
+def document_centroid(document_vectors):
+    centroid = {}
+    for doc in document_vectors:
+        centroid=add_dict(centroid,doc)
+    return normalize_dict(centroid,len(document_vectors))
 
 def cosine_similarity(v1,v2):
     sumxx, sumxy, sumyy = 0, 0, 0
@@ -25,10 +70,23 @@ def cosine_similarity(v1,v2):
         return 0
     return sumxy/math.sqrt(sumxx*sumyy)
 
-def get_sentence_centroid(sentence,model):
+
+def get_semantic_docs_centroid(doc_texts,doc_names,model):
+    sum_vector = None
+    for doc in doc_names:
+        text = doc_texts[doc]
+        vector = get_text_centroid(clean_texts(text),model)
+        if sum_vector is None:
+            sum_vector = np.zeros(vector.shape[0])
+        sum_vector = sum_vector+vector
+    if sum_vector is None:
+        return None
+    return sum_vector/len(doc_names)
+
+def get_text_centroid(text, model):
     sum_vector = None
     denom = 0
-    for token in clean_sentence(sentence):
+    for token in clean_sentence(text):
         try:
             vector = model.wv[token]
         except KeyError:
@@ -63,8 +121,8 @@ def query_term_freq(mode,text,query):
 
 
 def centroid_similarity(s1,s2,model):
-    centroid1 = get_sentence_centroid(s1,model)
-    centroid2 = get_sentence_centroid(s2,model)
+    centroid1 = get_text_centroid(s1, model)
+    centroid2 = get_text_centroid(s2, model)
     if centroid1 is None or centroid2 is None:
         return 0
     return cosine_similarity(centroid1,centroid2)
@@ -94,7 +152,7 @@ def jaccard_similiarity(s1,s2):
 
 def minmax_query_token_similarity(maximum,sentence,query,model):
     query_tokens = set(query.split())
-    centroid = get_sentence_centroid(sentence)
+    centroid = get_text_centroid(sentence)
     if centroid is None:
         return 0
     similarities = [cosine_similarity(centroid,model.wv[token]) for token in query_tokens if token in model.wv]
@@ -133,6 +191,64 @@ def wrapped_partial(func, *args, **kwargs):
     partial_func = partial(func, *args, **kwargs)
     update_wrapper(partial_func, func)
     return partial_func
+
+
+def calculate_similarity_to_top_docs_tf_idf(summary_tfidf_fname,top_docs_tfidf):
+    summary_tfidf=get_java_object(summary_tfidf_fname)
+    with open(summary_tfidf_fname, 'rb') as fd:
+        summary_tfidf = javaobj.load(fd)
+        return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
+
+def calculate_semantic_similarity_to_top_docs(summary,top_docs,doc_texts,model):
+    summary_vector = get_text_centroid(clean_texts(summary),model)
+    top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model)
+    return cosine_similarity(summary_vector,top_docs_centroid_vector)
+
+def context_similarity(reference,document,summary,replacement_index,model):
+    document_sentences = nltk.sent_tokenize(document)
+
+    if reference=="self":
+        summary_vector = get_text_centroid(clean_texts(summary),model)
+        sentence = document_sentences[replacement_index]
+        sentence_vector = get_text_centroid(clean_texts(sentence),model)
+        return cosine_similarity(summary_vector,sentence_vector)
+    else:
+        summary_sentences = nltk.sent_tokenize(summary.replace("<t>","").replace("</t>",""))
+        summary_vectors = [get_text_centroid(clean_texts(s),model) for s in summary_sentences]
+        if reference == "pred":
+            if replacement_index==0:
+                real_index = replacement_index
+            else:
+                real_index = replacement_index-1
+            pred_sentence = document_sentences[real_index]
+            return cosine_similarity(get_text_centroid(clean_texts(pred_sentence),model),summary_vectors[0])
+        elif reference=="next":
+            if replacement_index==len(document_sentences)-1:
+                real_index = replacement_index
+            else:
+                real_index = replacement_index+1
+            next_sentence = document_sentences[real_index]
+            return cosine_similarity(get_text_centroid(clean_texts(next_sentence),model),summary_vectors[-1])
+
+
+def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model):
+    result={}
+    avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
+    pred_context_similarity = wrapped_partial(cosine_similarity,"pred")
+    next_context_similarity = wrapped_partial(cosine_similarity,"next")
+    self_context_similarity = wrapped_partial(cosine_similarity,"self")
+    funcs = [avg_query_token_tf,pred_context_similarity,next_context_similarity,self_context_similarity,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs]
+    for i,func in enumerate(funcs):
+        if func.__name__.__contains__("query"):
+            result[i]=func(clean_texts(summary),query)
+        elif func.__name__.__contains__("context"):
+            result[i] = func(document,summary,replacement_index,model)
+        elif func.__name__.__contains__("tfidf"):
+            result[i] = func(summary_tfidf_fname,top_documents_centroid_tf_idf)
+        elif func.__name__.__contains__("semantic"):
+            result[i] = func(summary,top_docs,documents_text,model)
+    return result
+
 
 
 def get_predictors_values(input_sentence, query,args):
@@ -187,8 +303,11 @@ def reduce_subset(df,row):
     result = df[check_fit(df["input_paragraph"],s1)]
     return result
 
+def calculte_top_docs_centroid(top_docs,document_veoctors_dir):
+    document_vectors = [get_java_object(document_veoctors_dir+top_doc) for top_doc in top_docs]
+    return document_centroid(document_vectors)
 
-def calculate_predictors(target_subset, input_sentence, query,model):
+def calculate_summarization_predictors(target_subset, input_sentence, query, model):
     reduced_subset = reduce_subset(target_subset, input_sentence)
     if reduced_subset.empty:
         reduced_subset = target_subset
@@ -198,6 +317,19 @@ def calculate_predictors(target_subset, input_sentence, query,model):
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])
+
+
+
+def calculate_seo_predictors(summaries,summary_tfidf_fname_index, replacement_index,query,document,document_vectors_dir,documents_text,top_docs,model):
+    top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs,document_vectors_dir)
+    results={}
+    for i,summary in enumerate(summaries):
+        summary_tfidf_fname=summary_tfidf_fname_index[i]
+        result = get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model)
+        results[i] = result
+    chosen_idx = apply_borda_in_dict(results,1)
+    return summaries[chosen_idx]
+
 
 def read_queries(fname):
     result=[]
