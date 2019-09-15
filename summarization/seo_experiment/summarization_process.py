@@ -95,8 +95,6 @@ def write_files(dict,**kwargs):
 
 def creaion_parrallel(queries_text,candidates_dir,input_df,files,row):
     global model
-    logger.info("row = ")
-    logger.info(row)
     complete_data = "\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
     results =[]
     query = queries_text[str(row["query"])]
@@ -144,7 +142,7 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                           encoding="utf-8") as inp_paragraphs:
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
-                    arguments = [row for row in input_df.iterrows()]
+                    arguments = [row for i,row in input_df.iterrows()]
                     files = ["complete","queries","source","inp_paragraphs"]
                     files_access = {"complete":complete,"queries":queries,"source":source,"inp_paragraphs":inp_paragraphs}
                     func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files)
