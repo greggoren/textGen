@@ -86,9 +86,9 @@ def read_texts(fname,inp=False):
     return df
 
 
-def write_files(**kwargs):
+def write_files(dict,**kwargs):
     for key,val in kwargs.items():
-        val[0].write(val[1]+"\n")
+        dict[val[0]].write(val[1]+"\n")
 
 
 
@@ -143,13 +143,14 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
                     arguments = [row for row in input_df.iterrows()]
-                    files = [complete,queries,source,inp_paragraphs]
+                    files = ["complete","queries","source","inp_paragraphs"]
+                    files_access = {"complete":complete,"queries":queries,"source":source,"inp_paragraphs":inp_paragraphs}
                     func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files)
                     workers = cpu_count()-1
                     results = list_multiprocessing(arguments,func,workers=workers)
                     for result in results:
                         for writes in result:
-                            write_files(**writes)
+                            write_files(files_access,**writes)
     return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model + ".txt"
 
 
@@ -205,7 +206,6 @@ def summarization_ds(options):
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
-    # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt",binary=True)
     logger.info("writing all files")
     return parrallel_create_summarization_task(input_file, options.candidate_dir, queries, model, sum_model)
 
