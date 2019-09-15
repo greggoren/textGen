@@ -4,9 +4,16 @@ from nltk import sent_tokenize
 # run_summarization_model("script","model.bat","inp","outp",min_length = '1',max_tokenization = "10")
 import javaobj
 
-with open('ROUND-08-195-51','rb') as fd:
+def write_files(**kwargs):
+    for key,val in kwargs.items():
+        val[0].write(val[1]+"\n")
 
-    pobj = javaobj.load(fd)
 
-#1.5762436503169919
-print(float(pobj['made']))
+with open("test1.txt",'w') as t1:
+    with open("test2.txt",'w') as t2:
+        args = {"t1":(t1,"hi"),"t2":(t2,"bye")}
+        write_files(**args)
+
+
+
+

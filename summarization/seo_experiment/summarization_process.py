@@ -3,13 +3,13 @@ from optparse import OptionParser
 from summarization.seo_experiment.utils import load_file,clean_texts,run_summarization_model
 from nltk import sent_tokenize
 import os,logging
-import numpy as np
 import pandas as pd
-from functools import partial
 from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.borda_mechanism import calculate_summarization_predictors
 import gensim
-
+from multiprocessing import Pool,cpu_count
+from tqdm import tqdm
+from functools import partial
 
 def read_trec_file(trec_file):
     stats = {}
@@ -93,6 +93,65 @@ def write_files(**kwargs):
 
 
 
+def creaion_parrallel(queries_text,candidates_dir,input_df,files,row):
+    global model
+    complete_data = "\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
+    results =[]
+    query = queries_text[str(row["query"])]
+    query = "_".join(query.split())
+    sentence = str(row["sentence"]).rstrip()
+    query_paragraph_df = read_texts(candidates_dir + query)
+    paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence, query, model)
+    for paragraph in paragraphs.split("\n##\n"):
+        if sum_model == 'transformer':
+            sentences = sent_tokenize(paragraph)
+            paragraph = " ".join(["<t> " + s + " </t>" for s in sentences])
+            args = {"complete":(files[0],complete_data+"\t"+paragraph),
+                                        "queries":  (files[1]," ".join(query.split("_"))),"source":(files[2],sentence),
+                                        "inp_paragraphs":(files[3],paragraph)}
+            results.append(args)
+    return results
+
+
+
+
+def list_multiprocessing(param_lst, func, **kwargs):
+    workers = kwargs.pop('workers')
+    with Pool(workers) as p:
+        apply_lst = [([params], func, i, kwargs) for i, params in enumerate(param_lst)]
+        result = list(tqdm(p.imap(_apply_lst, apply_lst), total=len(apply_lst)))
+    return [_[1] for _ in result]
+
+
+def _apply_lst(args):
+    params, func, num, kwargs = args
+    return num, func(*params, **kwargs)
+
+
+
+def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, model, sum_model):
+
+    input_df = read_texts(input_dataset_file, True)
+    with open(os.path.dirname(input_dataset_file) + "/all_data_" + sum_model + ".txt", 'w',
+              encoding="utf-8") as complete:
+        with open(os.path.dirname(input_dataset_file) + "/queries_" + sum_model + ".txt", 'w',
+                  encoding="utf-8") as queries:
+            with open(os.path.dirname(input_dataset_file) + "/source_" + sum_model + ".txt", 'w',
+                      encoding="utf-8") as source:
+                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model + ".txt", 'w',
+                          encoding="utf-8") as inp_paragraphs:
+                    header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
+                    complete.write(header)
+                    arguments = [row for row in input_df.iterrows()]
+                    files = [complete,queries,source,inp_paragraphs]
+                    func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files)
+                    workers = cpu_count()-1
+                    results = list_multiprocessing(arguments,func,workers=workers)
+                    for result in results:
+                        for writes in result:
+                            write_files(**writes)
+    return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model + ".txt"
+
 
 def create_summarization_dataset(input_dataset_file, candidates_dir, queries_text, model, sum_model):
     current_query =None
@@ -148,7 +207,7 @@ def summarization_ds(options):
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
     # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt",binary=True)
     logger.info("writing all files")
-    return create_summarization_dataset(input_file, options.candidate_dir, queries, model, sum_model)
+    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries, model, sum_model)
 
 
 if __name__=="__main__":
