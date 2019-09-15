@@ -207,7 +207,7 @@ def summarization_ds(options):
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
     logger.info("writing all files")
-    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries, model, sum_model)
+    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model)
 
 
 if __name__=="__main__":
