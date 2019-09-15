@@ -191,7 +191,7 @@ def transform_query_text(queries_raw_text):
     return transformed
 
 def summarization_ds(options):
-
+    global model
     sum_model = options.sum_model
     logger.info("reading queries file")
     raw_queries = read_queries_file(options.queries_file)
@@ -205,7 +205,7 @@ def summarization_ds(options):
     senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries)
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
-    model = gensim.models.FastText.load_fasttext_format(options.model_file)
+
     logger.info("writing all files")
     return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model)
 
@@ -234,6 +234,7 @@ if __name__=="__main__":
     summary_kwargs = {"lstm":{"min_length" :"10","block_ngram_repeat": "2"},"transformer":{"min_length" :"1"}}
     sum_model = options.sum_model
     if options.mode =="ds":
+        model = gensim.models.FastText.load_fasttext_format(options.model_file)
         summarization_ds(options)
     elif options.mode=="summary":
         summary_model = summarization_models[sum_model]
@@ -242,6 +243,7 @@ if __name__=="__main__":
         run_summarization_model(options.summary_script_file, summary_model, input_file, options.summary_output_file,
                                 **summary_kwargs[sum_model])
     elif options.mode=="all":
+        model = gensim.models.FastText.load_fasttext_format(options.model_file)
         input_file = summarization_ds(options)
         summary_model = summarization_models[sum_model]
         output_file = options.summary_output_file+"_"+sum_model+".txt"
