@@ -129,8 +129,8 @@ def _apply_lst(args):
 
 
 
-def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, model, sum_model):
-
+def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, sum_model):
+    global model
     input_df = read_texts(input_dataset_file, True)
     with open(os.path.dirname(input_dataset_file) + "/all_data_" + sum_model + ".txt", 'w',
               encoding="utf-8") as complete:
