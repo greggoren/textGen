@@ -19,7 +19,7 @@ def read_summaries_data(summaries_file, input_data_file, summaries_tfidf_dir,que
         with open(queries_file) as queries_data:
             queries_lines = queries_data.readlines()
             with open(summaries_file) as summaries_data:
-                for i,summary in summaries_data:
+                for i,summary in enumerate(summaries_data):
                     input = inputs[i+1]
                     doc = input.split("\t")[1]
                     index = input.split("\t")[2]
@@ -87,7 +87,6 @@ if __name__=="__main__":
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
     parser = OptionParser()
-    parser.add_option("--mode", dest="mode")
     parser.add_option("--doc_tfidf_dir", dest="doc_tfidf_dir")
     parser.add_option("--summaries_tfidf_dir", dest="summaries_tfidf_dir")
     parser.add_option("--queries_file", dest="queries_file")
@@ -100,7 +99,7 @@ if __name__=="__main__":
     parser.add_option("--new_ws_file", dest="new_ws_file")
     parser.add_option("--model_file", dest="model_file")
     (options, args) = parser.parse_args()
-    summary_stats,summary_tfidf_fname_index,replacement_indexes,queries_text,reference_docs=read_summaries_data(options.summaries_file,options.input_data_file,options,options.summaries_tfidf_dir,options.queries_file)
+    summary_stats,summary_tfidf_fname_index,replacement_indexes,queries_text,reference_docs=read_summaries_data(options.summaries_file,options.input_data_file,options.summaries_tfidf_dir,options.queries_file)
     document_texts = load_file(options.trectext_file)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
     updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
