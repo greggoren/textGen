@@ -205,7 +205,6 @@ def summarization_ds(options):
     senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries)
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
-
     logger.info("writing all files")
     return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model)
 

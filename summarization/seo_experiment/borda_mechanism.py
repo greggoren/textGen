@@ -293,7 +293,7 @@ def apply_borda_in_dict(results,k=10):
 def check_fit(series,s2):
     res = []
     for s1 in series:
-        intersection = set(clean_sentence(s1)).intersection(set(clean_sentence(s2)))
+        intersection = set(clean_sentence(clean_texts(s1))).intersection(set(clean_sentence(s2)))
         res.append(bool(intersection))
     return pd.Series(res)
 
