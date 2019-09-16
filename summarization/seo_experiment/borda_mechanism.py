@@ -60,6 +60,8 @@ def document_centroid(document_vectors):
     return normalize_dict(centroid,len(document_vectors))
 
 def cosine_similarity(v1,v2):
+    if v1 is None or v2 is None:
+        return 0
     sumxx, sumxy, sumyy = 0, 0, 0
     for i in range(len(v1)):
         x = v1[i]; y = v2[i]
@@ -234,16 +236,16 @@ def context_similarity(reference,document,summary,replacement_index,model):
 def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model):
     result={}
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
-    pred_context_similarity = wrapped_partial(cosine_similarity,"pred")
-    next_context_similarity = wrapped_partial(cosine_similarity,"next")
-    self_context_similarity = wrapped_partial(cosine_similarity,"self")
+    pred_context_similarity = wrapped_partial(context_similarity,"pred")
+    next_context_similarity = wrapped_partial(context_similarity,"next")
+    self_context_similarity = wrapped_partial(context_similarity,"self")
     funcs = [avg_query_token_tf,pred_context_similarity,next_context_similarity,self_context_similarity,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(clean_texts(summary),query)
         elif func.__name__.__contains__("context"):
             result[i] = func(document,summary,replacement_index,model)
-        elif func.__name__.__contains__("tfidf"):
+        elif func.__name__.__contains__("tf_idf"):
             result[i] = func(summary_tfidf_fname,top_documents_centroid_tf_idf)
         elif func.__name__.__contains__("semantic"):
             result[i] = func(summary,top_docs,documents_text,model)
