@@ -81,8 +81,8 @@ def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,do
         top_docs = top_docs_per_query[query]
         summary_tfidf_fnames = summary_tfidf_fname_index[query]
         replacement_index = replacement_indexes[query]
-        idx = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,model)
-        summary = summaries[idx].replace("<t>","").replace("</t>","")
+        chosen_summary = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,model)
+        summary = chosen_summary.replace("<t>","").replace("</t>","").rstrip()
         updated_text = update_text(document_text,summary,replacement_index)
         updated_document_text[reference_docs[query]]=updated_text
     return updated_document_text(updated_document_text,document_texts)
@@ -109,7 +109,7 @@ if __name__=="__main__":
     (options, args) = parser.parse_args()
     summary_stats,summary_tfidf_fname_index,replacement_indexes,queries_text,reference_docs=read_summaries_data(options.summaries_file,options.input_data_file,options.summaries_tfidf_dir,options.queries_file)
     document_texts = load_file(options.trectext_file)
-    model = gensim.models.FastText.load_fasttext_format(options.model_file)
-    # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
+    # model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
     updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
     create_trectext(updated_texts,options.new_trectext_file,options.new_ws_file)
