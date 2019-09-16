@@ -76,7 +76,7 @@ def create_index(trec_text_file,index_path,new_index_name,home_path = '/home/gre
     corpus_class = 'trectext'
     memory = '1G'
     index = index_path+"/"+new_index_name
-    if not os.path.exists(indri_path):
+    if not os.path.exists(index_path):
         os.makedirs(index_path)
     stemmer =  'krovetz'
     if not  os.path.exists(home_path+"/"+index_path):
