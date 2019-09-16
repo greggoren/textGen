@@ -62,7 +62,7 @@ def get_top_docs(trec_file,number_of_top_docs):
 
 def update_text(text,summary,replacement_index):
     sentences = nltk.sent_tokenize(text)
-    sentences[replacement_index]=summary
+    sentences[replacement_index]=summary.replace("\"","")
     return "\n".join(sentences)
 
 def update_document_texts(updated_document_texts,document_texts):
