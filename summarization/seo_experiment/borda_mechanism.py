@@ -197,9 +197,7 @@ def wrapped_partial(func, *args, **kwargs):
 
 def calculate_similarity_to_top_docs_tf_idf(summary_tfidf_fname,top_docs_tfidf):
     summary_tfidf=get_java_object(summary_tfidf_fname)
-    with open(summary_tfidf_fname, 'rb') as fd:
-        summary_tfidf = javaobj.load(fd)
-        return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
+    return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
 
 def calculate_semantic_similarity_to_top_docs(summary,top_docs,doc_texts,model):
     summary_vector = get_text_centroid(clean_texts(summary),model)
@@ -213,24 +211,35 @@ def context_similarity(reference,document,summary,replacement_index,model):
         summary_vector = get_text_centroid(clean_texts(summary),model)
         sentence = document_sentences[replacement_index]
         sentence_vector = get_text_centroid(clean_texts(sentence),model)
-        return cosine_similarity(summary_vector,sentence_vector)
+        try:
+            return cosine_similarity(summary_vector,sentence_vector)
+        except:
+            return 0
     else:
         summary_sentences = nltk.sent_tokenize(summary.replace("<t>","").replace("</t>",""))
         summary_vectors = [get_text_centroid(clean_texts(s),model) for s in summary_sentences]
+        if len(summary_vectors)==0:
+            print("here")
         if reference == "pred":
             if replacement_index==0:
                 real_index = replacement_index
             else:
                 real_index = replacement_index-1
             pred_sentence = document_sentences[real_index]
-            return cosine_similarity(get_text_centroid(clean_texts(pred_sentence),model),summary_vectors[0])
+            try:
+                return cosine_similarity(get_text_centroid(clean_texts(pred_sentence),model),summary_vectors[0])
+            except:
+                return 0
         elif reference=="next":
             if replacement_index==len(document_sentences)-1:
                 real_index = replacement_index
             else:
                 real_index = replacement_index+1
             next_sentence = document_sentences[real_index]
-            return cosine_similarity(get_text_centroid(clean_texts(next_sentence),model),summary_vectors[-1])
+            try:
+                return cosine_similarity(get_text_centroid(clean_texts(next_sentence),model),summary_vectors[-1])
+            except:
+                return 0
 
 
 def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model):
