@@ -329,7 +329,7 @@ def calculate_seo_predictors(summaries,summary_tfidf_fname_index, replacement_in
         summary_tfidf_fname=summary_tfidf_fname_index[i]
         result = get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model)
         results[i] = result
-    chosen_idx = apply_borda_in_dict(results,1)
+    chosen_idx = apply_borda_in_dict(results,1)[0]
     return summaries[chosen_idx]
 
 
