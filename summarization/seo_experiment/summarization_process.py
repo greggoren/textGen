@@ -80,7 +80,7 @@ def write_input_dataset_file(replacements,reference_docs,texts):
 
 def read_texts(fname,inp=False):
     if inp:
-        df = pd.read_csv(fname, delimiter="\t", header =0)
+        df = pd.read_csv(fname, delimiter="\t", header =0,encoding="unicode_escape")
     else:
         df = pd.read_csv(fname,delimiter="\t",names=["query", "input_paragraph"])
     return df
@@ -101,6 +101,7 @@ def creaion_parrallel(queries_text,candidates_dir,input_df,files,row):
     query = "_".join(query.split())
     sentence = str(row["sentence"]).rstrip()
     query_paragraph_df = read_texts(candidates_dir + query)
+    # query_paragraph_df = read_texts(candidates_dir + query+"_debug")
     paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence, query, model)
     for paragraph in paragraphs.split("\n##\n"):
         if sum_model == 'transformer':
@@ -234,6 +235,7 @@ if __name__=="__main__":
     sum_model = options.sum_model
     if options.mode =="ds":
         model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
         summarization_ds(options)
     elif options.mode=="summary":
         summary_model = summarization_models[sum_model]

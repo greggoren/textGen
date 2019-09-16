@@ -14,21 +14,29 @@ def read_summaries_data(summaries_file, input_data_file, summaries_tfidf_dir,que
     indexes = {}
     queries_text = {}
     reference_docs={}
-    with open(input_data_file) as input_data:
+    with open(input_data_file,encoding="utf-8") as input_data:
         inputs = input_data.readlines()
-        with open(queries_file) as queries_data:
+        with open(queries_file,encoding="utf-8") as queries_data:
             queries_lines = queries_data.readlines()
-            with open(summaries_file) as summaries_data:
+            with open(summaries_file,encoding="utf-8") as summaries_data:
+                running_index = 0
+                summary_index = 0
+                last_query =None
                 for i,summary in enumerate(summaries_data):
                     input = inputs[i+1]
                     doc = input.split("\t")[1]
                     index = input.split("\t")[2]
                     query = input.split("\t")[0]
+                    if query!=last_query:
+                        last_query=query
+                        summary_index=0
                     reference_docs[query]=doc
                     queries_text[query] = queries_lines[i]
                     if query not in summary_tfidf_fname_index:
                         summary_tfidf_fname_index[query]={}
-                    summary_tfidf_fname_index[query][i]= summaries_tfidf_dir + doc + "_" + index + "_" + str(i)
+                    summary_tfidf_fname_index[query][summary_index]= summaries_tfidf_dir + doc + "_" + index + "_" + str(running_index)
+                    running_index+=1
+                    summary_index+=1
                     indexes[query]=int(index)
                     if query not in summary_stats:
                         summary_stats[query]=[]
@@ -68,7 +76,7 @@ def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,do
     top_docs_per_query=get_top_docs(trec_file,number_of_top_docs)
     for query in summaries_stats:
         summaries = summaries_stats[query]
-        query_text = " ".join(query_texts[query].split("_"))
+        query_text = " ".join(query_texts[query].split("_")).rstrip()
         document_text = document_texts[reference_docs[query]]
         top_docs = top_docs_per_query[query]
         summary_tfidf_fnames = summary_tfidf_fname_index[query]
@@ -102,5 +110,6 @@ if __name__=="__main__":
     summary_stats,summary_tfidf_fname_index,replacement_indexes,queries_text,reference_docs=read_summaries_data(options.summaries_file,options.input_data_file,options.summaries_tfidf_dir,options.queries_file)
     document_texts = load_file(options.trectext_file)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
     updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
     create_trectext(updated_texts,options.new_trectext_file,options.new_ws_file)
