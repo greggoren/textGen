@@ -18,7 +18,7 @@ from tqdm import tqdm
 def dict_norm(dict):
     sum=0
     for token in dict:
-        sum+=(dict[token]**2)
+        sum+=(float(dict[token])**2)
     return sum
 
 
@@ -45,12 +45,12 @@ def add_dict(d1,d2):
         if token in d1:
             d1[token]=float(d1[token])+float(d2[token])
         else:
-            d1[token]=d2[token]
+            d1[token]=float(d2[token])
     return d1
 
 def normalize_dict(dict,n):
     for token in dict:
-        dict[token] = dict[token]/n
+        dict[token] = float(dict[token])/n
     return dict
 
 def document_centroid(document_vectors):
