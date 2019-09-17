@@ -107,7 +107,7 @@ def get_query_coverage_on_all_output(qfname,out_fname):
     query_lines = read_file(qfname)
     numerator = 0
     for row, out_line in enumerate(out_lines):
-        query = query_lines[row]
+        query = " ".join(query_lines[row].split("_"))
         numerator+=query_coverage(query,out_line)
     return numerator/(row+1)
 
