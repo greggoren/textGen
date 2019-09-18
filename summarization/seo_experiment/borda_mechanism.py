@@ -358,6 +358,17 @@ def calculate_seo_predictors(summaries,summary_tfidf_fname_index, replacement_in
     return summaries[chosen_idx]
 
 
+def calculate_seo_replacement_predictors(sentences, query, document_name, sentences_vectors_dir,document_vectors_dir, documents_text, top_docs, model):
+    top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs,document_vectors_dir)
+    results={}
+    for i,sentence in enumerate(sentences):
+        sentence_tfidf_fname = sentences_vectors_dir+document_name+"_"+str(i)
+        result = get_seo_replacement_predictors_values(query,sentence,sentence_tfidf_fname,top_documents_centroid_tf_idf,documents_text,top_docs,model)
+        results[i] = result
+    chosen_idx = apply_borda_in_dict(results,1)[0]
+    return chosen_idx
+
+
 def read_queries(fname):
     result=[]
     with open(fname) as f:

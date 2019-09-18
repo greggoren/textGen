@@ -5,7 +5,7 @@ from nltk import sent_tokenize
 import os,logging
 import pandas as pd
 from summarization.seo_experiment.workingset_creator import read_queries_file
-from summarization.seo_experiment.borda_mechanism import calculate_summarization_predictors
+from summarization.seo_experiment.borda_mechanism import calculate_summarization_predictors,calculate_seo_replacement_predictors
 import gensim
 from multiprocessing import Pool,cpu_count
 from tqdm import tqdm
@@ -41,13 +41,9 @@ def get_reference_docs(trec_file, index):
 
 
 
-def chosen_sentence_for_replacement(sentences, query):
-    sentence_scores={}
-    for i,sentence in enumerate(sentences):
-        
-        tokens = clean_texts(sentence.lower()).split()
-        sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
-    return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
+def chosen_sentence_for_replacement(sentences, query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,model):
+    chosen_idx = calculate_seo_replacement_predictors(sentences,query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,model)
+    return chosen_idx
 
 
 # def chosen_sentence_for_replacement(sentences, query):
@@ -57,14 +53,15 @@ def chosen_sentence_for_replacement(sentences, query):
 #         sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
 #     return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
 
-def get_sentences_for_replacement(doc_texts,reference_docs,query_text):
+def get_sentences_for_replacement(doc_texts,reference_docs,query_text,sentences_vectors_dir,docuemnt_vectors_dir,top_docs_index,model):
     replacements = {}
     for qid in reference_docs:
         doc = reference_docs[qid]
         text = doc_texts[doc]
         sentences = sent_tokenize(text)
         query = query_text[qid]
-        chosen_index = chosen_sentence_for_replacement(sentences=sentences, query=query)
+        top_docs = top_docs_index[qid]
+        chosen_index = chosen_sentence_for_replacement(sentences, query,doc,sentences_vectors_dir,docuemnt_vectors_dir,doc_texts,top_docs,model)
         replacements[qid]=chosen_index
     return replacements
 
@@ -197,6 +194,22 @@ def transform_query_text(queries_raw_text):
         transformed[qid]=queries_raw_text[qid].replace("#combine( ","").replace(" )","")
     return transformed
 
+def get_top_docs(trec_file,number_of_top_docs):
+    """
+    Relies on the fact trec file is sorted by qid,doc_score(reverse),doc_name
+    """
+    top_docs_per_query={}
+    with open(trec_file) as file:
+        for line in file:
+            query = line.split()[0]
+            if query not in top_docs_per_query:
+                top_docs_per_query[query]=[]
+            if len(top_docs_per_query[query])<number_of_top_docs:
+                doc = line.split()[2]
+                top_docs_per_query[query].append(doc)
+    return top_docs_per_query
+
+
 def summarization_ds(options):
     global model
     sum_model = options.sum_model
@@ -208,8 +221,10 @@ def summarization_ds(options):
     doc_texts = load_file(options.trectext_file)
     logger.info("calculating reference docs")
     reference_docs = get_reference_docs(options.trec_file, int(options.ref_index))
+    logger.info("calculating top docs")
+    top_docs = get_top_docs(options.trec_file,int(options.number_of_top_docs))
     logger.info("calculating sentences for replacement")
-    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries)
+    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries,options.sentences_vectors_dir,options.documents_vectors_dir,top_docs,model)
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     logger.info("writing all files")
