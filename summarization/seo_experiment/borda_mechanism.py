@@ -111,7 +111,13 @@ def get_term_frequency(text,term):
     return text.split().count(term)
 
 def query_term_freq(mode,text,query):
-    freqs = [get_term_frequency(text,q)/len(text.split()) for q in query.split("_")]
+    if len(text.split())==0:
+        print("PROBLEMATIC TEXT=",text)
+        return 0
+    if len(query.split("_"))>1:
+        freqs = [get_term_frequency(text,q)/len(text.split()) for q in query.split("_")]
+    else:
+        freqs = [get_term_frequency(text, q) / len(text.split()) for q in query.split()]
     if mode=="max":
         return max(freqs)
     if mode=="min":
