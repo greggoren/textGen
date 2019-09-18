@@ -368,6 +368,8 @@ def calculate_seo_replacement_predictors(sentences, query, document_name, senten
     top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs,document_vectors_dir)
     results={}
     for i,sentence in enumerate(sentences):
+        if len(clean_texts(sentence).split())==0:
+            continue
         sentence_tfidf_fname = sentences_vectors_dir+document_name+"_"+str(i)
         result = get_seo_replacement_predictors_values(query,sentence,sentence_tfidf_fname,top_documents_centroid_tf_idf,documents_text,top_docs,model)
         results[i] = result

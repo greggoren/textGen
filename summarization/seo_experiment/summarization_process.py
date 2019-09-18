@@ -11,31 +11,23 @@ from multiprocessing import Pool,cpu_count
 from tqdm import tqdm
 from functools import partial
 
-def read_trec_file(trec_file):
-    stats = {}
-    with open(trec_file) as file:
-        for line in file:
-            query = line.split()[0]
-            doc = line.split()[2]
-            score = float(line.split()[4])
-            if query not in stats:
-                stats[query]={}
-            stats[query][doc]=score
-    return transform_stats(stats)
-
-def transform_stats(stats):
-    transformed = {}
-    for query in stats:
-        ranked_list = sorted(list(stats[query].keys()),key=lambda x:(stats[query][x],x),reverse = True)
-        transformed[query]=ranked_list
-    return transformed
-
 def reference_docs_calculation(stats,ref_index):
     return {q:stats[q][ref_index] for q in stats}
 
 def get_reference_docs(trec_file, index):
     stats = read_trec_file(trec_file)
     return reference_docs_calculation(stats,index)
+
+def read_trec_file(trec_file):
+    stats = {}
+    with open(trec_file) as file:
+        for line in file:
+            query = line.split()[0]
+            doc = line.split()[2]
+            if query not in stats:
+                stats[query]=[]
+            stats[query].append(doc)
+    return stats
 
 
 
