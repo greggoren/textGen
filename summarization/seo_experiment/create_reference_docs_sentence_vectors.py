@@ -51,7 +51,7 @@ if __name__=="__main__":
             doc_text = document_text[doc]
             sentences = nltk.sent_tokenize(doc_text)
             for i,sentence in enumerate(sentences):
-                out_file.write(query+"\t"+doc+"_"+str(i)+"\t"+sentence.rstrip()+"\n")
+                out_file.write(query+"\t"+doc+"_"+str(i)+"\t"+sentence.rstrip().replace("\n","")+"\n")
 
     command = " ~/jdk1.8.0_181/bin/java -Djava.library.path=/lv_local/home/sgregory/indri-5.6/swig/obj/java/ -cp seo_summarization.jar PrepareTFIDFVectorsReferenceDocs "+options.index+" "+options.sentences_out_file+" "+options.vectors_output_dir
     logger.info("## Running vector creation command: "+command+" ##")
