@@ -262,6 +262,22 @@ def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,que
 
 
 
+def get_seo_replacement_predictors_values(query,sentence,sentence_tfidf_fname,top_documents_centroid_tf_idf,documents_text,top_docs,model):
+    result={}
+    avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
+    funcs = [avg_query_token_tf,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs]
+    for i,func in enumerate(funcs):
+        if func.__name__.__contains__("query"):
+            result[i]=-func(clean_texts(sentence),query)
+        elif func.__name__.__contains__("tf_idf"):
+            result[i] =-func(sentence_tfidf_fname,top_documents_centroid_tf_idf)
+        elif func.__name__.__contains__("semantic"):
+            result[i] =-func(sentence,top_docs,documents_text,model)
+    return result
+
+
+
+
 def get_predictors_values(input_sentence, query,args):
     idx, candidate_sentence,model = args
     result={}

@@ -44,12 +44,18 @@ def get_reference_docs(trec_file, index):
 def chosen_sentence_for_replacement(sentences, query):
     sentence_scores={}
     for i,sentence in enumerate(sentences):
+        
         tokens = clean_texts(sentence.lower()).split()
         sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
     return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
 
 
-
+# def chosen_sentence_for_replacement(sentences, query):
+#     sentence_scores={}
+#     for i,sentence in enumerate(sentences):
+#         tokens = clean_texts(sentence.lower()).split()
+#         sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
+#     return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
 
 def get_sentences_for_replacement(doc_texts,reference_docs,query_text):
     replacements = {}
