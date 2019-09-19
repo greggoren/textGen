@@ -247,6 +247,8 @@ def context_similarity(reference,document,summary,replacement_index,model):
             except:
                 return 0
 
+def summary_len(summary):
+    return len(clean_texts(summary).split())
 
 def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,documents_text,top_docs,model):
     result={}
@@ -254,7 +256,7 @@ def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,que
     pred_context_similarity = wrapped_partial(context_similarity,"pred")
     next_context_similarity = wrapped_partial(context_similarity,"next")
     self_context_similarity = wrapped_partial(context_similarity,"self")
-    funcs = [avg_query_token_tf,pred_context_similarity,next_context_similarity,self_context_similarity,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs]
+    funcs = [avg_query_token_tf,pred_context_similarity,next_context_similarity,self_context_similarity,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs,summary_len]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(clean_texts(summary),query)
@@ -264,21 +266,22 @@ def get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,que
             result[i] = func(summary_tfidf_fname,top_documents_centroid_tf_idf)
         elif func.__name__.__contains__("semantic"):
             result[i] = func(summary,top_docs,documents_text,model)
+        else:
+            result[i]=summary_len(summary)
     return result
+
 
 
 
 def get_seo_replacement_predictors_values(query,sentence,sentence_tfidf_fname,top_documents_centroid_tf_idf,documents_text,top_docs,model):
     result={}
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
-    funcs = [avg_query_token_tf,calculate_similarity_to_top_docs_tf_idf,calculate_semantic_similarity_to_top_docs]
+    funcs = [avg_query_token_tf,calculate_similarity_to_top_docs_tf_idf]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=-func(clean_texts(sentence),query)
         elif func.__name__.__contains__("tf_idf"):
             result[i] =-func(sentence_tfidf_fname,top_documents_centroid_tf_idf)
-        elif func.__name__.__contains__("semantic"):
-            result[i] =-func(sentence,top_docs,documents_text,model)
     return result
 
 

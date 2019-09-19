@@ -1,9 +1,10 @@
 import os
-
+import re
 import javaobj
 
 from gen_utils import run_bash_command,run_command
 import xml.etree.ElementTree as ET
+from  lxml import etree
 
 
 def create_features_file(features_dir, index_path, queries_file, new_features_file, working_set_file, scripts_path):
@@ -164,7 +165,11 @@ def run_summarization_model(script_file,model_file,input_file,output_file,**kwar
     print("Summarization output= "+str(out),flush=True)
 
 def load_file(filename):
-    tree = ET.parse(filename)
+    # with open(filename) as f:
+    #     xml = f.read()
+    # tree = ET.fromstring(re.sub(r"(<\?xml[^>]+\?>)", r"\1<root>", xml) + "</root>")
+    parser = etree.XMLParser(recover=True)
+    tree = ET.parse(filename,parser=parser)
     root = tree.getroot()
     docs={}
     for doc in root:
