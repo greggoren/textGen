@@ -284,7 +284,8 @@ def get_seo_replacement_predictors_values(query,sentence,sentence_tfidf_fname,to
             result[i] =-func(sentence_tfidf_fname,top_documents_centroid_tf_idf)
     return result
 
-
+def len_diff(source,update):
+    return len(clean_texts(update).split()) - len(clean_texts(source).split())
 
 
 def get_predictors_values(input_sentence, query,args):
@@ -293,12 +294,14 @@ def get_predictors_values(input_sentence, query,args):
     max_query_token_tf = wrapped_partial(query_term_freq,"max")
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
     sum_query_token_tf = wrapped_partial(query_term_freq,"sum")
-    funcs = [tf_similarity,centroid_similarity,jaccard_similiarity,max_query_token_tf,avg_query_token_tf,sum_query_token_tf]
+    funcs = [tf_similarity,centroid_similarity,jaccard_similiarity,max_query_token_tf,avg_query_token_tf,sum_query_token_tf,len_diff]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[i]=func(candidate_sentence,query)
         elif func.__name__.__contains__("centroid"):
             result[i] = func(input_sentence,candidate_sentence,model)
+        elif func.__name__.__contains__("len_diff"):
+            result[i]=func(input_sentence,candidate_sentence)
         else:
             result[i] = func(input_sentence,candidate_sentence)
     return result
