@@ -74,17 +74,24 @@ def update_document_texts(updated_document_texts,document_texts):
 def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,document_vectors_dir,query_texts,document_texts,trec_file,number_of_top_docs,summary_tfidf_fname_index,reference_docs,model):
     updated_document_text={}
     top_docs_per_query=get_top_docs(trec_file,number_of_top_docs)
-    for query in summaries_stats:
-        summaries = summaries_stats[query]
-        query_text = " ".join(query_texts[query].split("_")).rstrip()
-        document_text = document_texts[reference_docs[query]]
-        top_docs = top_docs_per_query[query]
-        summary_tfidf_fnames = summary_tfidf_fname_index[query]
-        replacement_index = replacement_indexes[query]
-        chosen_summary = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,model)
-        summary = chosen_summary.replace("<t>","").replace("</t>","").rstrip()
-        updated_text = update_text(document_text,summary,replacement_index)
-        updated_document_text[reference_docs[query]]=updated_text
+    """ Written only for analysis purposes!!!"""
+
+    with open("summaries/summary_analysis.txt",'w') as analysis_file:
+        """Production code:"""
+        for query in summaries_stats:
+            summaries = summaries_stats[query]
+            query_text = " ".join(query_texts[query].split("_")).rstrip()
+            document_text = document_texts[reference_docs[query]]
+            top_docs = top_docs_per_query[query]
+            summary_tfidf_fnames = summary_tfidf_fname_index[query]
+            replacement_index = replacement_indexes[query]
+            chosen_summary = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,model)
+            summary = chosen_summary.replace("<t>","").replace("</t>","").rstrip()
+            updated_text = update_text(document_text,summary,replacement_index)
+            updated_document_text[reference_docs[query]]=updated_text
+            """ Written only for analysis purposes!!!"""
+            source_sentence = nltk.sent_tokenize(document_text)[replacement_index].rstrip().replace("\n","")
+            analysis_file.write(query_text+"\t"+reference_docs[query]+source_sentence+"\t"+summary+"\n")
     return update_document_texts(updated_document_text,document_texts)
 
 
