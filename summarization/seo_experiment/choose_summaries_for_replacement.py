@@ -91,7 +91,7 @@ def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,do
             updated_document_text[reference_docs[query]]=updated_text
             """ Written only for analysis purposes!!!"""
             source_sentence = nltk.sent_tokenize(document_text)[replacement_index].rstrip().replace("\n","")
-            analysis_file.write(query_text+"\t"+reference_docs[query]+source_sentence+"\t"+summary+"\n")
+            analysis_file.write(query_text+"\t"+reference_docs[query]+"\t"+source_sentence+"\t"+summary+"\n")
     return update_document_texts(updated_document_text,document_texts)
 
 
