@@ -8,13 +8,26 @@ import matplotlib.pyplot as plt
 def doc_len(text):
     return len(text.split())
 
+
+def cover(text,query):
+    numerator = 0
+    for q in query.split():
+        if q in clean_texts(text):
+            numerator+=1
+    return numerator/len(query.split())
+
+
+
 def doc_frequency_eval(lists,queries,texts):
     stats={"top":{},"self":{}}
+    coverage={"top":{},"self":{}}
+
     docs_len = {"top":{},"self":{}}
     for epoch in lists:
         for k in stats:
             stats[k][epoch]=[]
             docs_len[k][epoch]=[]
+            coverage[k][epoch]=[]
         for query in lists[epoch]:
             query_text = queries[query]
             top_docs = lists[epoch][query][:3]
@@ -23,11 +36,14 @@ def doc_frequency_eval(lists,queries,texts):
             stats["self"][epoch].append(query_term_freq("avg",clean_texts(texts[ref_doc]),query_text))
             docs_len["top"][epoch].append(np.mean([doc_len(clean_texts(texts[doc])) for doc in top_docs]))
             docs_len["self"][epoch].append(doc_len(clean_texts(texts[ref_doc])))
+            coverage["self"][epoch].append(cover(texts[ref_doc],query_text))
+            coverage["top"][epoch].append(np.mean([cover(clean_texts(texts[doc]),query_text) for doc in top_docs]))
     for k in stats:
         for epoch in stats[k]:
             stats[k][epoch]=np.mean(stats[k][epoch])
             docs_len[k][epoch]=np.mean(docs_len[k][epoch])
-    return stats,docs_len
+            coverage[k][epoch]=np.mean(coverage[k][epoch])
+    return stats,docs_len,coverage
 
 
 def compare_frequecies(summary_stats_file):
@@ -95,10 +111,11 @@ if __name__=="__main__":
     ys =[[stats[k][e] for e in sorted(list(stats[k].keys()))] for k in legends]
     x = sorted(list(stats["sentence"].keys()))
     plot_metric(ys,x,"plt/qtf_comp_summaries","Avg","Epochs",legends,colors)
-    stats,docs_len = doc_frequency_eval(ranked_lists,queries,doc_texts)
-    updated_stats,updated_docs_len = doc_frequency_eval(ranked_lists,queries,updated_doc_texts)
+    stats,docs_len,coverage = doc_frequency_eval(ranked_lists,queries,doc_texts)
+    updated_stats,updated_docs_len,updated_coverage = doc_frequency_eval(ranked_lists,queries,updated_doc_texts)
     stats["after"]=updated_stats["self"]
     docs_len["after"]=updated_docs_len["self"]
+    coverage["after"]=updated_coverage["self"]
     legends = ["self", "top","after"]
     colors = ['b', 'r','k']
     ys = [[stats[k][e] for e in sorted(list(stats[k].keys()))] for k in legends]
@@ -107,4 +124,6 @@ if __name__=="__main__":
     ys = [[docs_len[k][e] for e in sorted(list(docs_len[k].keys()))] for k in legends]
     x = sorted(list(docs_len["self"].keys()))
     plot_metric(ys, x, "plt/len_comp_docs", "Length", "Epochs", legends, colors)
-
+    ys = [[coverage[k][e] for e in sorted(list(coverage[k].keys()))] for k in legends]
+    x = sorted(list(coverage["self"].keys()))
+    plot_metric(ys, x, "plt/coverage_comp_docs", "CoverRatio", "Epochs", legends, colors)
