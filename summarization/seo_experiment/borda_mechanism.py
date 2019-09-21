@@ -298,7 +298,7 @@ def get_predictors_values(input_sentence, query,args):
     max_query_token_tf = wrapped_partial(query_term_freq,"max")
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
     sum_query_token_tf = wrapped_partial(query_term_freq,"sum")
-    funcs = [tf_similarity,centroid_similarity,jaccard_similiarity,max_query_token_tf,avg_query_token_tf,sum_query_token_tf,len_diff]
+    funcs = [tf_similarity,centroid_similarity,jaccard_similiarity,max_query_token_tf,avg_query_token_tf,sum_query_token_tf,len_diff,cover]
     for i,func in enumerate(funcs):
         if func.__name__.__contains__("query") or func.__name__.__contains__("cover"):
             result[i]=func(candidate_sentence,query)
