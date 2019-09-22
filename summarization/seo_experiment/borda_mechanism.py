@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial, update_wrapper
 from multiprocessing import Pool, cpu_count
 from summarization.seo_experiment.utils import clean_texts,get_java_object
-
+from krovetzstemmer import Stemmer
 import gensim
 import nltk
 import numpy as np
@@ -85,10 +85,14 @@ def get_semantic_docs_centroid(doc_texts,doc_names,model):
         return None
     return sum_vector/len(doc_names)
 
-def get_text_centroid(text, model):
+def get_text_centroid(text, model,stemmer=None):
     sum_vector = None
     denom = 0
+    if stemmer is not None:
+        stem = Stemmer()
     for token in clean_sentence(text):
+        if stemmer is not None:
+            token = stem.stem(token)
         try:
             vector = model.wv[token]
         except KeyError:
@@ -110,6 +114,19 @@ def pos_overlap(s1,s2):
 def get_term_frequency(text,term):
     return text.split().count(term)
 
+
+def query_term_occ(mode,text,query):
+    freqs = [get_term_frequency(text, q)  for q in query.split()]
+    if mode=="max":
+        return max(freqs)
+    if mode=="min":
+        return min(freqs)
+    if mode=="avg":
+        return np.mean(freqs)
+    if mode=="sum":
+        return sum(freqs)
+
+
 def query_term_freq(mode,text,query):
     if len(text.split())==0:
         print("PROBLEMATIC TEXT=",text)
@@ -128,9 +145,9 @@ def query_term_freq(mode,text,query):
         return sum(freqs)
 
 
-def centroid_similarity(s1,s2,model):
-    centroid1 = get_text_centroid(s1, model)
-    centroid2 = get_text_centroid(s2, model)
+def centroid_similarity(s1,s2,model,stemmer=None):
+    centroid1 = get_text_centroid(s1, model,stemmer)
+    centroid2 = get_text_centroid(s2, model,stemmer)
     if centroid1 is None or centroid2 is None:
         return 0
     return cosine_similarity(centroid1,centroid2)
@@ -201,12 +218,12 @@ def wrapped_partial(func, *args, **kwargs):
     return partial_func
 
 
-def calculate_similarity_to_top_docs_tf_idf(summary_tfidf_fname,top_docs_tfidf):
-    summary_tfidf=get_java_object(summary_tfidf_fname)
+def calculate_similarity_to_top_docs_tf_idf(text_tfidf_fname, top_docs_tfidf):
+    summary_tfidf=get_java_object(text_tfidf_fname)
     return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
 
-def calculate_semantic_similarity_to_top_docs(summary,top_docs,doc_texts,model):
-    summary_vector = get_text_centroid(clean_texts(summary),model)
+def calculate_semantic_similarity_to_top_docs(text, top_docs, doc_texts, model,stemmer=None):
+    summary_vector = get_text_centroid(clean_texts(text), model,stemmer)
     top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model)
     return cosine_similarity(summary_vector,top_docs_centroid_vector)
 

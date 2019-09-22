@@ -1,20 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from summarization.seo_experiment.utils import read_trec_file
 
-def read_trec_file(trec_file):
+
+def read_trec_scores(trec_file):
     stats = {}
     with open(trec_file) as file:
         for line in file:
             doc = line.split()[2]
             epoch = doc.split("-")[1]
             query = doc.split("-")[2]
+            score = float(line.split()[4])
             if epoch not in stats:
                 stats[epoch]={}
             if query not in stats[epoch]:
-                stats[epoch][query]=[]
-            stats[epoch][query].append(doc)
+                stats[epoch][doc]=score
     return stats
-
 
 def compare_lists(original_lists,updated_lists,reference_index):
     stats ={}

@@ -32,7 +32,19 @@ def create_features_file(features_dir, index_path, queries_file, new_features_fi
     run_bash_command("mv featureID "+os.path.dirname(new_features_file))
     return new_features_file
 
-
+def read_trec_file(trec_file):
+    stats = {}
+    with open(trec_file) as file:
+        for line in file:
+            doc = line.split()[2]
+            epoch = doc.split("-")[1]
+            query = doc.split("-")[2]
+            if epoch not in stats:
+                stats[epoch]={}
+            if query not in stats[epoch]:
+                stats[epoch][query]=[]
+            stats[epoch][query].append(doc)
+    return stats
 
 
 def create_trectext(document_text,trec_text_name,working_set_name):
