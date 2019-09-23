@@ -8,6 +8,7 @@ from summarization.seo_experiment.borda_mechanism import query_term_freq,centroi
     ,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,add_dict,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext
+from summarization.seo_experiment.summarization_process import transform_query_text
 from summarization.seo_experiment.summarization_process import list_multiprocessing
 from nltk import sent_tokenize
 import numpy as np
@@ -45,7 +46,7 @@ def create_raw_dataset(ranked_lists, doc_texts, output_file,ref_index,top_docs_i
 
 def read_raw_ds(raw_dataset):
     result={}
-    with open(raw_dataset) as ds:
+    with open(raw_dataset,encoding="utf-8") as ds:
         for line in ds:
             query = line.split("\t")[0]
             if query not in result:
@@ -86,8 +87,8 @@ def context_similarity(replacement_index,ref_sentences,sentence_compared,mode,mo
 
 def get_past_winners(ranked_lists,epoch,query):
     past_winners = []
-    for iteration in range(int(epoch)+1,start=1):
-        current_epoch = str(iteration).zfill(2)
+    for iteration in range(int(epoch)):
+        current_epoch = str(iteration+1).zfill(2)
         past_winners.append(ranked_lists[current_epoch][query][0])
     return past_winners
 
@@ -95,7 +96,7 @@ def get_past_winners(ranked_lists,epoch,query):
 def create_weighted_dict(dict,weight):
     result={}
     for token in dict:
-        result[token]=dict[token]*weight
+        result[token]=float(dict[token])*weight
     return result
 
 def get_past_winners_tfidf_centroid(past_winners,docuemnt_vectors_dir):
@@ -125,13 +126,16 @@ def past_winners_centroid(past_winners,texts,model,stemmer=None):
 
 def write_files(feature_list, feature_vals, output_dir, qid):
     for feature in feature_list:
-        with open(output_dir+feature+"_"+qid,'w') as out:
+        with open(output_dir+"doc"+feature+"_"+qid,'w') as out:
             for pair in feature_vals[feature]:
                 out.write(pair+" "+str(feature_vals[feature][pair])+"\n")
 
 
 def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_dir, qid):
     global word_embd_model
+    """DEBUG"""
+    # word_embd_model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt", binary=True)
+    """DEBUG"""
     feature_vals = {}
     relevant_pairs = raw_ds[qid]
     feature_list = ["FractionOfQueryWordsIn","FractionOfQueryWordsOut","CosineToCentroidIn","CosineToCentroidInVec","CosineToCentroidOut","CosineToCentroidOutVec","CosineToWinnerCentroidInVec","CosineToWinnerCentroidOutVec","CosineToWinnerCentroidIn","CosineToWinnerCentroidOut","SimilarityToPrev","SimilarityToRefSentence","SimilarityToPred","SimilarityToPrevRef","SimilarityToPredRef"]
@@ -176,7 +180,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['SimilarityToPredRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"pred",word_embd_model,True)
     write_files(feature_list,feature_vals,output_dir,qid)
 
-def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir,output_final_features_dir):
+def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir,output_final_features_dir,workingset_file):
     global word_embd_model
     args = [qid for qid in queries]
     if not os.path.exists(output_feature_files_dir):
@@ -187,7 +191,7 @@ def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc
     func = partial(create_features, raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir)
     workers = cpu_count()-1
     list_multiprocessing(args,func,workers=workers)
-    command = "perl generateSentences.pl " + output_feature_files_dir
+    command = "perl generateSentences.pl " + output_feature_files_dir+" "+workingset_file
     run_bash_command(command)
     run_bash_command("mv features "+output_final_features_dir)
 
@@ -295,6 +299,7 @@ if __name__=="__main__":
     parser.add_option("--trectext_file", dest="trectext_file")
     parser.add_option("--new_trectext_file", dest="new_trectext_file")
     parser.add_option("--model_file", dest="model_file")
+    parser.add_option("--workingset_file", dest="workingset_file")
     parser.add_option("--svm_model_file", dest="svm_model_file")
     (options, args) = parser.parse_args()
     ranked_lists = read_trec_file(options.trec_file)
@@ -307,9 +312,10 @@ if __name__=="__main__":
 
     if mode=="features":
         queries = read_queries_file(options.queries_file)
+        queries = transform_query_text(queries)
         word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file,binary=True)
         feature_creation_parallel(options.raw_ds_out,ranked_lists,doc_texts,int(options.top_docs_index),int(options.ref_index),options.doc_tfidf_dir,
-                                  options.sentences_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir)
+                                  options.sentences_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
 
     if mode=="update":
         features_file = options.output_final_feature_file_dir+"features"
@@ -328,11 +334,12 @@ if __name__=="__main__":
                            int(options.top_docs_index))
         create_sentence_vector_files(options.sentences_tfidf_dir, options.raw_ds_out, options.index_path)
         queries = read_queries_file(options.queries_file)
+        queries = transform_query_text(queries)
         word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True)
         feature_creation_parallel(options.raw_ds_out, ranked_lists, doc_texts, int(options.top_docs_index),
                                   int(options.ref_index), options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir, queries, options.output_feature_files_dir,
-                                  options.output_final_feature_file_dir)
+                                  options.output_final_feature_file_dir, options.workingset_file)
         features_file = options.output_final_feature_file_dir + "features"
         name_index = create_index_to_doc_name_dict(features_file)
         scores_file = run_svm_rank_model(features_file, options.svm_model_file, options.scores_dir)
