@@ -25,7 +25,7 @@ def create_sentence_pairs(top_docs,ref_doc,texts):
         for i,top_sentence in enumerate(doc_sentences):
             for j,ref_sentence in enumerate(ref_sentences):
                 key = ref_doc+"$"+doc+"_"+str(j)+"_"+str(i)
-                result[key]=ref_sentence.rstrip()+"\t"+top_sentence.rstrip()
+                result[key]=ref_sentence.rstrip().replace("\n","")+"\t"+top_sentence.rstrip().replace("\n","")
     return result
 
 
@@ -288,13 +288,10 @@ if __name__=="__main__":
     parser.add_option("--sentences_tfidf_dir", dest="sentences_tfidf_dir")
     parser.add_option("--queries_file", dest="queries_file")
     parser.add_option("--scores_dir", dest="scores_dir")
-    parser.add_option("--summaries_file", dest="summaries_file")
-    parser.add_option("--input_data_file", dest="input_data_file")
     parser.add_option("--trec_file", dest="trec_file")
     parser.add_option("--sentence_trec_file", dest="sentence_trec_file")
     parser.add_option("--output_feature_files_dir", dest="output_feature_files_dir")
     parser.add_option("--output_final_feature_file_dir", dest="output_final_feature_file_dir")
-    parser.add_option("--number_of_top_docs", dest="number_of_top_docs")
     parser.add_option("--trectext_file", dest="trectext_file")
     parser.add_option("--new_trectext_file", dest="new_trectext_file")
     parser.add_option("--model_file", dest="model_file")
