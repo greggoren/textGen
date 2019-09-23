@@ -188,6 +188,7 @@ def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc
     if not os.path.exists(output_final_features_dir):
         os.makedirs(output_final_features_dir)
     raw_ds = read_raw_ds(raw_dataset_file)
+    create_ws(raw_ds,workingset_file)
     func = partial(create_features, raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir)
     workers = cpu_count()-1
     list_multiprocessing(args,func,workers=workers)
@@ -273,6 +274,14 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
     return new_texts
 
 
+
+def create_ws(raw_ds,ws_fname):
+    with open(ws_fname,'w') as ws:
+        for qid in raw_ds:
+            for i,pair in enumerate(raw_ds[qid]):
+                ws.write(qid+" Q0 "+pair+" 0 "+str(i+1)+" pairs_seo\n")
+
+
 if __name__=="__main__":
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
@@ -313,7 +322,7 @@ if __name__=="__main__":
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file,binary=True)
+        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file,binary=True,limit=700000)
         feature_creation_parallel(options.raw_ds_out,ranked_lists,doc_texts,int(options.top_docs_index),int(options.ref_index),options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
 
@@ -335,7 +344,7 @@ if __name__=="__main__":
         create_sentence_vector_files(options.sentences_tfidf_dir, options.raw_ds_out, options.index_path)
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True)
+        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True,limit=700000)
         feature_creation_parallel(options.raw_ds_out, ranked_lists, doc_texts, int(options.top_docs_index),
                                   int(options.ref_index), options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir, queries, options.output_feature_files_dir,
