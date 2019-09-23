@@ -134,7 +134,7 @@ def write_files(feature_list, feature_vals, output_dir, qid):
 def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_dir, qid):
     global word_embd_model
     """DEBUG"""
-    # word_embd_model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt", binary=True)
+    word_embd_model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt", binary=True)
     """DEBUG"""
     feature_vals = {}
     relevant_pairs = raw_ds[qid]
@@ -234,7 +234,7 @@ def create_trec_eval_file(queries, results,fname):
 
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt","_sorted.txt")
-    command = "sort -k1,1 -k5nr -k2,1 "+trec_file+" > "+final
+    command = "sort -k1,1n -k5nr -k2,1 "+trec_file+" > "+final
     print(command)
     run_bash_command(command)
     return final
