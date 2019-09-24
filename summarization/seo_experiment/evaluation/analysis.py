@@ -3,6 +3,34 @@ import matplotlib.pyplot as plt
 from summarization.seo_experiment.utils import read_trec_file
 
 
+def plot_metric(y,x,fname,y_label,x_label,legends=None,colors=None):
+    params = {'legend.fontsize': 'x-large',
+              'figure.figsize': (13, 8),
+              'axes.labelsize': 'x-large',
+              'axes.titlesize': 'x-large',
+              'xtick.labelsize': 'small',
+              'ytick.labelsize': 'x-large',
+              'font.family': 'serif'}
+
+
+    plt.rcParams.update(params)
+    plt.figure()
+    if legends is not None:
+        for j,y_m in enumerate(y):
+            plt.plot(x, y_m, color=colors[j], linewidth=5,markersize=5, mew=1,label=legends[j])
+    else:
+
+        plt.plot(x, y, color='b', linewidth=5,markersize=5, mew=1)
+
+    plt.xticks(x,fontsize=25)
+    plt.yticks(fontsize=25)
+    plt.ylabel(y_label, fontsize=30)
+    plt.xlabel(x_label, fontsize=30)
+    plt.legend(loc="best")
+    plt.savefig(fname+".png")
+    plt.clf()
+
+
 def read_trec_scores(trec_file):
     stats = {}
     with open(trec_file) as file:
@@ -56,44 +84,51 @@ def get_average_increase(rank_increase_stats):
         average_stats[epoch] = np.mean([rank_increase_stats[epoch][q] for q in rank_increase_stats[epoch]])
     return [average_stats[e] for e in sorted(list(average_stats.keys()))]
 
-def plot_metric(y,x,fname,y_label,x_label,plot=True):
-
-    params = {'legend.fontsize': 'x-large',
-              'figure.figsize': (13, 8),
-              'axes.labelsize': 'x-large',
-              'axes.titlesize': 'x-large',
-              'xtick.labelsize': 'small',
-              'ytick.labelsize': 'x-large',
-              'font.family': 'serif'}
-
-
-    plt.rcParams.update(params)
-    plt.figure()
-    if plot:
-        plt.plot(x, y, color='r', linewidth=5,markersize=5, mew=1)
-        plt.xticks(x, fontsize=25)
-    else:
-        plt.bar(x=[i for i in range(len(y))],height=[int(i) for i in y],color='b')
-        plt.xticks([i for i in range(len(y))], fontsize=25)
-    # plt.xticks(x,fontsize=15)
-    plt.yticks(fontsize=25)
-    plt.ylabel(y_label, fontsize=30)
-    plt.xlabel(x_label, fontsize=30)
-    plt.legend(loc="best")
-    plt.savefig(fname+".png")
-    plt.clf()
-
+# def plot_metric(y,x,fname,y_label,x_label,plot=True):
+#
+#     params = {'legend.fontsize': 'x-large',
+#               'figure.figsize': (13, 8),
+#               'axes.labelsize': 'x-large',
+#               'axes.titlesize': 'x-large',
+#               'xtick.labelsize': 'small',
+#               'ytick.labelsize': 'x-large',
+#               'font.family': 'serif'}
+#
+#
+#     plt.rcParams.update(params)
+#     plt.figure()
+#     if plot:
+#         plt.plot(x, y, color='r', linewidth=5,markersize=5, mew=1)
+#         plt.xticks(x, fontsize=25)
+#     else:
+#         plt.bar(x=[i for i in range(len(y))],height=[int(i) for i in y],color='b')
+#         plt.xticks([i for i in range(len(y))], fontsize=25)
+#     # plt.xticks(x,fontsize=15)
+#     plt.yticks(fontsize=25)
+#     plt.ylabel(y_label, fontsize=30)
+#     plt.xlabel(x_label, fontsize=30)
+#     plt.legend(loc="best")
+#     plt.savefig(fname+".png")
+#     plt.clf()
+#
 
 
 if __name__=="__main__":
     original_trec="../trecs/trec_file_original_sorted.txt"
     updated_trec="../trecs/trec_file_post_sorted.txt"
+    bot_trec="../trecs/trec_file_bot_post_sorted.txt"
     original_lists = read_trec_file(original_trec)
     updated_lists = read_trec_file(updated_trec)
+    bot_lists = read_trec_file(bot_trec)
     rank_increase_stats = compare_lists(original_lists,updated_lists,-1)
+    bot_increase_stats = compare_lists(original_lists,bot_lists,-1)
     histograms = histogram(rank_increase_stats)
     averages = get_average_increase(rank_increase_stats)
-    plot_metric(averages,[i+1 for i in range(len(averages))],"plt/average_increase","Rank Increase","Epochs")
-    for epoch in histograms:
-        h = histograms[epoch]
-        plot_metric([h[i] for i in range(5)],[],"plt/histogram_"+str(epoch),"#","Rank Increase",False)
+    bot_averages = get_average_increase(bot_increase_stats)
+    ys=[averages,bot_averages]
+    legends=["Summarization","Bot"]
+    colors=["b","r"]
+    plot_metric(ys,[i+1 for i in range(len(averages))],"plt/average_increase","Rank Increase","Epochs",legends,colors)
+    # for epoch in histograms:
+    #     h = histograms[epoch]
+    #     plot_metric([h[i] for i in range(5)],[],"plt/histogram_"+str(epoch),"#","Rank Increase",False)

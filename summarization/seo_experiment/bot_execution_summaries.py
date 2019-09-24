@@ -18,32 +18,6 @@ from functools import partial
 
 
 
-def create_sentence_pairs(top_docs,ref_doc,texts):
-    result={}
-    ref_sentences = sent_tokenize(texts[ref_doc])
-    for doc in top_docs:
-        doc_sentences = sent_tokenize(texts[doc])
-        for i,top_sentence in enumerate(doc_sentences):
-            for j,ref_sentence in enumerate(ref_sentences):
-                key = ref_doc+"$"+doc+"_"+str(j)+"_"+str(i)
-                result[key]=ref_sentence.rstrip().replace("\n","")+"\t"+top_sentence.rstrip().replace("\n","")
-    return result
-
-
-
-
-
-def create_raw_dataset(ranked_lists, doc_texts, output_file,ref_index,top_docs_index):
-    with open(output_file,'w') as output:
-        for epoch in ranked_lists:
-            for query in ranked_lists[epoch]:
-                top_docs = ranked_lists[epoch][query][:top_docs_index]
-                ref_doc = ranked_lists[epoch][query][ref_index]
-                pairs = create_sentence_pairs(top_docs,ref_doc,doc_texts)
-                for key in pairs:
-                    output.write(str(int(query))+str(epoch)+"\t"+key+"\t"+pairs[key]+"\n")
-
-
 def read_raw_ds(raw_dataset):
     result={}
     with open(raw_dataset,encoding="utf-8") as ds:
@@ -131,11 +105,8 @@ def write_files(feature_list, feature_vals, output_dir, qid):
                 out.write(pair+" "+str(feature_vals[feature][pair])+"\n")
 
 
-def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_dir, qid):
+def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir,summary_tfidf_dir, queries, output_dir, qid):
     global word_embd_model
-    """DEBUG"""
-    word_embd_model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt", binary=True)
-    """DEBUG"""
     feature_vals = {}
     relevant_pairs = raw_ds[qid]
     feature_list = ["FractionOfQueryWordsIn","FractionOfQueryWordsOut","CosineToCentroidIn","CosineToCentroidInVec","CosineToCentroidOut","CosineToCentroidOutVec","CosineToWinnerCentroidInVec","CosineToWinnerCentroidOutVec","CosineToWinnerCentroidIn","CosineToWinnerCentroidOut","SimilarityToPrev","SimilarityToRefSentence","SimilarityToPred","SimilarityToPrevRef","SimilarityToPredRef"]
@@ -162,15 +133,15 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['FractionOfQueryWordsIn'][pair] = query_term_freq("avg",clean_texts(sentence_in),clean_texts(query))
         feature_vals['FractionOfQueryWordsOut'][pair] = query_term_freq("avg",clean_texts(sentence_out),clean_texts(query))
 
-        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[2], top_docs_tfidf_centroid)
-        feature_vals['CosineToCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("$")[0] + "_" + pair.split("_")[1], top_docs_tfidf_centroid)
+        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir + pair.split("_")[0]+ "_" + pair.split("_")[2], top_docs_tfidf_centroid)
+        feature_vals['CosineToCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], top_docs_tfidf_centroid)
 
         feature_vals["CosineToCentroidInVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_in,top_docs,doc_texts,word_embd_model,True)
         feature_vals["CosineToCentroidOutVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_out,top_docs,doc_texts,word_embd_model,True)
 
         feature_vals['CosineToWinnerCentroidInVec'][pair] = cosine_similarity(in_vec,past_winners_semantic_centroid_vector)
         feature_vals['CosineToWinnerCentroidOutVec'][pair] = cosine_similarity(out_vec,past_winners_semantic_centroid_vector)
-        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[2], past_winners_tfidf_centroid_vector)
+        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir + pair.split("_")[0]+ "_" + pair.split("_")[2] + "_" + pair.split("_")[2], past_winners_tfidf_centroid_vector)
         feature_vals['CosineToWinnerCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("$")[0] + "_" + pair.split("_")[1], past_winners_tfidf_centroid_vector)
 
         feature_vals['SimilarityToPrev'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"prev",word_embd_model,True)
@@ -180,7 +151,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['SimilarityToPredRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"pred",word_embd_model,True)
     write_files(feature_list,feature_vals,output_dir,qid)
 
-def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir,output_final_features_dir,workingset_file):
+def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, tfidf_summary_dir, queries, output_feature_files_dir, output_final_features_dir, workingset_file):
     global word_embd_model
     args = [qid for qid in queries]
     if not os.path.exists(output_feature_files_dir):
@@ -189,7 +160,7 @@ def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc
         os.makedirs(output_final_features_dir)
     raw_ds = read_raw_ds(raw_dataset_file)
     create_ws(raw_ds,workingset_file)
-    func = partial(create_features, raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir)
+    func = partial(create_features, raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, tfidf_summary_dir, queries, output_feature_files_dir)
     workers = cpu_count()-1
     list_multiprocessing(args,func,workers=workers)
     command = "perl generateSentences.pl " + output_feature_files_dir+" "+workingset_file
@@ -238,12 +209,6 @@ def order_trec_file(trec_file):
     print(command)
     run_bash_command(command)
     return final
-
-def create_sentence_vector_files(output_dir, raw_ds_file, index_path):
-    command = " ~/jdk1.8.0_181/bin/java -Djava.library.path=/lv_local/home/sgregory/indri-5.6/swig/obj/java/ -cp seo_summarization.jar PrepareTFIDFVectorsSentences "+index_path+" "+raw_ds_file+" "+output_dir
-    logger.info("##Running command: "+command+"##")
-    out = run_bash_command(command)
-    logger.info("Command output: "+str(out))
 
 
 def read_sentence_results(fname):
@@ -299,6 +264,7 @@ if __name__=="__main__":
 
     parser.add_option("--doc_tfidf_dir", dest="doc_tfidf_dir")
     parser.add_option("--sentences_tfidf_dir", dest="sentences_tfidf_dir")
+    parser.add_option("--summary_tfidf_dir", dest="summary_tfidf_dir")
     parser.add_option("--queries_file", dest="queries_file")
     parser.add_option("--scores_dir", dest="scores_dir")
     parser.add_option("--trec_file", dest="trec_file")
@@ -315,46 +281,39 @@ if __name__=="__main__":
     doc_texts = load_file(options.trectext_file)
     mode = options.mode
 
-    if mode=="raw":
-        create_raw_dataset(ranked_lists,doc_texts,options.raw_ds_out,int(options.ref_index),int(options.top_docs_index))
-        create_sentence_vector_files(options.sentences_tfidf_dir,options.raw_ds_out,options.index_path)
 
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
         word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file,binary=True,limit=700000)
         feature_creation_parallel(options.raw_ds_out,ranked_lists,doc_texts,int(options.top_docs_index),int(options.ref_index),options.doc_tfidf_dir,
-                                  options.sentences_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
+                                  options.sentences_tfidf_dir,options.summary_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
 
     if mode=="update":
         features_file = options.output_final_feature_file_dir+"features"
         name_index = create_index_to_doc_name_dict(features_file)
         scores_file = run_svm_rank_model(features_file,options.svm_model_file,options.scores_dir)
         results = retrieve_scores(name_index,scores_file)
-        queries_index = {pair:str(int(pair.split("$")[0].split("-")[2]))+pair.split("$")[0].split("-")[1] for pair in results}
+        queries_index = {pair:str(int(pair.split("_")[0].split("-")[2]))+pair.split("$")[0].split("-")[1] for pair in results}
         create_trec_eval_file(queries_index,results,options.sentence_trec_file)
         final_trec = order_trec_file(options.sentence_trec_file)
-        # final_trec="trecs/bot_sentence_trec_file_sorted.txt"
         ranked_pairs = read_sentence_results(final_trec)
         new_texts = update_texts(doc_texts,ranked_pairs,read_raw_ds(options.raw_ds_out))
         create_trectext(new_texts,options.new_trectext_file,"data/ws_debug")
 
     if mode=='all':
-        create_raw_dataset(ranked_lists, doc_texts, options.raw_ds_out, int(options.ref_index),
-                           int(options.top_docs_index))
-        create_sentence_vector_files(options.sentences_tfidf_dir, options.raw_ds_out, options.index_path)
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
         word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True,limit=700000)
         feature_creation_parallel(options.raw_ds_out, ranked_lists, doc_texts, int(options.top_docs_index),
                                   int(options.ref_index), options.doc_tfidf_dir,
-                                  options.sentences_tfidf_dir, queries, options.output_feature_files_dir,
+                                  options.sentences_tfidf_dir, options.summary_tfidf_dir, queries, options.output_feature_files_dir,
                                   options.output_final_feature_file_dir, options.workingset_file)
         features_file = options.output_final_feature_file_dir + "features"
         name_index = create_index_to_doc_name_dict(features_file)
         scores_file = run_svm_rank_model(features_file, options.svm_model_file, options.scores_dir)
         results = retrieve_scores(name_index, scores_file)
-        queries_index = {pair: str(int(pair.split("$")[0].split("-")[2])) + pair.split("$")[0].split("-")[1] for pair in
+        queries_index = {pair: str(int(pair.split("_")[0].split("-")[2])) + pair.split("_")[0].split("-")[1] for pair in
                          results}
         create_trec_eval_file(queries_index, results, options.sentence_trec_file)
         final_trec = order_trec_file(options.sentence_trec_file)
