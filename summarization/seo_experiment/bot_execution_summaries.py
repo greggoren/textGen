@@ -133,7 +133,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['FractionOfQueryWordsIn'][pair] = query_term_freq("avg",clean_texts(sentence_in),clean_texts(query))
         feature_vals['FractionOfQueryWordsOut'][pair] = query_term_freq("avg",clean_texts(sentence_out),clean_texts(query))
 
-        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir + pair.split("_")[0]+ "_" + pair.split("_")[2], top_docs_tfidf_centroid)
+        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir + pair, top_docs_tfidf_centroid)
         feature_vals['CosineToCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], top_docs_tfidf_centroid)
 
         feature_vals["CosineToCentroidInVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_in,top_docs,doc_texts,word_embd_model,True)
@@ -141,8 +141,8 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
 
         feature_vals['CosineToWinnerCentroidInVec'][pair] = cosine_similarity(in_vec,past_winners_semantic_centroid_vector)
         feature_vals['CosineToWinnerCentroidOutVec'][pair] = cosine_similarity(out_vec,past_winners_semantic_centroid_vector)
-        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir + pair.split("_")[0]+ "_" + pair.split("_")[2] + "_" + pair.split("_")[2], past_winners_tfidf_centroid_vector)
-        feature_vals['CosineToWinnerCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("$")[0] + "_" + pair.split("_")[1], past_winners_tfidf_centroid_vector)
+        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_top_docs_tf_idf(summary_tfidf_dir+ pair, past_winners_tfidf_centroid_vector)
+        feature_vals['CosineToWinnerCentroidOut'][pair] = calculate_similarity_to_top_docs_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], past_winners_tfidf_centroid_vector)
 
         feature_vals['SimilarityToPrev'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"prev",word_embd_model,True)
         feature_vals['SimilarityToRefSentence'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"own",word_embd_model,True)
