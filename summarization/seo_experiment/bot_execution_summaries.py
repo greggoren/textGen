@@ -226,7 +226,7 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
     new_texts = {}
     for qid in pairs_ranked_lists:
         chosen_pair = pairs_ranked_lists[qid][0]
-        ref_doc = chosen_pair.split("$")[0]
+        ref_doc = chosen_pair.split("_")[0]
         replacement_index = int(chosen_pair.split("_")[1])
         sentence_in = sentence_data[qid][chosen_pair]["in"]
         sentences = sent_tokenize(doc_texts[ref_doc])
