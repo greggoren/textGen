@@ -117,17 +117,21 @@ if __name__=="__main__":
     original_trec="../trecs/trec_file_original_sorted.txt"
     updated_trec="../trecs/trec_file_post_sorted.txt"
     bot_trec="../trecs/trec_file_bot_post_sorted.txt"
+    bot_summary_trec="../trecs/trec_file_bot_summary_post_sorted.txt"
     original_lists = read_trec_file(original_trec)
     updated_lists = read_trec_file(updated_trec)
     bot_lists = read_trec_file(bot_trec)
+    bot_summary_lists = read_trec_file(bot_summary_trec)
     rank_increase_stats = compare_lists(original_lists,updated_lists,-1)
     bot_increase_stats = compare_lists(original_lists,bot_lists,-1)
+    bot_summary_increase_stats = compare_lists(original_lists,bot_summary_lists,-1)
     histograms = histogram(rank_increase_stats)
     averages = get_average_increase(rank_increase_stats)
     bot_averages = get_average_increase(bot_increase_stats)
-    ys=[averages,bot_averages]
-    legends=["Summarization","Bot"]
-    colors=["b","r"]
+    bot_summary_averages = get_average_increase(bot_summary_increase_stats)
+    ys=[averages,bot_averages,bot_summary_averages]
+    legends=["Summarization","Bot","Bot+Summary"]
+    colors=["b","r","k"]
     plot_metric(ys,[i+1 for i in range(len(averages))],"plt/average_increase","Rank Increase","Epochs",legends,colors)
     # for epoch in histograms:
     #     h = histograms[epoch]
