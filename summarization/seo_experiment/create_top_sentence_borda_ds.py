@@ -42,7 +42,7 @@ def create_files(ranked_lists,ref_index,top_docs_index,queries,output_dir,chosen
                                 for sentence in sentences:
                                     source_file.write(chosen_sentence+"\n")
                                     queries_file.write(queries[fixed_query]+"\n")
-                                    target_sentences.write(sentence)
+                                    target_sentences.write(sentence.rstrip().replace("\n"," "))
                                     all_input_file.write(fixed_query+"\t"+ref_doc+"\t"+chosen_index+"\t"+chosen_sentence.rstrip()+"\t"+sentence.rstrip().replace("\n","")+"\n")
 
 
