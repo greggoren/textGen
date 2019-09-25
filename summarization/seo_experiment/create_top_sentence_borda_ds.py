@@ -26,8 +26,8 @@ def create_files(ranked_lists,ref_index,top_docs_index,queries,output_dir,chosen
         os.makedirs(output_dir)
     with open(output_dir+"queries.txt",'w') as queries_file:
         with open(output_dir+"source.txt",'w') as source_file:
-            with open(output_dir+"sentence_pool") as target_sentences:
-                with open(output_dir+"all_input") as all_input_file:
+            with open(output_dir+"sentence_pool.txt",'w') as target_sentences:
+                with open(output_dir+"all_input.txt",'w') as all_input_file:
                     all_input_file.write("query\tdocname\tsentence_index\tsentence\ttarget_sentence\n")
                     for epoch in ranked_lists:
                         for query in ranked_lists[epoch]:
@@ -43,7 +43,7 @@ def create_files(ranked_lists,ref_index,top_docs_index,queries,output_dir,chosen
                                     source_file.write(chosen_sentence+"\n")
                                     queries_file.write(queries[fixed_query]+"\n")
                                     target_sentences.write(sentence)
-                                    all_input_file.write(fixed_query+"\t"+ref_doc+"\t"+chosen_index+"\t"+chosen_sentence+"\t"+sentence+"\n")
+                                    all_input_file.write(fixed_query+"\t"+ref_doc+"\t"+chosen_index+"\t"+chosen_sentence.rstrip()+"\t"+sentence.rstrip().replace("\n","")+"\n")
 
 
 if __name__=="__main__":
