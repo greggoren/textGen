@@ -12,6 +12,7 @@ from tqdm import tqdm
 from functools import partial
 from summarization.seo_experiment.utils\
     import get_past_winners,reverese_query
+from summarization.seo_experiment.evaluation.analysis import read_trec_file as rtf
 
 
 def reference_docs_calculation(stats,ref_index):
@@ -218,7 +219,7 @@ def summarization_ds(options):
     logger.info("reading queries file")
     raw_queries = read_queries_file(options.queries_file)
     logger.info("reading trec file")
-    ranked_lists = read_trec_file(options.trec_file)
+    ranked_lists = rtf(options.trec_file)
     logger.info("transforming queries")
     queries = transform_query_text(raw_queries)
     logger.info("reading trectext file")
