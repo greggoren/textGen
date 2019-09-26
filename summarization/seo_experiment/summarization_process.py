@@ -144,7 +144,7 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                   encoding="utf-8") as queries:
             with open(os.path.dirname(input_dataset_file) + "/source_" + sum_model +"_"+suffix+ ".txt", 'w',
                       encoding="utf-8") as source:
-                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model+"_"+suffix+ + ".txt", 'w',
+                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model+"_"+suffix+  ".txt", 'w',
                           encoding="utf-8") as inp_paragraphs:
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
