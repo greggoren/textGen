@@ -10,6 +10,8 @@ import gensim
 from multiprocessing import Pool,cpu_count
 from tqdm import tqdm
 from functools import partial
+from summarization.seo_experiment.bot_execution import get_past_winners,reverese_query
+
 
 def reference_docs_calculation(stats,ref_index):
     return {q:stats[q][ref_index] for q in stats}
@@ -33,8 +35,8 @@ def read_trec_file(trec_file):
 
 
 
-def chosen_sentence_for_replacement(sentences, query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,model):
-    chosen_idx = calculate_seo_replacement_predictors(sentences,query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,model)
+def chosen_sentence_for_replacement(sentences, query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,past_winners,model):
+    chosen_idx = calculate_seo_replacement_predictors(sentences,query,document_name,sentences_vectors_dir,docuemnt_vectors_dir,document_texts,top_docs,past_winners,model)
     return chosen_idx
 
 
@@ -45,7 +47,7 @@ def chosen_sentence_for_replacement(sentences, query,document_name,sentences_vec
 #         sentence_scores[i]=(-sum([tokens.count(w) for w in query.split()]),len(tokens))
 #     return sorted(list(sentence_scores.keys()),key=lambda x:(sentence_scores[x][0],sentence_scores[x][1],x),reverse=True)[0]
 
-def get_sentences_for_replacement(doc_texts,reference_docs,query_text,sentences_vectors_dir,docuemnt_vectors_dir,top_docs_index,model):
+def get_sentences_for_replacement(doc_texts,reference_docs,query_text,sentences_vectors_dir,docuemnt_vectors_dir,top_docs_index,ranked_lists,model):
     replacements = {}
     for qid in reference_docs:
         doc = reference_docs[qid]
@@ -53,7 +55,9 @@ def get_sentences_for_replacement(doc_texts,reference_docs,query_text,sentences_
         sentences = sent_tokenize(text)
         query = query_text[qid]
         top_docs = top_docs_index[qid]
-        chosen_index = chosen_sentence_for_replacement(sentences, query,doc,sentences_vectors_dir,docuemnt_vectors_dir,doc_texts,top_docs,model)
+        epoch,real_qid = reverese_query(qid)
+        past_winners = get_past_winners(ranked_lists,epoch,real_qid)
+        chosen_index = chosen_sentence_for_replacement(sentences, query,doc,sentences_vectors_dir,docuemnt_vectors_dir,doc_texts,top_docs,past_winners,model)
         replacements[qid]=chosen_index
     return replacements
 
@@ -88,16 +92,20 @@ def write_files(dict,**kwargs):
 
 
 
-def creaion_parrallel(queries_text,candidates_dir,input_df,files,row):
+def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists,row):
     global model
     complete_data = "\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
     results =[]
     query = queries_text[str(row["query"])]
+    qid = str(row["query"])
     query = "_".join(query.split())
     sentence = str(row["sentence"]).rstrip()
+    replacement_index = int(row["sentence_index"])
     query_paragraph_df = read_texts(candidates_dir + query)
     # query_paragraph_df = read_texts(candidates_dir + query+"_debug")
-    paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence, query, model)
+    epoch,real_query = reverese_query(qid)
+    past_winners = get_past_winners(ranked_lists,epoch,real_query)
+    paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs,past_winners,document_vector_dir,paragraph_vector_dir, model)
     for paragraph in paragraphs.split("\n##\n"):
         if sum_model == 'transformer':
             sentences = sent_tokenize(paragraph)
@@ -125,23 +133,24 @@ def _apply_lst(args):
 
 
 
-def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, sum_model):
+def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, sum_model,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists,suffix):
     global model
     input_df = read_texts(input_dataset_file, True)
-    with open(os.path.dirname(input_dataset_file) + "/all_data_" + sum_model + ".txt", 'w',
+    with open(os.path.dirname(input_dataset_file) + "/all_data_" + sum_model +"_"+suffix+ ".txt", 'w',
               encoding="utf-8") as complete:
-        with open(os.path.dirname(input_dataset_file) + "/queries_" + sum_model + ".txt", 'w',
+        with open(os.path.dirname(input_dataset_file) + "/queries_" + sum_model +"_"+suffix+ ".txt", 'w',
                   encoding="utf-8") as queries:
-            with open(os.path.dirname(input_dataset_file) + "/source_" + sum_model + ".txt", 'w',
+            with open(os.path.dirname(input_dataset_file) + "/source_" + sum_model +"_"+suffix+ ".txt", 'w',
                       encoding="utf-8") as source:
-                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model + ".txt", 'w',
+                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model+"_"+suffix+ + ".txt", 'w',
                           encoding="utf-8") as inp_paragraphs:
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
                     arguments = [row for i,row in input_df.iterrows()]
                     files = ["complete","queries","source","inp_paragraphs"]
                     files_access = {"complete":complete,"queries":queries,"source":source,"inp_paragraphs":inp_paragraphs}
-                    func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files)
+                    #queries_text,candidates_dir,input_df,files,replacement_indexes,document_texts,ref_docs,top_docs,past_winners,document_vector_dir,paragraph_vector_dir,row
+                    func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists)
                     workers = cpu_count()-1
                     results = list_multiprocessing(arguments,func,workers=workers)
                     for result in results:
@@ -207,6 +216,8 @@ def summarization_ds(options):
     sum_model = options.sum_model
     logger.info("reading queries file")
     raw_queries = read_queries_file(options.queries_file)
+    logger.info("reading trec file")
+    ranked_lists = read_trec_file(options.trec_file)
     logger.info("transforming queries")
     queries = transform_query_text(raw_queries)
     logger.info("reading trectext file")
@@ -216,11 +227,11 @@ def summarization_ds(options):
     logger.info("calculating top docs")
     top_docs = get_top_docs(options.trec_file,int(options.number_of_top_docs))
     logger.info("calculating sentences for replacement")
-    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries,options.sentences_vectors_dir,options.documents_vectors_dir,top_docs,model)
+    senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries,options.sentences_vectors_dir,options.documents_vectors_dir,top_docs,ranked_lists,model)
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
     logger.info("writing all files")
-    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model)
+    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model,doc_texts,reference_docs,top_docs,options.documents_vectors_dir,options.paragraph_vectors_dir,ranked_lists,options.suffix)
 
 
 if __name__=="__main__":
@@ -244,6 +255,8 @@ if __name__=="__main__":
     parser.add_option("--model_file", dest="model_file")
     parser.add_option("--summary_output_file", dest="summary_output_file")
     parser.add_option("--summary_input_file", dest="summary_input_file")
+    parser.add_option("--suffix", dest="suffix")
+    parser.add_option("--paragraph_vectors_dir", dest="paragraph_vectors_dir")
     (options, args) = parser.parse_args()
     #TODO: make it more generic later
     summarization_models = {"lstm":"summarizations_models/gigaword_copy_acc_51.78_ppl_11.71_e20.pt","transformer":"summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt"}
@@ -256,7 +269,7 @@ if __name__=="__main__":
     elif options.mode=="summary":
         summary_model = summarization_models[sum_model]
         input_file = options.summary_input_file
-        output_file = options.summary_output_file + "_" + sum_model + ".txt"
+        output_file = options.summary_output_file + "_" + sum_model+ "_"+options.suffix+ ".txt"
         logger.info("starting summarization")
 
         run_summarization_model(options.summary_script_file, summary_model, input_file, output_file,
@@ -265,7 +278,7 @@ if __name__=="__main__":
         model = gensim.models.FastText.load_fasttext_format(options.model_file)
         input_file = summarization_ds(options)
         summary_model = summarization_models[sum_model]
-        output_file = options.summary_output_file+"_"+sum_model+".txt"
+        output_file = options.summary_output_file+"_"+sum_model+"_"+options.suffix+".txt"
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
         logger.info("starting summarization")
