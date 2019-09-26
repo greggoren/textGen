@@ -107,7 +107,7 @@ def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,
     # query_paragraph_df = read_texts(candidates_dir + query+"_debug")
     epoch,real_query = reverese_query(qid)
     past_winners = get_past_winners(ranked_lists,epoch,real_query)
-    paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs,past_winners,document_vector_dir,paragraph_vector_dir, model)
+    paragraphs = calculate_summarization_predictors(query_paragraph_df, sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir,paragraph_vector_dir, model)
     for paragraph in paragraphs.split("\n##\n"):
         if sum_model == 'transformer':
             sentences = sent_tokenize(paragraph)
