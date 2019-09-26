@@ -10,7 +10,8 @@ import gensim
 from multiprocessing import Pool,cpu_count
 from tqdm import tqdm
 from functools import partial
-from summarization.seo_experiment.bot_execution import get_past_winners,reverese_query
+from summarization.seo_experiment.utils\
+    import get_past_winners,reverese_query
 
 
 def reference_docs_calculation(stats,ref_index):

@@ -162,6 +162,18 @@ def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
     return score_file
 
 
+def get_past_winners(ranked_lists,epoch,query):
+    past_winners = []
+    for iteration in range(int(epoch)):
+        current_epoch = str(iteration+1).zfill(2)
+        past_winners.append(ranked_lists[current_epoch][query][0])
+    return past_winners
+
+def reverese_query(qid):
+    epoch = str(qid)[-2:]
+    query = str(qid)[:-2].zfill(3)
+    return epoch,query
+
 def run_summarization_model(script_file,model_file,input_file,output_file,**kwargs):
     """
      cmd example:
