@@ -62,11 +62,11 @@ def get_sentences_for_replacement(doc_texts,reference_docs,query_text,sentences_
     return replacements
 
 
-def write_input_dataset_file(replacements,reference_docs,texts):
+def write_input_dataset_file(replacements,reference_docs,texts,suffix):
     input_dir = 'input_data/'
     if not os.path.exists(input_dir):
         os.makedirs(input_dir)
-    with open(input_dir+"senteces_for_replace.txt",'w') as file:
+    with open(input_dir+"senteces_for_replace_"+suffix+".txt",'w') as file:
         file.write("query\tdocname\tsentence_index\tsentence\n")
         for query in replacements:
             index = replacements[query]
@@ -74,7 +74,7 @@ def write_input_dataset_file(replacements,reference_docs,texts):
             text = texts[docname]
             sentence = clean_texts(sent_tokenize(text)[index])
             file.write("\t".join([query,docname,str(index),sentence])+'\n')
-    return input_dir+'senteces_for_replace.txt'
+    return input_dir+"senteces_for_replace_"+suffix+".txt"
 
 
 def read_texts(fname,inp=False):
@@ -229,7 +229,7 @@ def summarization_ds(options):
     logger.info("calculating sentences for replacement")
     senteces_for_replacement = get_sentences_for_replacement(doc_texts, reference_docs,queries,options.sentences_vectors_dir,options.documents_vectors_dir,top_docs,ranked_lists,model)
     logger.info("writing input sentences file")
-    input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts)
+    input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts,options.suffix)
     logger.info("writing all files")
     return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model,doc_texts,reference_docs,top_docs,options.documents_vectors_dir,options.paragraph_vectors_dir,ranked_lists,options.suffix)
 
