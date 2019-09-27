@@ -425,16 +425,16 @@ def get_context_sentence_vectors(text, index, model):
     sentences = nltk.sent_tokenize(text)
     if index==0:
         result["pred"]=get_text_centroid(sentences[0],model)
-        result["own"]=get_text_centroid(sentences[0],model)
-        result["prev"]=get_text_centroid(sentences[1],model)
+        result["self"]=get_text_centroid(sentences[0],model)
+        result["next"]=get_text_centroid(sentences[1],model)
     elif index==len(sentences)-1:
         result["pred"]=get_text_centroid(sentences[index-1],model)
-        result["own"]=get_text_centroid(sentences[index],model)
-        result["prev"]=get_text_centroid(sentences[index],model)
+        result["self"]=get_text_centroid(sentences[index],model)
+        result["next"]=get_text_centroid(sentences[index],model)
     else:
         result["pred"] = get_text_centroid(sentences[index - 1], model)
-        result["own"] = get_text_centroid(sentences[index], model)
-        result["prev"] = get_text_centroid(sentences[index+1], model)
+        result["self"] = get_text_centroid(sentences[index], model)
+        result["next"] = get_text_centroid(sentences[index+1], model)
     return result
 
 
