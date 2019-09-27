@@ -227,6 +227,11 @@ def calculate_semantic_similarity_to_top_docs(text, top_docs, doc_texts, model,s
     top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model)
     return cosine_similarity(summary_vector,top_docs_centroid_vector)
 
+def calculate_semantic_similarity_to_centroid(text, centroid,model,stemmer=None):
+    summary_vector = get_text_centroid(clean_texts(text), model,stemmer)
+    return cosine_similarity(summary_vector,centroid)
+
+
 def context_similarity(reference,document,summary,replacement_index,model):
     document_sentences = nltk.sent_tokenize(document)
 
@@ -340,7 +345,7 @@ def cover(text,query):
 #             result[i] = func(input_sentence,candidate_sentence)
 #     return result
 
-def get_predictors_values(input_sentence, candidate_sentence,replacement_index,document,query,documents_text,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs,past_winners,model):
+def get_predictors_values(input_sentence, candidate_sentence,replacement_index,document,query,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model):
     # idx, = args
     result = {}
     avg_query_token_tf = wrapped_partial(query_term_freq, "avg")
@@ -348,7 +353,7 @@ def get_predictors_values(input_sentence, candidate_sentence,replacement_index,d
     next_context_similarity = wrapped_partial(context_similarity, "next")
     self_context_similarity = wrapped_partial(context_similarity, "self")
     funcs = [avg_query_token_tf, pred_context_similarity, next_context_similarity, self_context_similarity,
-             calculate_similarity_to_docs_centroid_tf_idf, calculate_semantic_similarity_to_top_docs]
+             calculate_similarity_to_docs_centroid_tf_idf, calculate_semantic_similarity_to_centroid]
     j = 0
     for i, func in enumerate(funcs):
         if func.__name__.__contains__("query"):
@@ -360,9 +365,9 @@ def get_predictors_values(input_sentence, candidate_sentence,replacement_index,d
             j += 1
             result[j] = func(candidate_sentence_tf_idf_fname, past_winners_centroid_tf_idf)
         elif func.__name__.__contains__("semantic"):
-            result[j] = func(candidate_sentence, top_docs, documents_text, model)
+            result[j] = func(candidate_sentence, top_docs_centroid, model)
             j += 1
-            result[j] = func(candidate_sentence, past_winners, documents_text, model)
+            result[j] = func(candidate_sentence, past_winners_centroid,  model)
         j += 1
     return result
 
@@ -413,12 +418,14 @@ def calculate_summarization_predictors(target_subset, input_sentence, replacemen
     top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs, document_vectors_dir)
     past_winners_centroid_tf_idf = calculte_top_docs_centroid(past_winners, document_vectors_dir)
     ref_document_text = document_texts[ref_docs[qid]]
+    past_winners_centroid = get_semantic_docs_centroid(document_texts,past_winners,model)
+    top_docs_centroid = get_semantic_docs_centroid(document_texts,top_docs,model)
     if reduced_subset.empty:
         reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
         candidate_sentence_tf_idf_fname = paragraphs_vector_dir+"/"+"_".join(queries_text[qid].split())+"/"+str(idx%1000)+"/"+str(idx)
-        result = get_predictors_values(clean_texts(input_sentence).lower(),clean_texts(target_row["input_paragraph"].lower()),replacement_index,ref_document_text,queries_text[qid],document_texts,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs,past_winners,model)
+        result = get_predictors_values(clean_texts(input_sentence).lower(),clean_texts(target_row["input_paragraph"].lower()),replacement_index,ref_document_text,queries_text[qid],candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model)
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])
