@@ -158,7 +158,7 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                     for result in results:
                         for writes in result:
                             write_files(files_access,**writes)
-    return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model + ".txt"
+    return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model +"_"+suffix +".txt"
 
 
 def create_summarization_dataset(input_dataset_file, candidates_dir, queries_text, model, sum_model):

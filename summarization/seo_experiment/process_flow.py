@@ -2,7 +2,7 @@ from gen_utils import run_bash_command
 
 for ref_index in [1,2,3,4]:
     number_of_top_docs = min(3,ref_index)
-    prep_vectors_command = "python create_reference_docs_sentence_vectors.py --trec_file=trecs/trec_file_original_sorted.txt --trectext_file=data/documents.trectext --ref_index="+str(ref_index)+" --index=merged_indices/merged_index --sentences_out_file=data/ref_sentences_"+str(ref_index)+".txt --vectors_output_dir=sentence_ref_vectors"
+    prep_vectors_command = "python create_reference_docs_sentence_vectors.py --trec_file=trecs/trec_file_original_sorted.txt --trectext_file=data/documents.trectext --ref_index="+str(ref_index)+" --index=merged_indices/merged_index --sentences_out_file=data/ref_sentences_"+str(ref_index)+".txt --vectors_output_dir=sentence_ref_vectors_"+str(ref_index)+"/"
 
     summarization_command = "python summarization_process.py --mode=all --summary_input_file=input_data/input_paragraphs_transformer_"+str(ref_index)+".txt --sum_model=transformer --trectext_file=data/documents.trectext --trec_file=trecs/trec_file_original_sorted.txt --ref_index="+str(ref_index)+" --candidate_dir=~/textGen/summarization/summarization_pool/ --queries_file=data/queries_seo_exp.xml --model_file=/lv_local/home/sgregory/textGen/summarization/wiki.en.bin --summary_script_file=~/OpenNMT-py/translate.py --summary_output_file=summaries/output --number_of_top_docs="+str(number_of_top_docs)+" --sentences_vectors_dir=sentence_ref_vectors_"+str(ref_index)+"/ --documents_vectors_dir=asr_tfidf_vectors/ --suffix="+str(ref_index)+" --paragraph_vectors_dir=paragraph_vectors/"
 
