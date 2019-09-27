@@ -232,42 +232,47 @@ def calculate_semantic_similarity_to_centroid(text, centroid,model,stemmer=None)
     return cosine_similarity(summary_vector,centroid)
 
 
-def context_similarity(reference,document,summary,replacement_index,model):
-    document_sentences = nltk.sent_tokenize(document)
+def context_similarity(reference,context_vectors,summary,model):
+    # document_sentences = nltk.sent_tokenize(document)
+    summary_vector = get_text_centroid(clean_texts(summary), model)
+    context_vector = context_vectors[reference]
 
-    if reference=="self":
-        summary_vector = get_text_centroid(clean_texts(summary),model)
-        sentence = document_sentences[replacement_index]
-        sentence_vector = get_text_centroid(clean_texts(sentence),model)
-        try:
-            return cosine_similarity(summary_vector,sentence_vector)
-        except:
-            return 0
-    else:
-        summary_sentences = nltk.sent_tokenize(summary.replace("<t>","").replace("</t>",""))
-        summary_vectors = [get_text_centroid(clean_texts(s),model) for s in summary_sentences]
-        if len(summary_vectors)==0:
-            print("here")
-        if reference == "pred":
-            if replacement_index==0:
-                real_index = replacement_index
-            else:
-                real_index = replacement_index-1
-            pred_sentence = document_sentences[real_index]
-            try:
-                return cosine_similarity(get_text_centroid(clean_texts(pred_sentence),model),summary_vectors[0])
-            except:
-                return 0
-        elif reference=="next":
-            if replacement_index==len(document_sentences)-1:
-                real_index = replacement_index
-            else:
-                real_index = replacement_index+1
-            next_sentence = document_sentences[real_index]
-            try:
-                return cosine_similarity(get_text_centroid(clean_texts(next_sentence),model),summary_vectors[-1])
-            except:
-                return 0
+    try:
+        return cosine_similarity(summary_vector,context_vector)
+    except:
+        return 0
+    #     summary_vector = get_text_centroid(clean_texts(summary),model)
+    #     sentence = document_sentences[replacement_index]
+    #     sentence_vector = get_text_centroid(clean_texts(sentence),model)
+    #     try:
+    #         return cosine_similarity(summary_vector,sentence_vector)
+    #     except:
+    #         return 0
+    # else:
+    #     summary_sentences = nltk.sent_tokenize(summary.replace("<t>","").replace("</t>",""))
+    #     summary_vectors = [get_text_centroid(clean_texts(s),model) for s in summary_sentences]
+    #     if len(summary_vectors)==0:
+    #         print("here")
+    #     if reference == "pred":
+    #         if replacement_index==0:
+    #             real_index = replacement_index
+    #         else:
+    #             real_index = replacement_index-1
+    #         pred_sentence = document_sentences[real_index]
+    #         try:
+    #             return cosine_similarity(get_text_centroid(clean_texts(pred_sentence),model),summary_vectors[0])
+    #         except:
+    #             return 0
+    #     elif reference=="next":
+    #         if replacement_index==len(document_sentences)-1:
+    #             real_index = replacement_index
+    #         else:
+    #             real_index = replacement_index+1
+    #         next_sentence = document_sentences[real_index]
+    #         try:
+    #             return cosine_similarity(get_text_centroid(clean_texts(next_sentence),model),summary_vectors[-1])
+    #         except:
+    #             return 0
 
 def summary_len(summary):
     return len(clean_texts(summary).split())
@@ -329,7 +334,7 @@ def cover(text,query):
             numerator+=1
     return numerator/len(query.split())
 
-# def get_predictors_values(input_sentence, query,args):
+# def `get_`predictors_values(input_sentence, query,args):
 #     idx, candidate_sentence,model = args
 #     result={}
 #     max_query_token_tf = wrapped_partial(query_term_freq,"max")
@@ -345,7 +350,7 @@ def cover(text,query):
 #             result[i] = func(input_sentence,candidate_sentence)
 #     return result
 
-def get_predictors_values(input_sentence, candidate_sentence,replacement_index,document,query,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model):
+def get_predictors_values(input_sentence, candidate_sentence,context_vectors,document,query,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model):
     # idx, = args
     result = {}
     avg_query_token_tf = wrapped_partial(query_term_freq, "avg")
@@ -359,7 +364,7 @@ def get_predictors_values(input_sentence, candidate_sentence,replacement_index,d
         if func.__name__.__contains__("query"):
             result[j] = func(clean_texts(input_sentence), query)
         elif func.__name__.__contains__("context"):
-            result[j] = func(document, candidate_sentence, replacement_index, model)
+            result[j] = func(context_vectors,candidate_sentence, model)
         elif func.__name__.__contains__("tf_idf"):
             result[j] = func(candidate_sentence_tf_idf_fname, top_documents_centroid_tf_idf)
             j += 1
@@ -413,6 +418,26 @@ def calculte_top_docs_centroid(top_docs,document_veoctors_dir):
     document_vectors = [get_java_object(document_veoctors_dir+top_doc) for top_doc in top_docs]
     return document_centroid(document_vectors)
 
+
+
+def get_context_sentence_vectors(text, index, model):
+    result={}
+    sentences = nltk.sent_tokenize(text)
+    if index==0:
+        result["pred"]=get_text_centroid(sentences[0],model)
+        result["own"]=get_text_centroid(sentences[0],model)
+        result["prev"]=get_text_centroid(sentences[1],model)
+    elif index==len(sentences)-1:
+        result["pred"]=get_text_centroid(sentences[index-1],model)
+        result["own"]=get_text_centroid(sentences[index],model)
+        result["prev"]=get_text_centroid(sentences[index],model)
+    else:
+        result["pred"] = get_text_centroid(sentences[index - 1], model)
+        result["own"] = get_text_centroid(sentences[index], model)
+        result["prev"] = get_text_centroid(sentences[index+1], model)
+    return result
+
+
 def calculate_summarization_predictors(target_subset, input_sentence, replacement_index,qid,queries_text,document_texts,ref_docs,top_docs,past_winners,document_vectors_dir ,paragraphs_vector_dir,model):
     reduced_subset = reduce_subset(target_subset, input_sentence)
     top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs, document_vectors_dir)
@@ -420,13 +445,13 @@ def calculate_summarization_predictors(target_subset, input_sentence, replacemen
     ref_document_text = document_texts[ref_docs[qid]]
     past_winners_centroid = get_semantic_docs_centroid(document_texts,past_winners,model)
     top_docs_centroid = get_semantic_docs_centroid(document_texts,top_docs,model)
-
+    context_vectors = get_context_sentence_vectors(ref_document_text, replacement_index, model)
     if reduced_subset.empty:
         reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
         candidate_sentence_tf_idf_fname = paragraphs_vector_dir+"/"+"_".join(queries_text[qid].split())+"/"+str(idx%1000)+"/"+str(idx)
-        result = get_predictors_values(clean_texts(input_sentence).lower(),clean_texts(target_row["input_paragraph"].lower()),replacement_index,ref_document_text,queries_text[qid],candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model)
+        result = get_predictors_values(clean_texts(input_sentence).lower(),clean_texts(target_row["input_paragraph"].lower()),context_vectors,ref_document_text,queries_text[qid],candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model)
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])
