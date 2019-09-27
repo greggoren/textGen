@@ -426,7 +426,7 @@ def get_context_sentence_vectors(text, index, model):
     if index==0:
         result["pred"]=get_text_centroid(sentences[0],model)
         result["self"]=get_text_centroid(sentences[0],model)
-        result["next"]=get_text_centroid(sentences[1],model)
+        result["next"]=get_text_centroid(sentences[min(1,len(sentences)-1)],model)
     elif index==len(sentences)-1:
         result["pred"]=get_text_centroid(sentences[index-1],model)
         result["self"]=get_text_centroid(sentences[index],model)
