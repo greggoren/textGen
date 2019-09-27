@@ -420,6 +420,7 @@ def calculate_summarization_predictors(target_subset, input_sentence, replacemen
     ref_document_text = document_texts[ref_docs[qid]]
     past_winners_centroid = get_semantic_docs_centroid(document_texts,past_winners,model)
     top_docs_centroid = get_semantic_docs_centroid(document_texts,top_docs,model)
+
     if reduced_subset.empty:
         reduced_subset = target_subset
     results={}

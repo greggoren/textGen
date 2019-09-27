@@ -123,5 +123,5 @@ if __name__=="__main__":
     ranked_lists = read_trec_file(options.trec_file)
     model = gensim.models.FastText.load_fasttext_format(options.model_file)
     # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
-    updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
+    updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,ranked_lists,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
     create_trectext(updated_texts,options.new_trectext_file,options.new_ws_file)
