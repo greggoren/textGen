@@ -219,6 +219,17 @@ def calculate_similarity_to_docs_centroid_tf_idf(text_tfidf_fname, top_docs_tfid
     summary_tfidf=get_java_object(text_tfidf_fname)
     return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
 
+
+def calculate_similarity_to_docs_centroid_tf_idf(text_tfidf_fname, top_docs_tfidf):
+    summary_tfidf=get_java_object(text_tfidf_fname)
+    return dict_cosine_similarity(summary_tfidf,top_docs_tfidf)
+
+
+def calculate_similarity_tf_idf(text_tfidf, top_docs_tfidf):
+    return dict_cosine_similarity(text_tfidf,top_docs_tfidf)
+
+
+
 def calculate_semantic_similarity_to_top_docs(text, top_docs, doc_texts, model,stemmer=None):
     summary_vector = get_text_centroid(clean_texts(text), model,stemmer)
     top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model)
@@ -228,6 +239,16 @@ def calculate_semantic_similarity_to_centroid(text, centroid,model,stemmer=None)
     text_vector = get_text_centroid(clean_texts(text), model,stemmer)
     return cosine_similarity(text_vector,centroid)
 
+def calculate_semantic_similarity(text_vector, centroid):
+    return cosine_similarity(text_vector,centroid)
+
+
+def context_similarity_precomputed_vec(reference, context_vectors, text_vector):
+    context_vector = context_vectors[reference]
+    try:
+        return cosine_similarity(text_vector, context_vector)
+    except:
+        return 0
 
 def context_similarity(reference,context_vectors,summary,model):
     # document_sentences = nltk.sent_tokenize(document)
@@ -382,29 +403,29 @@ def create_weighted_dict(dict,weight):
 
 
 
-def get_predictors_values(input_sentence, candidate_sentence,context_vectors,query,candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid,model):
+def get_predictors_values(input_sentence, candidate_sentence_semantic_vector,context_vectors,query,candidate_sentence_tf_idf,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_centroid):
     # idx, = args
     result = {}
     avg_query_token_tf = wrapped_partial(query_term_freq, "avg")
-    pred_context_similarity = wrapped_partial(context_similarity, "pred")
-    next_context_similarity = wrapped_partial(context_similarity, "next")
-    self_context_similarity = wrapped_partial(context_similarity, "self")
+    pred_context_similarity = wrapped_partial(context_similarity_precomputed_vec, "pred")
+    next_context_similarity = wrapped_partial(context_similarity_precomputed_vec, "next")
+    self_context_similarity = wrapped_partial(context_similarity_precomputed_vec, "self")
     funcs = [avg_query_token_tf, pred_context_similarity, next_context_similarity, self_context_similarity,
-             calculate_similarity_to_docs_centroid_tf_idf, calculate_semantic_similarity_to_centroid]
+             calculate_similarity_tf_idf, calculate_semantic_similarity]
     j = 0
     for i, func in enumerate(funcs):
         if func.__name__.__contains__("query"):
             result[j] = func(clean_texts(input_sentence), query)
         elif func.__name__.__contains__("context"):
-            result[j] = func(context_vectors,candidate_sentence, model)
+            result[j] = func(context_vectors,candidate_sentence_semantic_vector)
         elif func.__name__.__contains__("tf_idf"):
-            result[j] = func(candidate_sentence_tf_idf_fname, top_documents_centroid_tf_idf)
+            result[j] = func(candidate_sentence_tf_idf, top_documents_centroid_tf_idf)
             j += 1
-            result[j] = func(candidate_sentence_tf_idf_fname, past_winners_centroid_tf_idf)
+            result[j] = func(candidate_sentence_tf_idf, past_winners_centroid_tf_idf)
         elif func.__name__.__contains__("semantic"):
-            result[j] = func(candidate_sentence, top_docs_centroid, model)
+            result[j] = func(candidate_sentence_semantic_vector, top_docs_centroid)
             j += 1
-            result[j] = func(candidate_sentence, past_winners_centroid,  model)
+            result[j] = func(candidate_sentence_semantic_vector, past_winners_centroid)
         j += 1
     return result
 
@@ -482,8 +503,10 @@ def calculate_summarization_predictors(target_subset, input_sentence, replacemen
         reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
-        candidate_sentence_tf_idf_fname = paragraphs_vector_dir+"/"+"_".join(queries_text[qid].split())+"/"+str(idx%1000)+"/"+str(idx)
-        result = get_predictors_values(input_sentence,target_row["input_paragraph"],context_vectors,queries_text[qid],candidate_sentence_tf_idf_fname,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_semantic_centroid_vector,model)
+        candidate_paragraph_tf_idf_fname = paragraphs_vector_dir+"/"+"_".join(queries_text[qid].split())+"/"+str(idx%1000)+"/"+str(idx)
+        paragraph_semantic_vector = get_text_centroid(clean_texts(target_row["input_paragraph"]),model)
+        paragraph_vector_tfidf = get_java_object(candidate_paragraph_tf_idf_fname)
+        result = get_predictors_values(input_sentence,paragraph_semantic_vector,context_vectors,queries_text[qid],paragraph_vector_tfidf,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_semantic_centroid_vector)
         results[idx] = result
     chosen_idxs = apply_borda_in_dict(results)
     return "\n##\n".join([reduced_subset.ix[i]["input_paragraph"] for i in chosen_idxs])
