@@ -150,7 +150,8 @@ def centroid_similarity(s1,s2,model,stemmer=None):
     return cosine_similarity(centroid1,centroid2)
 
 def clean_sentence(sentence):
-    sw = set(nltk.corpus.stopwords.words('english'))
+    # sw = set(nltk.corpus.stopwords.words('english'))
+    sw = []
     return [token for token in sentence.rstrip().split() if token not in sw]
 
 

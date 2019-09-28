@@ -20,7 +20,7 @@ def create_features_file_diif(features_dir, base_index_path,new_index_path,queri
     print(command)
     out = run_bash_command(command)
     print(out)
-    run_bash_command("mv doc*_* "+features_dir)
+    # run_bash_command("mv doc*_* "+features_dir)
     command = "perl " + scripts_path + "generate.pl " + features_dir + " " + working_set_file
     print(command)
     out=run_bash_command(command)
