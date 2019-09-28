@@ -279,7 +279,7 @@ def summary_len(summary):
 
 
 
-def get_seo_predictors_values(summary, summary_tfidf_fname, replacement_index, query, document, top_documents_centroid_tf_idf, past_winners_centroid_tf_idf, documents_text, top_docs, past_winners, model):
+def get_seo_predictors_values(summary, summary_tfidf_fname, context_vectors, query, document, top_documents_centroid_tf_idf, past_winners_centroid_tf_idf, documents_text, top_docs, past_winners, model):
     result={}
     avg_query_token_tf = wrapped_partial(query_term_freq,"avg")
     pred_context_similarity = wrapped_partial(context_similarity,"pred")
@@ -291,7 +291,7 @@ def get_seo_predictors_values(summary, summary_tfidf_fname, replacement_index, q
         if func.__name__.__contains__("query"):
             result[j]=func(clean_texts(summary),query)
         elif func.__name__.__contains__("context"):
-            result[j] = func(document,summary,replacement_index,model)
+            result[j] = func(context_vectors,summary,model)
         elif func.__name__.__contains__("tf_idf"):
             result[j] = func(summary_tfidf_fname,top_documents_centroid_tf_idf)
             j+=1
@@ -461,10 +461,11 @@ def calculate_summarization_predictors(target_subset, input_sentence, replacemen
 def calculate_seo_predictors(summaries,summary_tfidf_fname_index, replacement_index,query,document,document_vectors_dir,documents_text,top_docs,past_winners,model):
     top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs,document_vectors_dir)
     past_winners_centroid_tf_idf = calculte_top_docs_centroid(past_winners,document_vectors_dir)
+    context_vectors = get_context_sentence_vectors(document,replacement_index,model)
     results={}
     for i,summary in enumerate(summaries):
         summary_tfidf_fname=summary_tfidf_fname_index[i]
-        result = get_seo_predictors_values(summary,summary_tfidf_fname, replacement_index,query,document,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,documents_text,top_docs,past_winners,model)
+        result = get_seo_predictors_values(summary,summary_tfidf_fname, context_vectors,query,document,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,documents_text,top_docs,past_winners,model)
         results[i] = result
     chosen_idx = apply_borda_in_dict(results,1)[0]
     return summaries[chosen_idx]
