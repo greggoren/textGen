@@ -39,6 +39,9 @@ def create_summaries(queries,options):
                             "transformer": "summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt"}
     summary_kwargs = {"lstm": {"min_length": "10", "block_ngram_repeat": "2"}, "transformer": {"min_length": "3"}}
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     sum_model = options.sum_model
     args = []
 
