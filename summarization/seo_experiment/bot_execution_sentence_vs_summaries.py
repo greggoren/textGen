@@ -17,7 +17,7 @@ import math
 from multiprocessing import cpu_count
 from functools import partial
 
-def run_summarization_model(script_file,model_file,**kwargs):
+def run_summarization_model(script_file,model_file,kwargs):
     """
      cmd example:
      nohup python ~/OpenNMT-py/translate.py --replace_unk  -beam_size 10 --model ~/OpenNMT-py/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt
