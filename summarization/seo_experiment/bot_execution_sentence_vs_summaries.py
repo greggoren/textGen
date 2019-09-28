@@ -2,18 +2,82 @@ import logging
 import sys
 from optparse import OptionParser
 import gensim
+from copy import deepcopy
 from gen_utils import run_bash_command
 import os
-from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf,past_winners_centroid, get_past_winners_tfidf_centroid, document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,cosine_similarity
+from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf,past_winners_centroid, get_past_winners_tfidf_centroid,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext
 from summarization.seo_experiment.summarization_process import transform_query_text
-from summarization.seo_experiment.summarization_process import list_multiprocessing
+from summarization.seo_experiment.summarization_process import list_multiprocessing,read_texts
+
 from nltk import sent_tokenize
 import numpy as np
 import math
 from multiprocessing import cpu_count
 from functools import partial
+
+def run_summarization_model(script_file,model_file,**kwargs):
+    """
+     cmd example:
+     nohup python ~/OpenNMT-py/translate.py --replace_unk  -beam_size 10 --model ~/OpenNMT-py/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt
+      --src input_transformer.txt --output transformer_real_par2.txt
+      --batch_size 1  -min_length 1  -gpu 0 &
+    """
+    command = "python "+script_file+" --replace_unk  -beam_size 10 --model "+model_file+" --batch_size 1 -gpu 0 "
+    for key, value in kwargs.items():
+        command+="--"+key+" "+value+" "
+    print("##Running summarization command: "+command+"##",flush=True)
+    out = run_bash_command(command)
+    print("Summarization output= "+str(out),flush=True)
+
+def create_summaries(queries,options):
+    logger.info("starting summarization")
+    input_dir = options.input_summaries_dir
+    output_dir = options.output_summaries_dir
+    summarization_models = {"lstm": "summarizations_models/gigaword_copy_acc_51.78_ppl_11.71_e20.pt",
+                            "transformer": "summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt"}
+    summary_kwargs = {"lstm": {"min_length": "10", "block_ngram_repeat": "2"}, "transformer": {"min_length": "3"}}
+
+    sum_model = options.sum_model
+    args = []
+
+    for query in queries:
+        kwargs = deepcopy(summary_kwargs[sum_model])
+        kwargs["src"] =input_dir+query
+        kwargs["output"] =output_dir+query
+        args.append(kwargs)
+
+    summary_model = summarization_models[sum_model]
+    func = partial(run_summarization_model,options.summary_script_file, summary_model)
+    workers = 4 #GPU limited model space
+    list_multiprocessing(args,func,workers=workers)
+    logger.info("summarization completed")
+
+
+def prepare_summarization_input_file(input_dir,output_dir,query):
+    fname = input_dir+query
+    df = read_texts(fname)
+    with open(output_dir+query) as out:
+        for i,row in df.iterrows():
+            paragraph = row["input_paragraph"]
+            sentences = sent_tokenize(paragraph)
+            fixed_paragraph = " ".join(["<t> " + s + " </t>" for s in sentences])
+            out.write(fixed_paragraph+"\n")
+
+
+def prepare_summarization_input(summarization_pool_dir,output_dir,queries):
+    if os.path.exists(output_dir):
+        logger.info("summaries input files exist already, no input creation needed")
+        return
+    else:
+        os.makedirs(output_dir)
+    func = partial(prepare_summarization_input_file,summarization_pool_dir,output_dir)
+    workers = cpu_count()-1
+    list_multiprocessing(queries,func,workers=workers)
+    logger.info("summarization preperation done")
+
+
 
 
 
@@ -65,36 +129,7 @@ def get_past_winners(ranked_lists,epoch,query):
         past_winners.append(ranked_lists[current_epoch][query][0])
     return past_winners
 
-#
-# def create_weighted_dict(dict,weight):
-#     result={}
-#     for token in dict:
-#         result[token]=float(dict[token])*weight
-#     return result
-#
-# def get_past_winners_tfidf_centroid(past_winners,docuemnt_vectors_dir):
-#     result = {}
-#     decay_factors = [0.01 * math.exp(-0.01 * (len(past_winners) - i)) for i in range(len(past_winners))]
-#     denominator = sum(decay_factors)
-#     for i,doc in enumerate(past_winners):
-#         doc_tfidf = get_java_object(docuemnt_vectors_dir+doc)
-#         decay = decay_factors[i]/denominator
-#         normalized_vector = create_weighted_dict(doc_tfidf,decay)
-#         result=add_dict(result,normalized_vector)
-#     return result
-#
-#
-# def past_winners_centroid(past_winners,texts,model,stemmer=None):
-#     sum_vector = None
-#     decay_factors = [0.01*math.exp(-0.01*(len(past_winners)-i)) for i in range(len(past_winners))]
-#     denominator = sum(decay_factors)
-#     for i,doc in enumerate(past_winners):
-#         text = texts[doc]
-#         vector = get_text_centroid(clean_texts(text),model,stemmer)
-#         if sum_vector is None:
-#             sum_vector = np.zeros(vector.shape[0])
-#         sum_vector+=vector*decay_factors[i]/denominator
-#     return sum_vector
+
 
 
 def write_files(feature_list, feature_vals, output_dir, qid):
@@ -102,6 +137,8 @@ def write_files(feature_list, feature_vals, output_dir, qid):
         with open(output_dir+"doc"+feature+"_"+qid,'w') as out:
             for pair in feature_vals[feature]:
                 out.write(pair+" "+str(feature_vals[feature][pair])+"\n")
+
+
 
 
 def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir,summary_tfidf_dir, queries, output_dir, qid):
@@ -259,6 +296,9 @@ if __name__=="__main__":
     parser.add_option("--index_path", dest="index_path")
     parser.add_option("--raw_ds_out", dest="raw_ds_out")
     parser.add_option("--ref_index", dest="ref_index")
+    parser.add_option("--input_summaries_dir", dest="input_summaries_dir")
+    parser.add_option("--output_summaries_dir", dest="output_summaries_dir")
+    parser.add_option("--input_summarization_pool_dir", dest="input_summarization_pool_dir")
     parser.add_option("--top_docs_index", dest="top_docs_index")
 
     parser.add_option("--doc_tfidf_dir", dest="doc_tfidf_dir")
@@ -275,11 +315,18 @@ if __name__=="__main__":
     parser.add_option("--model_file", dest="model_file")
     parser.add_option("--workingset_file", dest="workingset_file")
     parser.add_option("--svm_model_file", dest="svm_model_file")
+    parser.add_option("--sum_model", dest="sum_model")
+    parser.add_option("--summary_script_file", dest="summary_script_file")
     (options, args) = parser.parse_args()
     ranked_lists = read_trec_file(options.trec_file)
     doc_texts = load_file(options.trectext_file)
     mode = options.mode
 
+    if mode=="prepare":
+        queries = read_queries_file(options.queries_file)
+        query_args = list(set(["_".join(queries[qid].split()) for qid in queries]))
+        prepare_summarization_input(options.input_summarization_pool_dir,options.input_summaries_dir,query_args)
+        create_summaries(query_args,options)
 
     if mode=="features":
         queries = read_queries_file(options.queries_file)
