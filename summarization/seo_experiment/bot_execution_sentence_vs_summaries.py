@@ -53,7 +53,7 @@ def create_summaries(queries,options):
 
     summary_model = summarization_models[sum_model]
     func = partial(run_summarization_model,options.summary_script_file, summary_model)
-    workers = 4 #GPU limited model space
+    workers = 9 #GPU limited model space
     list_multiprocessing(args,func,workers=workers)
     logger.info("summarization completed")
 
