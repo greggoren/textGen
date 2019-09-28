@@ -324,6 +324,7 @@ if __name__=="__main__":
 
     if mode=="prepare":
         queries = read_queries_file(options.queries_file)
+        queries = transform_query_text(queries)
         query_args = list(set(["_".join(queries[qid].split()) for qid in queries]))
         prepare_summarization_input(options.input_summarization_pool_dir,options.input_summaries_dir,query_args)
         create_summaries(query_args,options)
