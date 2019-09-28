@@ -58,7 +58,7 @@ def create_summaries(queries,options):
 def prepare_summarization_input_file(input_dir,output_dir,query):
     fname = input_dir+query
     df = read_texts(fname)
-    with open(output_dir+query) as out:
+    with open(output_dir+query,'w') as out:
         for i,row in df.iterrows():
             paragraph = row["input_paragraph"]
             sentences = sent_tokenize(paragraph)
