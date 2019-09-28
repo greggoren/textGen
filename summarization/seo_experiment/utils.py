@@ -6,6 +6,32 @@ from gen_utils import run_bash_command,run_command
 import xml.etree.ElementTree as ET
 from  lxml import etree
 
+def create_features_file_diif(features_dir, base_index_path,new_index_path,queries_file, new_features_file, working_set_file, scripts_path):
+    """
+    Creates  a feature file via a given index and a given working set file
+    """
+    run_bash_command("rm -r "+features_dir)
+    if not os.path.exists(features_dir):
+        os.makedirs(features_dir)
+    if not os.path.exists(os.path.dirname(new_features_file)):
+        os.makedirs(os.path.dirname(new_features_file))
+    # command= scripts_path+"LTRFeatures "+ queries_file + ' -stream=doc -index=' + index_path + ' -repository='+ index_path +' -useWorkingSet=true -workingSetFile='+working_set_file + ' -workingSetFormat=trec'
+    command="~/jdk1.8.0_181/bin/java -Djava.library.path=/lv_local/home/sgregory/indri-5.6/swig/obj/java/ -cp seo_summarization.jar LTRFeatures "+base_index_path+" "+new_index_path+" data/stopWordsList data/working_comp_queries.txt "+working_set_file+" "+features_dir
+    print(command)
+    out = run_bash_command(command)
+    print(out)
+    run_bash_command("mv doc*_* "+features_dir)
+    command = "perl " + scripts_path + "generate.pl " + features_dir + " " + working_set_file
+    print(command)
+    out=run_bash_command(command)
+    print(out)
+    command = "mv features "+new_features_file
+    print(command)
+    out = run_bash_command(command)
+    print(out)
+    run_bash_command("mv featureID "+os.path.dirname(new_features_file))
+    return new_features_file
+
 
 def create_features_file(features_dir, index_path, queries_file, new_features_file, working_set_file, scripts_path):
     """
