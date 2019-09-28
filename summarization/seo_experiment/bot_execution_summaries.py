@@ -4,8 +4,7 @@ from optparse import OptionParser
 import gensim
 from gen_utils import run_bash_command
 import os
-from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf\
-    ,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,add_dict,cosine_similarity
+from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf,past_winners_centroid, get_past_winners_tfidf_centroid,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
 from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext
 from summarization.seo_experiment.summarization_process import transform_query_text
@@ -66,36 +65,36 @@ def get_past_winners(ranked_lists,epoch,query):
         past_winners.append(ranked_lists[current_epoch][query][0])
     return past_winners
 
-
-def create_weighted_dict(dict,weight):
-    result={}
-    for token in dict:
-        result[token]=float(dict[token])*weight
-    return result
-
-def get_past_winners_tfidf_centroid(past_winners,docuemnt_vectors_dir):
-    result = {}
-    decay_factors = [0.01 * math.exp(-0.01 * (len(past_winners) - i)) for i in range(len(past_winners))]
-    denominator = sum(decay_factors)
-    for i,doc in enumerate(past_winners):
-        doc_tfidf = get_java_object(docuemnt_vectors_dir+doc)
-        decay = decay_factors[i]/denominator
-        normalized_vector = create_weighted_dict(doc_tfidf,decay)
-        result=add_dict(result,normalized_vector)
-    return result
-
-
-def past_winners_centroid(past_winners,texts,model,stemmer=None):
-    sum_vector = None
-    decay_factors = [0.01*math.exp(-0.01*(len(past_winners)-i)) for i in range(len(past_winners))]
-    denominator = sum(decay_factors)
-    for i,doc in enumerate(past_winners):
-        text = texts[doc]
-        vector = get_text_centroid(clean_texts(text),model,stemmer)
-        if sum_vector is None:
-            sum_vector = np.zeros(vector.shape[0])
-        sum_vector+=vector*decay_factors[i]/denominator
-    return sum_vector
+#
+# def create_weighted_dict(dict,weight):
+#     result={}
+#     for token in dict:
+#         result[token]=float(dict[token])*weight
+#     return result
+#
+# def get_past_winners_tfidf_centroid(past_winners,docuemnt_vectors_dir):
+#     result = {}
+#     decay_factors = [0.01 * math.exp(-0.01 * (len(past_winners) - i)) for i in range(len(past_winners))]
+#     denominator = sum(decay_factors)
+#     for i,doc in enumerate(past_winners):
+#         doc_tfidf = get_java_object(docuemnt_vectors_dir+doc)
+#         decay = decay_factors[i]/denominator
+#         normalized_vector = create_weighted_dict(doc_tfidf,decay)
+#         result=add_dict(result,normalized_vector)
+#     return result
+#
+#
+# def past_winners_centroid(past_winners,texts,model,stemmer=None):
+#     sum_vector = None
+#     decay_factors = [0.01*math.exp(-0.01*(len(past_winners)-i)) for i in range(len(past_winners))]
+#     denominator = sum(decay_factors)
+#     for i,doc in enumerate(past_winners):
+#         text = texts[doc]
+#         vector = get_text_centroid(clean_texts(text),model,stemmer)
+#         if sum_vector is None:
+#             sum_vector = np.zeros(vector.shape[0])
+#         sum_vector+=vector*decay_factors[i]/denominator
+#     return sum_vector
 
 
 def write_files(feature_list, feature_vals, output_dir, qid):
