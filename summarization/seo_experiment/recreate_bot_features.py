@@ -393,7 +393,7 @@ if __name__=="__main__":
         create_raw_dataset(ranked_lists,doc_texts,options.raw_ds_out,int(options.ref_index),int(options.top_docs_index))
         create_sentence_vector_files(options.sentences_tfidf_dir,options.raw_ds_out,options.index_path)
         raw_ds = read_raw_ds(options.raw_ds_out)
-        create_qrels(raw_ds,options.trec_file,"qrels_seo_bot.txt",int(options.ref_index),"qrels_indices/",doc_texts,options)
+        create_qrels(options.raw_ds_out,options.trec_file,"qrels_seo_bot.txt",int(options.ref_index),"qrels_indices/",doc_texts,options)
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
