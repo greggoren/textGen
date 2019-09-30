@@ -8,7 +8,7 @@ from copy import deepcopy
 from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf\
     ,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,add_dict,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
-from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file,create_trec_eval_file,order_trec_file
+from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file,create_trec_eval_file,order_trec_file,retrieve_scores
 from summarization.seo_experiment.summarization_process import transform_query_text
 from summarization.seo_experiment.summarization_process import list_multiprocessing
 from nltk import sent_tokenize
@@ -210,10 +210,7 @@ def run_svm_rank_model(test_file, model_file, predictions_folder):
     print("Output of ranking command: "+str(out),flush=True)
     return predictions_file
 
-def retrieve_scores(test_indices, score_file):
-    with open(score_file) as scores:
-        results = {test_indices[i]: score.rstrip() for i, score in enumerate(scores)}
-        return results
+
 
 def create_index_to_doc_name_dict(features):
     doc_name_index = {}
