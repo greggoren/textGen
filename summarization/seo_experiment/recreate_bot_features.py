@@ -337,6 +337,9 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
         if not os.path.exists(trec_dir):
             os.makedirs(trec_dir)
         for qid in raw_stats:
+            epoch,q=reverese_query(qid)
+            if epoch not in ["04","06"]:
+                continue
             for pair in raw_stats[qid]:
                 ref_doc = pair.split("$")[0]
                 out_index = int(pair.split("_")[1])
