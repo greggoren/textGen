@@ -114,33 +114,35 @@ def get_average_increase(rank_increase_stats):
 
 
 if __name__=="__main__":
-    original_trec="../trecs/trec_file_original_sorted.txt"
-    updated_trec="../trecs/trec_file_post_sorted.txt"
-    bot_trec="../trecs/trec_file_bot_post_sorted.txt"
-    bot_summary_trec="../trecs/trec_file_bot_summary_post_sorted.txt"
-    top_borda_trec="../trecs/trec_file_top_sentence_borda_post_sorted.txt"
-    bot_extended_trec="../trecs/trec_file_bot_extended_post_sorted.txt"
-    original_lists = read_trec_file(original_trec)
-    updated_lists = read_trec_file(updated_trec)
-    bot_lists = read_trec_file(bot_trec)
-    bot_summary_lists = read_trec_file(bot_summary_trec)
-    top_borda_lists = read_trec_file(top_borda_trec)
-    bot_extended_lists = read_trec_file(bot_extended_trec)
-    rank_increase_stats = compare_lists(original_lists,updated_lists,-1)
-    bot_increase_stats = compare_lists(original_lists,bot_lists,-1)
-    bot_summary_increase_stats = compare_lists(original_lists,bot_summary_lists,-1)
-    top_borda_increase_stats = compare_lists(original_lists,top_borda_lists,-1)
-    bot_extended_increase_stats = compare_lists(original_lists,bot_extended_lists,-1)
-    histograms = histogram(rank_increase_stats)
-    averages = get_average_increase(rank_increase_stats)
-    bot_averages = get_average_increase(bot_increase_stats)
-    bot_summary_averages = get_average_increase(bot_summary_increase_stats)
-    top_borda_averages = get_average_increase(top_borda_increase_stats)
-    bot_extended_averages = get_average_increase(bot_extended_increase_stats)
-    ys=[averages,bot_averages,bot_summary_averages,top_borda_averages,bot_extended_averages]
-    legends=["Summarization","Bot","Bot+Summary","TopDocs+Borda","Bot Extended"]
-    colors=["b","r","k","y","g"]
-    plot_metric(ys,[i+1 for i in range(len(averages))],"plt/average_increase","Rank Increase","Epochs",legends,colors)
+    for i in [1,2,3,4]:
+
+        original_trec="trecs_comp/trec_file_original_sorted.txt"
+        updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
+    # bot_trec="../trecs/trec_file_bot_post_sorted.txt"
+        bot_summary_trec="trecs_comp/trec_file_bot__summary_post_"+str(i)+"_sorted.txt"
+    # top_borda_trec="../trecs/trec_file_top_sentence_borda_post_sorted.txt"
+    # bot_extended_trec="../trecs/trec_file_bot_extended_post_sorted.txt"
+        original_lists = read_trec_file(original_trec)
+        updated_lists = read_trec_file(updated_trec)
+    # bot_lists = read_trec_file(bot_trec)
+        bot_summary_lists = read_trec_file(bot_summary_trec)
+    # top_borda_lists = read_trec_file(top_borda_trec)
+    # bot_extended_lists = read_trec_file(bot_extended_trec)
+        rank_increase_stats = compare_lists(original_lists,updated_lists,i)
+    # bot_increase_stats = compare_lists(original_lists,bot_lists,-1)
+        bot_summary_increase_stats = compare_lists(original_lists,bot_summary_lists,i)
+    # top_borda_increase_stats = compare_lists(original_lists,top_borda_lists,-1)
+    # bot_extended_increase_stats = compare_lists(original_lists,bot_extended_lists,-1)
+    # histograms = histogram(rank_increase_stats)
+        averages = get_average_increase(rank_increase_stats)
+    # bot_averages = get_average_increase(bot_increase_stats)
+        bot_summary_averages = get_average_increase(bot_summary_increase_stats)
+    # top_borda_averages = get_average_increase(top_borda_increase_stats)
+    # bot_extended_averages = get_average_increase(bot_extended_increase_stats)
+        ys=[averages,bot_summary_averages]
+        legends=["Summarization","Bot+Summary"]
+        colors=["b","r"]
+        plot_metric(ys,[j+1 for j in range(len(averages))],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
     # for epoch in histograms:
     #     h = histograms[epoch]
     #     plot_metric([h[i] for i in range(5)],[],"plt/histogram_"+str(epoch),"#","Rank Increase",False)
