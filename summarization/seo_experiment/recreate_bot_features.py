@@ -191,7 +191,7 @@ def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc
     if not os.path.exists(output_final_features_dir):
         os.makedirs(output_final_features_dir)
     raw_ds = read_raw_ds(raw_dataset_file)
-    create_ws(raw_ds,workingset_file)
+    create_ws(raw_ds,workingset_file,ref_doc_index)
     func = partial(create_features, raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, queries, output_feature_files_dir)
     workers = cpu_count()-1
     list_multiprocessing(args,func,workers=workers)
