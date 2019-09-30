@@ -295,7 +295,7 @@ def create_specifi_ws(qid,ranked_lists,fname):
 
 
 
-def run_reranking(new_index,sentence_in,qid,specific_ws,ref_doc,out_index,texts,new_trectext_name,ranked_lists,new_feature_file,feature_dir,trec_file,options):
+def run_reranking(new_index,sentence_in,qid,specific_ws,ref_doc,out_index,texts,new_trectext_name,ranked_lists,new_feature_file,feature_dir,trec_file,score_file,options):
     new_text = update_text_doc(texts[ref_doc],sentence_in,out_index)
     create_new_trectext(ref_doc,texts,new_text,new_trectext_name)
     create_specifi_ws(qid,ranked_lists,specific_ws)
@@ -310,8 +310,8 @@ def run_reranking(new_index,sentence_in,qid,specific_ws,ref_doc,out_index,texts,
     logger.info("docname index creation is completed")
     logger.info("features creation completed")
     logger.info("running ranking model on features file")
-    score_file = run_model(features_file, options.home_path, options.java_path, options.jar_path, options.score_file,
-                           options.model_file)
+    score_file = run_model(features_file, options.home_path, options.java_path, options.jar_path, score_file,
+                           options.model)
     logger.info("ranking completed")
     logger.info("retrieving scores")
     scores = retrieve_scores(docname_index, score_file)
@@ -336,6 +336,9 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
         trec_dir = "tmp_trec/"
         if not os.path.exists(trec_dir):
             os.makedirs(trec_dir)
+        scores_dir = "tmp_scores/"
+        if not os.path.exists(scores_dir):
+            os.makedirs(scores_dir)
         for qid in raw_stats:
             epoch,q=reverese_query(qid)
             if epoch not in ["04","06"]:
@@ -350,7 +353,7 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
                 if not os.path.exists(feature_dir):
                     os.makedirs(feature_dir)
                 features_file = "qrels_features/"+pair
-                final_trec = run_reranking(new_indices_dir+pair,raw_stats[qid][pair]["in"],qid,ws_dir+pair,ref_doc,out_index,texts,trectext_dir+pair,ranked_lists,features_file,feature_dir,trec_dir+pair,options)
+                final_trec = run_reranking(new_indices_dir+pair,raw_stats[qid][pair]["in"],qid,ws_dir+pair,ref_doc,out_index,texts,trectext_dir+pair,ranked_lists,features_file,feature_dir,trec_dir+pair,scores_dir+pair,options)
                 new_lists = read_raw_trec_file(final_trec)
                 label = str(max(ranked_lists[qid].index(ref_doc)-new_lists[qid].index(ref_doc),0))
                 qrels.write(query_write+" 0 "+name+" "+label+"\n")
@@ -370,6 +373,13 @@ if __name__=="__main__":
     parser.add_option("--raw_ds_out", dest="raw_ds_out")
     parser.add_option("--ref_index", dest="ref_index")
     parser.add_option("--top_docs_index", dest="top_docs_index")
+    parser.add_option("--home_path", dest="home_path")
+    parser.add_option("--jar_path", dest="jar_path")
+    parser.add_option("--java_path", dest="java_path")
+    parser.add_option("--scripts_path", dest="scripts_path")
+    parser.add_option("--model", dest="model")
+    parser.add_option("--indri_path", dest="indri_path")
+    # parser.add_option("--java_path", dest="java_path")
 
     parser.add_option("--doc_tfidf_dir", dest="doc_tfidf_dir")
     parser.add_option("--sentences_tfidf_dir", dest="sentences_tfidf_dir")
