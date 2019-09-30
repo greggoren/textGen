@@ -72,6 +72,17 @@ def read_trec_file(trec_file):
             stats[epoch][query].append(doc)
     return stats
 
+def read_raw_trec_file(trec_file):
+    stats = {}
+    with open(trec_file) as file:
+        for line in file:
+            doc = line.split()[2]
+            query = line.split()[0]
+            if query not in stats:
+                stats[query]=[]
+            stats[query].append(doc)
+    return stats
+
 
 def create_trectext(document_text,trec_text_name,working_set_name):
     """
