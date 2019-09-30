@@ -350,7 +350,7 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
                 if not os.path.exists(feature_dir):
                     os.makedirs(feature_dir)
                 features_file = "qrels_features/"+pair
-                final_trec = run_reranking(new_indices_dir+pair,raw_ds[qid][pair]["in"],qid,ws_dir+pair,ref_doc,out_index,texts,trectext_dir+pair,ranked_lists,features_file,feature_dir,trec_dir+pair,options)
+                final_trec = run_reranking(new_indices_dir+pair,raw_stats[qid][pair]["in"],qid,ws_dir+pair,ref_doc,out_index,texts,trectext_dir+pair,ranked_lists,features_file,feature_dir,trec_dir+pair,options)
                 new_lists = read_raw_trec_file(final_trec)
                 label = str(max(ranked_lists[qid].index(ref_doc)-new_lists[qid].index(ref_doc),0))
                 qrels.write(query_write+" 0 "+name+" "+label+"\n")
@@ -392,7 +392,7 @@ if __name__=="__main__":
     if mode=="qrels":
         create_raw_dataset(ranked_lists,doc_texts,options.raw_ds_out,int(options.ref_index),int(options.top_docs_index))
         create_sentence_vector_files(options.sentences_tfidf_dir,options.raw_ds_out,options.index_path)
-        raw_ds = read_raw_ds(options.raw_ds_out)
+        # raw_ds = read_raw_ds(options.raw_ds_out)
         create_qrels(options.raw_ds_out,options.trec_file,"qrels_seo_bot.txt",int(options.ref_index),"qrels_indices/",doc_texts,options)
     if mode=="features":
         queries = read_queries_file(options.queries_file)
