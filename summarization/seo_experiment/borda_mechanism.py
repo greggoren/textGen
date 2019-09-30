@@ -109,7 +109,8 @@ def pos_overlap(s1,s2):
 
 
 def get_term_frequency(text,term):
-    return text.split().count(term)
+    stemmer = Stemmer()
+    return [stemmer.stem(token) for token in text.split()].count(term)
 
 
 def query_term_occ(mode,text,query):
