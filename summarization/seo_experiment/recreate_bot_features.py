@@ -267,6 +267,8 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
 
 def create_ws(raw_ds,ws_fname,ref):
     ind_name = {-1: "5", 1: "2"}
+    if not os.path.exists(os.path.dirname(ws_fname)):
+        os.makedirs(os.path.dirname(ws_fname))
     with open(ws_fname,'w') as ws:
         for qid in raw_ds:
             epoch, query = reverese_query(qid)
