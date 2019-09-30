@@ -349,7 +349,7 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
                 epoch, query = reverese_query(qid)
                 query_write = query + str(int(epoch)) + str(int(ref) + 1)
                 name = pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[1] + "_" + pair.split("_")[2]
-                fname_pair = pair.replacce("$","_")
+                fname_pair = pair.replace("$","_")
                 feature_dir = "tmp_features/" +fname_pair+"/"
                 if not os.path.exists(feature_dir):
                     os.makedirs(feature_dir)
