@@ -8,7 +8,7 @@ from copy import deepcopy
 from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf\
     ,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,add_dict,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
-from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file,create_trec_eval_file
+from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file,create_trec_eval_file,order_trec_file
 from summarization.seo_experiment.summarization_process import transform_query_text
 from summarization.seo_experiment.summarization_process import list_multiprocessing
 from nltk import sent_tokenize
@@ -235,12 +235,12 @@ def create_index_to_doc_name_dict(features):
 #                 results[doc]) + " sentences\n")
 #     trec_file_access.close()
 
-def order_trec_file(trec_file):
-    final = trec_file.replace(".txt","_sorted.txt")
-    command = "sort -k1,1n -k5nr -k2,1 "+trec_file+" > "+final
-    print(command)
-    run_bash_command(command)
-    return final
+# def order_trec_file(trec_file):
+#     final = trec_file.replace(".txt","_sorted.txt")
+#     command = "sort -k1,1n -k5nr -k2,1 "+trec_file+" > "+final
+#     print(command)
+#     run_bash_command(command)
+#     return final
 
 def create_sentence_vector_files(output_dir, raw_ds_file, index_path):
     command = " ~/jdk1.8.0_181/bin/java -Djava.library.path=/lv_local/home/sgregory/indri-5.6/swig/obj/java/ -cp seo_summarization.jar PrepareTFIDFVectorsSentences "+index_path+" "+raw_ds_file+" "+output_dir
@@ -404,7 +404,7 @@ if __name__=="__main__":
         create_raw_dataset(ranked_lists,doc_texts,options.raw_ds_out,int(options.ref_index),int(options.top_docs_index))
         create_sentence_vector_files(options.sentences_tfidf_dir,options.raw_ds_out,options.index_path)
         # raw_ds = read_raw_ds(options.raw_ds_out)
-        create_qrels(options.raw_ds_out,options.trec_file,"qrels_seo_bot.txt",int(options.ref_index),"qrels_indices/",doc_texts,options)
+        create_qrels(options.raw_ds_out,options.trec_file,"qrels_seo_bot"+options.ref_index+".txt",int(options.ref_index),"qrels_indices/",doc_texts,options)
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
