@@ -8,7 +8,7 @@ from copy import deepcopy
 from summarization.seo_experiment.borda_mechanism import query_term_freq,centroid_similarity,calculate_similarity_to_docs_centroid_tf_idf\
     ,document_centroid,calculate_semantic_similarity_to_top_docs,get_text_centroid,add_dict,cosine_similarity
 from summarization.seo_experiment.workingset_creator import read_queries_file
-from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file
+from summarization.seo_experiment.utils import clean_texts,read_trec_file,load_file,get_java_object,create_trectext,create_index,run_model,create_features_file_diif,read_raw_trec_file,create_trec_eval_file
 from summarization.seo_experiment.summarization_process import transform_query_text
 from summarization.seo_experiment.summarization_process import list_multiprocessing
 from nltk import sent_tokenize
@@ -226,14 +226,14 @@ def create_index_to_doc_name_dict(features):
             index += 1
     return doc_name_index
 
-def create_trec_eval_file(queries, results,fname):
-    if not os.path.exists(os.path.dirname(fname)):
-        os.makedirs(os.path.dirname(fname))
-    trec_file_access = open(fname, 'w')
-    for doc in results:
-        trec_file_access.write(queries[doc]+ " Q0 " + doc + " " + str(0) + " " + str(
-                results[doc]) + " sentences\n")
-    trec_file_access.close()
+# def create_trec_eval_file(queries, results,fname):
+#     if not os.path.exists(os.path.dirname(fname)):
+#         os.makedirs(os.path.dirname(fname))
+#     trec_file_access = open(fname, 'w')
+#     for doc in results:
+#         trec_file_access.write(queries[doc]+ " Q0 " + doc + " " + str(0) + " " + str(
+#                 results[doc]) + " sentences\n")
+#     trec_file_access.close()
 
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt","_sorted.txt")
