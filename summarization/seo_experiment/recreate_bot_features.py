@@ -272,13 +272,12 @@ def create_ws(raw_ds,ws_fname,ref):
     with open(ws_fname,'w') as ws:
         for qid in raw_ds:
             epoch, query = reverese_query(qid)
-            for pair in raw_ds[qid]:
-                query_write = query + str(int(epoch)) + ind_name[ref]
+            query_write = query + str(int(epoch)) + ind_name[ref]
+            for i,pair in enumerate(raw_ds[qid]):
                 out_ = str(int(pair.split("_")[1]) + 1)
                 in_ = str(int(pair.split("_")[2]) + 1)
                 name = pair.split("$")[1].split("_")[0] + "_" + in_ + "_" + out_
-                for i,pair in enumerate(raw_ds[qid]):
-                    ws.write(query_write+" Q0 "+name+" 0 "+str(i+1)+" pairs_seo\n")
+                ws.write(query_write+" Q0 "+name+" 0 "+str(i+1)+" pairs_seo\n")
 
 def update_text_doc(text,new_sentence,index):
     sentences=sent_tokenize(text)
