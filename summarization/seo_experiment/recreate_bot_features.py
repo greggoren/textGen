@@ -127,11 +127,14 @@ def past_winners_centroid(past_winners,texts,model,stemmer=None):
 
 def write_files(feature_list, feature_vals, output_dir, qid,ref):
     epoch,query = reverese_query(qid)
-    query_write = query+str(int(epoch))+str(int(ref)+1)
+    ind_name = {-1:"5",1:"2"}
+    query_write = query+str(int(epoch))+ind_name[ref]
     for feature in feature_list:
         with open(output_dir+"doc"+feature+"_"+query_write,'w') as out:
             for pair in feature_vals[feature]:
-                name = pair.split("$")[1].split("_")[0]+"_"+pair.split("_")[1]+"_"+pair.split("_")[2]
+                out_ = str(int(pair.split("_")[1])+1)
+                in_ = str(int(pair.split("_")[2])+1)
+                name = pair.split("$")[1].split("_")[0]+"_"+in_+"_"+out_
                 out.write(name+" "+str(feature_vals[feature][pair])+"\n")
 
 
@@ -267,11 +270,14 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
 
 
 def create_ws(raw_ds,ws_fname,ref):
+    ind_name = {-1: "5", 1: "2"}
     with open(ws_fname,'w') as ws:
         for qid in raw_ds:
             epoch, query = reverese_query(qid)
-            query_write = query + str(int(epoch)) + str(int(ref) + 1)
-            name = pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[1] + "_" + pair.split("_")[2]
+            query_write = query + str(int(epoch)) + ind_name[ref]
+            out_ = str(int(pair.split("_")[1]) + 1)
+            in_ = str(int(pair.split("_")[2]) + 1)
+            name = pair.split("$")[1].split("_")[0] + "_" + in_ + "_" + out_
             for i,pair in enumerate(raw_ds[qid]):
                 ws.write(query_write+" Q0 "+name+" 0 "+str(i+1)+" pairs_seo\n")
 
@@ -321,6 +327,7 @@ def run_reranking(new_index,sentence_in,qid,specific_ws,ref_doc,out_index,texts,
     logger.info("ranking procedure completed")
     return final
 def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
+    ind_name = {-1: "5", 1: "2"}
     with open(out_file,'w') as qrels:
         ranked_lists = read_raw_trec_file(base_trec)
         raw_stats = read_raw_ds(raw_ds)
@@ -344,8 +351,10 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
                 ref_doc = pair.split("$")[0]
                 out_index = int(pair.split("_")[1])
                 epoch, query = reverese_query(qid)
-                query_write = query + str(int(epoch)) + str(int(ref) + 1)
-                name = pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[1] + "_" + pair.split("_")[2]
+                query_write = query + str(int(epoch)) + ind_name[ref]
+                out_ = str(int(pair.split("_")[1]) + 1)
+                in_ = str(int(pair.split("_")[2]) + 1)
+                name = pair.split("$")[1].split("_")[0] + "_" + in_ + "_" + out_
                 fname_pair = pair.replace("$","_")
                 feature_dir = "tmp_features/" +fname_pair+"/"
                 if not os.path.exists(feature_dir):
