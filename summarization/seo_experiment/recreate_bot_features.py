@@ -349,11 +349,12 @@ def create_qrels(raw_ds,base_trec,out_file,ref,new_indices_dir,texts,options):
                 epoch, query = reverese_query(qid)
                 query_write = query + str(int(epoch)) + str(int(ref) + 1)
                 name = pair.split("$")[1].split("_")[0] + "_" + pair.split("_")[1] + "_" + pair.split("_")[2]
-                feature_dir = "tmp_features/" +pair+"/"
+                fname_pair = pair.replacce("$","_")
+                feature_dir = "tmp_features/" +fname_pair+"/"
                 if not os.path.exists(feature_dir):
                     os.makedirs(feature_dir)
-                features_file = "qrels_features/"+pair
-                final_trec = run_reranking(new_indices_dir+pair,raw_stats[qid][pair]["in"],qid,ws_dir+pair,ref_doc,out_index,texts,trectext_dir+pair,ranked_lists,features_file,feature_dir,trec_dir+pair,scores_dir+pair,options)
+                features_file = "qrels_features/"+fname_pair
+                final_trec = run_reranking(new_indices_dir+fname_pair,raw_stats[qid][pair]["in"],qid,ws_dir+fname_pair,ref_doc,out_index,texts,trectext_dir+fname_pair,ranked_lists,features_file,feature_dir,trec_dir+fname_pair,scores_dir+fname_pair,options)
                 new_lists = read_raw_trec_file(final_trec)
                 label = str(max(ranked_lists[qid].index(ref_doc)-new_lists[qid].index(ref_doc),0))
                 qrels.write(query_write+" 0 "+name+" "+label+"\n")
