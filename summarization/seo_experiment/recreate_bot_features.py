@@ -302,7 +302,7 @@ def run_reranking(new_index,sentence_in,qid,specific_ws,ref_doc,out_index,texts,
     logger.info("creating features")
     create_index(new_trectext_name, os.path.dirname(new_index), os.path.basename(new_index),
                  options.home_path, options.indri_path)
-    features_file = create_features_file_diif(feature_dir, options.merged_index, new_index,
+    features_file = create_features_file_diif(feature_dir, options.index_path, new_index,
                                               options.queries_file,
                                               new_feature_file, specific_ws, options.scripts_path)
     logger.info("creating docname index")
