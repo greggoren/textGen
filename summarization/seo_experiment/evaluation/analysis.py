@@ -119,8 +119,8 @@ if __name__=="__main__":
         original_trec="trecs_comp/trec_file_original_sorted.txt"
         updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
     # bot_trec="../trecs/trec_file_bot_post_sorted.txt"
-        bot_summary_trec="trecs_comp/trec_file_bot__summary_post_"+str(i)+"_sorted.txt"
-        bot_summary_trec_ext="trecs_comp/trec_file_bot__summary_ext_rank_post_"+str(i)+"_sorted.txt"
+        bot_summary_trec="trecs_comp/trec_file_bot_summary_rank_post_"+str(i)+"_sorted.txt"
+        bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
     # top_borda_trec="../trecs/trec_file_top_sentence_borda_post_sorted.txt"
     # bot_extended_trec="../trecs/trec_file_bot_extended_post_sorted.txt"
         original_lists = read_trec_file(original_trec)
