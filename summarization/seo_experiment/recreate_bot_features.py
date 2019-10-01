@@ -272,6 +272,8 @@ def create_ws(raw_ds,ws_fname,ref):
     with open(ws_fname,'w') as ws:
         for qid in raw_ds:
             epoch, query = reverese_query(qid)
+            if epoch not in ["04","06"]:
+                continue
             query_write = query + str(int(epoch)) + ind_name[ref]
             for i,pair in enumerate(raw_ds[qid]):
                 out_ = str(int(pair.split("_")[1]) + 1)
