@@ -135,19 +135,19 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + pair, top_docs_tfidf_centroid)
         feature_vals['CosineToCentroidOut'][pair] = calculate_similarity_to_docs_centroid_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], top_docs_tfidf_centroid)
 
-        feature_vals["CosineToCentroidInVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_in,top_docs,doc_texts,word_embd_model,True)
-        feature_vals["CosineToCentroidOutVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_out,top_docs,doc_texts,word_embd_model,True)
+        feature_vals["CosineToCentroidInVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_in,top_docs,doc_texts,word_embd_model)
+        feature_vals["CosineToCentroidOutVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_out,top_docs,doc_texts,word_embd_model)
 
         feature_vals['CosineToWinnerCentroidInVec'][pair] = cosine_similarity(in_vec,past_winners_semantic_centroid_vector)
         feature_vals['CosineToWinnerCentroidOutVec'][pair] = cosine_similarity(out_vec,past_winners_semantic_centroid_vector)
         feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + pair, past_winners_tfidf_centroid_vector)
         feature_vals['CosineToWinnerCentroidOut'][pair] = calculate_similarity_to_docs_centroid_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], past_winners_tfidf_centroid_vector)
 
-        feature_vals['SimilarityToPrev'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"prev",word_embd_model,True)
-        feature_vals['SimilarityToRefSentence'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"own",word_embd_model,True)
-        feature_vals['SimilarityToPred'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"pred",word_embd_model,True)
-        feature_vals['SimilarityToPrevRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"prev",word_embd_model,True)
-        feature_vals['SimilarityToPredRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"pred",word_embd_model,True)
+        feature_vals['SimilarityToPrev'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"prev",word_embd_model)
+        feature_vals['SimilarityToRefSentence'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"own",word_embd_model)
+        feature_vals['SimilarityToPred'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"pred",word_embd_model)
+        feature_vals['SimilarityToPrevRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"prev",word_embd_model)
+        feature_vals['SimilarityToPredRef'][pair]=context_similarity(replace_index,ref_sentences,sentence_out,"pred",word_embd_model)
     write_files(feature_list,feature_vals,output_dir,qid)
 
 def feature_creation_parallel(raw_dataset_file, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir, tfidf_summary_dir, queries, output_feature_files_dir, output_final_features_dir, workingset_file):
@@ -284,7 +284,7 @@ if __name__=="__main__":
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file,binary=True,limit=700000)
+        word_embd_model = gensim.models.FastText.load_fasttext_format(options.model_file)
         feature_creation_parallel(options.raw_ds_out,ranked_lists,doc_texts,int(options.top_docs_index),int(options.ref_index),options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir,options.summary_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
 
@@ -303,7 +303,7 @@ if __name__=="__main__":
     if mode=='all':
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True,limit=700000)
+        word_embd_model = gensim.models.FastText.load_fasttext_format(options.model_file)
         feature_creation_parallel(options.raw_ds_out, ranked_lists, doc_texts, int(options.top_docs_index),
                                   int(options.ref_index), options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir, options.summary_tfidf_dir, queries, options.output_feature_files_dir,
