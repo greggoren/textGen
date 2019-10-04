@@ -1,14 +1,21 @@
-import pandas as pd
-d1 = {"a":[1,2,1,2],"d":[3,2,1,2],"c":[1,1,1,2]}
+from summarization.seo_experiment.utils import load_file
+import nltk
+import numpy as np
 
+texts = load_file("../data/documents.trectext")
+stats={}
+for doc in texts:
+    r = doc.split("-")[1]
+    if r not in ["06","07"]:
+        continue
+    if r not in stats:
+        stats[r]=[]
+    stats[r].append(len(nltk.sent_tokenize(texts[doc])))
 
-df = pd.DataFrame.from_dict(d1)
-df = df[df.a>1]
-print(df)
-for i,row in df.iterrows():
-    print(i,row)
-    print(df.ix[i])
+for r in stats:
+    stats[r]=np.mean(stats[r])
 
+print(stats)
 
 
 
