@@ -23,4 +23,4 @@ if __name__=="__main__":
     ranked_lists = read_trec_file(trec_file)
     texts = load_file(trectext_file)
     create_summarization_ds(ranked_lists,texts)
-    run_summarization_model("~/OpenNMT-py/translate.py","../summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt","texts_for_summary.txt","top_docs_summaries.txt",summary_kwargs["transformer"])
+    run_summarization_model("~/OpenNMT-py/translate.py","../summarization_models/sum_transformer_model_acc_57.25_ppl_9.22_e16.pt","texts_for_summary.txt","top_docs_summaries.txt",**summary_kwargs["transformer"])
