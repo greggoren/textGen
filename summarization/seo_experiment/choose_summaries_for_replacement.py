@@ -94,7 +94,7 @@ def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,ra
             updated_text = update_text(document_text,summary,replacement_index)
             updated_document_text[reference_docs[query]]=updated_text
             """ Written only for analysis purposes!!!"""
-            source_sentence = nltk.sent_tokenize(document_text)[replacement_index].rstrip().replace("\n","")
+            source_sentence = nltk.sent_tokenize(document_text)[replacement_index].rstrip().replace("\n"," ")
             analysis_file.write(query_text+"\t"+reference_docs[query]+"\t"+source_sentence+"\t"+summary+"\n")
     return update_document_texts(updated_document_text,document_texts)
 
@@ -121,7 +121,7 @@ if __name__=="__main__":
     summary_stats,summary_tfidf_fname_index,replacement_indexes,queries_text,reference_docs=read_summaries_data(options.summaries_file,options.input_data_file,options.summaries_tfidf_dir,options.queries_file)
     document_texts = load_file(options.trectext_file)
     ranked_lists = read_trec_file(options.trec_file)
-    model = gensim.models.FastText.load_fasttext_format(options.model_file)
-    # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
+    # model = gensim.models.FastText.load_fasttext_format(options.model_file)
+    model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True, limit=700000)
     updated_texts = update_texts_with_replacement_summary(replacement_indexes,summary_stats,ranked_lists,options.doc_tfidf_dir,queries_text,document_texts,options.trec_file,int(options.number_of_top_docs),summary_tfidf_fname_index,reference_docs,model)
     create_trectext(updated_texts,options.new_trectext_file,options.new_ws_file)

@@ -265,7 +265,8 @@ if __name__=="__main__":
     summary_kwargs = {"lstm":{"min_length" :"10","block_ngram_repeat": "2"},"transformer":{"min_length" :"3"}}
     sum_model = options.sum_model
     if options.mode =="ds":
-        model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        # model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True, limit=700000)
         # model = gensim.models.KeyedVectors.load_word2vec_format("../../w2v/testW2V.txt"  ,binary=True)
         summarization_ds(options)
     elif options.mode=="summary":
@@ -277,7 +278,9 @@ if __name__=="__main__":
         run_summarization_model(options.summary_script_file, summary_model, input_file, output_file,
                                 **summary_kwargs[sum_model])
     elif options.mode=="all":
-        model = gensim.models.FastText.load_fasttext_format(options.model_file)
+
+        # model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True, limit=700000)
         input_file = summarization_ds(options)
         summary_model = summarization_models[sum_model]
         output_file = options.summary_output_file+"_"+sum_model+"_"+options.suffix+".txt"
