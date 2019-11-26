@@ -492,17 +492,22 @@ def get_context_sentence_vectors(text, index, model,stemmer=None):
     return result
 
 
+def own_sort(results):
+    buckets = {}
+    for i in results:
+        pass
+
 def calculate_summarization_predictors(target_subset, input_sentence, replacement_index,qid,queries_text,document_texts,ref_docs,top_docs,past_winners,document_vectors_dir ,paragraphs_vector_dir,model):
-    reduced_subset = target_subset
-    # reduced_subset = reduce_subset(target_subset, input_sentence)
+    # reduced_subset = target_subset
+    reduced_subset = reduce_subset(target_subset, input_sentence)
     top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs, document_vectors_dir)
     past_winners_centroid_tf_idf = get_past_winners_tfidf_centroid(past_winners, document_vectors_dir)
     ref_document_text = document_texts[ref_docs[qid]]
     past_winners_semantic_centroid_vector = past_winners_centroid(past_winners,document_texts,model)
     top_docs_centroid = get_semantic_docs_centroid(document_texts,top_docs,model,True)
     context_vectors = get_context_sentence_vectors(ref_document_text, replacement_index, model,True)
-    # if reduced_subset.empty:
-    #     reduced_subset = target_subset
+    if reduced_subset.empty:
+        reduced_subset = target_subset
     results={}
     for idx,target_row in reduced_subset.iterrows():
         candidate_paragraph_tf_idf_fname = paragraphs_vector_dir+"/"+"_".join(queries_text[qid].split())+"/"+str(idx%1000)+"/"+str(idx)
