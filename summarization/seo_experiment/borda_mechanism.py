@@ -492,10 +492,28 @@ def get_context_sentence_vectors(text, index, model,stemmer=None):
     return result
 
 
-def own_sort(results):
-    buckets = {}
-    for i in results:
-        pass
+
+
+def calculate_summarization_predictors_for_former_docs(input_sentence, former_docs_for_summary, replacement_index, qid, queries_text, document_texts, ref_docs, top_docs, past_winners, document_vectors_dir, model):
+    top_documents_centroid_tf_idf = calculte_top_docs_centroid(top_docs, document_vectors_dir)
+    past_winners_centroid_tf_idf = get_past_winners_tfidf_centroid(past_winners, document_vectors_dir)
+    ref_document_text = document_texts[ref_docs[qid]]
+    past_winners_semantic_centroid_vector = past_winners_centroid(past_winners,document_texts,model)
+    top_docs_centroid = get_semantic_docs_centroid(document_texts,top_docs,model,True)
+    context_vectors = get_context_sentence_vectors(ref_document_text, replacement_index, model,True)
+    results={}
+    for idx,doc in enumerate(former_docs_for_summary):
+        candidate_document_tf_idf_fname = document_vectors_dir+"/"+doc
+        document_semantic_vector = get_text_centroid(clean_texts(document_texts[doc]),model,True)
+        document_vector_tfidf = get_java_object(candidate_document_tf_idf_fname)
+        result = get_predictors_values(input_sentence,document_semantic_vector,context_vectors,queries_text[qid],document_vector_tfidf,top_documents_centroid_tf_idf,past_winners_centroid_tf_idf,top_docs_centroid,past_winners_semantic_centroid_vector)
+        results[idx] = result
+    chosen_idxs = apply_borda_in_dict(results)
+    return "\n##\n".join([document_texts[former_docs_for_summary[i]] for i in chosen_idxs])
+
+
+
+
 
 def calculate_summarization_predictors(target_subset, input_sentence, replacement_index,qid,queries_text,document_texts,ref_docs,top_docs,past_winners,document_vectors_dir ,paragraphs_vector_dir,model):
     # reduced_subset = target_subset
