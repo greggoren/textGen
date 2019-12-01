@@ -112,7 +112,7 @@ def calcualte_former_documents(current_epoch,qid,document_texts):
         seen_texts.append(cleaned_text)
     return former_docs
 
-def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists,row):
+def creaion_parrallel(queries_text,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists,row):
     global model
     complete_data = "\t".join([str(row[str(col)]).rstrip() for col in input_df.columns])
     results =[]
@@ -121,11 +121,10 @@ def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,
     query = "_".join(query.split())
     sentence = str(row["sentence"]).rstrip()
     replacement_index = int(row["sentence_index"])
-    query_paragraph_df = read_texts(candidates_dir + query)
     epoch,real_query = reverese_query(qid)
     past_winners = get_past_winners(ranked_lists,epoch,real_query)
     former_docs = calcualte_former_documents(int(epoch),real_query,document_texts)
-    chosen_former_docs = calculate_summarization_predictors_for_former_docs(query_paragraph_df, former_docs,sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir, model)
+    chosen_former_docs = calculate_summarization_predictors_for_former_docs(sentence, former_docs,sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir, model)
     for chosen_doc in chosen_former_docs.split("\n##\n"):
         if sum_model == 'transformer':
             sentences = sent_tokenize(chosen_doc)
@@ -153,7 +152,7 @@ def _apply_lst(args):
 
 
 
-def parrallel_create_summarization_task(input_dataset_file, candidates_dir, queries_text, sum_model,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists,suffix):
+def parrallel_create_summarization_task(input_dataset_file, queries_text, sum_model,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists,suffix):
     global model
     input_df = read_texts(input_dataset_file, True)
     with open(os.path.dirname(input_dataset_file) + "/all_data_" + sum_model +"_"+suffix+ ".txt", 'w',
@@ -169,7 +168,7 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                     arguments = [row for i,row in input_df.iterrows()]
                     files = ["complete","queries","source","inp_former_docs"]
                     files_access = {"complete":complete,"queries":queries,"source":source,"inp_former_docs":inp_former_docs}
-                    func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists)
+                    func = partial(creaion_parrallel,queries_text,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,ranked_lists)
                     workers = cpu_count()-1
                     results = list_multiprocessing(arguments,func,workers=workers)
                     for result in results:
@@ -220,7 +219,7 @@ def summarization_ds(options):
     logger.info("writing input sentences file")
     input_file = write_input_dataset_file(senteces_for_replacement, reference_docs, doc_texts,options.suffix)
     logger.info("writing all files")
-    return parrallel_create_summarization_task(input_file, options.candidate_dir, queries,  sum_model,doc_texts,reference_docs,top_docs,options.documents_vectors_dir,ranked_lists,options.suffix)
+    return parrallel_create_summarization_task(input_file, queries,  sum_model,doc_texts,reference_docs,top_docs,options.documents_vectors_dir,ranked_lists,options.suffix)
 
 
 
