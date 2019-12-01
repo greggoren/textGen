@@ -124,7 +124,7 @@ def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,
     query_paragraph_df = read_texts(candidates_dir + query)
     epoch,real_query = reverese_query(qid)
     past_winners = get_past_winners(ranked_lists,epoch,real_query)
-    former_docs = calcualte_former_documents(epoch,real_query,document_texts)
+    former_docs = calcualte_former_documents(int(epoch),real_query,document_texts)
     chosen_former_docs = calculate_summarization_predictors_for_former_docs(query_paragraph_df, former_docs,sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir, model)
     for chosen_doc in chosen_former_docs.split("\n##\n"):
         if sum_model == 'transformer':
