@@ -130,7 +130,7 @@ def creaion_parrallel(queries_text,input_df,files,document_texts,ref_docs,top_do
     for chosen_doc in chosen_former_docs.split("\n##\n"):
         if sum_model == 'transformer':
             sentences = sent_tokenize(chosen_doc)
-            chosen_doc = " ".join(["<t> " + s + " </t>" for s in sentences])
+            chosen_doc = " ".join(["<t> " + s.replace("\n","").replace("\r","") + " </t>" for s in sentences])
             args = {"complete":(files[0],complete_data+"\t"+chosen_doc),
                                         "queries":  (files[1]," ".join(query.split("_"))),"source":(files[2],sentence),
                                         "inp_former_docs":(files[3],chosen_doc)}
