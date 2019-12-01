@@ -167,8 +167,8 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
                     arguments = [row for i,row in input_df.iterrows()]
-                    files = ["complete","queries","source","inp_paragraphs"]
-                    files_access = {"complete":complete,"queries":queries,"source":source,"inp_paragraphs":inp_paragraphs}
+                    files = ["complete","queries","source","inp_former_docs"]
+                    files_access = {"complete":complete,"queries":queries,"source":source,"inp_former_docs":inp_paragraphs}
                     func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists)
                     workers = cpu_count()-1
                     results = list_multiprocessing(arguments,func,workers=workers)

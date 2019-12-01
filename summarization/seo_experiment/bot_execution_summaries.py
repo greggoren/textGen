@@ -284,7 +284,7 @@ if __name__=="__main__":
     if mode=="features":
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True, limit=700000)
         feature_creation_parallel(options.raw_ds_out,ranked_lists,doc_texts,int(options.top_docs_index),int(options.ref_index),options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir,options.summary_tfidf_dir,queries,options.output_feature_files_dir,options.output_final_feature_file_dir,options.workingset_file)
 
@@ -303,7 +303,7 @@ if __name__=="__main__":
     if mode=='all':
         queries = read_queries_file(options.queries_file)
         queries = transform_query_text(queries)
-        word_embd_model = gensim.models.FastText.load_fasttext_format(options.model_file)
+        word_embd_model = gensim.models.KeyedVectors.load_word2vec_format(options.model_file, binary=True, limit=700000)
         feature_creation_parallel(options.raw_ds_out, ranked_lists, doc_texts, int(options.top_docs_index),
                                   int(options.ref_index), options.doc_tfidf_dir,
                                   options.sentences_tfidf_dir, options.summary_tfidf_dir, queries, options.output_feature_files_dir,
