@@ -99,6 +99,8 @@ def calcualte_former_documents(current_epoch,qid,document_texts):
     for doc in document_texts:
         query = doc.split("-")[2]
         epoch = int(doc.split("-")[1])
+        if epoch==0:
+            continue
         if qid !=query:
             continue
         if epoch >= current_epoch:
