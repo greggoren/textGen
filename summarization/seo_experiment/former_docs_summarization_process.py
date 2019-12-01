@@ -162,20 +162,20 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                   encoding="utf-8") as queries:
             with open(os.path.dirname(input_dataset_file) + "/source_" + sum_model +"_"+suffix+ ".txt", 'w',
                       encoding="utf-8") as source:
-                with open(os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model+"_"+suffix+  ".txt", 'w',
-                          encoding="utf-8") as inp_paragraphs:
+                with open(os.path.dirname(input_dataset_file) + "/input_former_docs_" + sum_model+"_"+suffix+  ".txt", 'w',
+                          encoding="utf-8") as inp_former_docs:
                     header = "\t".join([str(col) for col in input_df.columns]) + "\tinput_paragraph\n"
                     complete.write(header)
                     arguments = [row for i,row in input_df.iterrows()]
                     files = ["complete","queries","source","inp_former_docs"]
-                    files_access = {"complete":complete,"queries":queries,"source":source,"inp_former_docs":inp_paragraphs}
+                    files_access = {"complete":complete,"queries":queries,"source":source,"inp_former_docs":inp_former_docs}
                     func = partial(creaion_parrallel,queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists)
                     workers = cpu_count()-1
                     results = list_multiprocessing(arguments,func,workers=workers)
                     for result in results:
                         for writes in result:
                             write_files(files_access,**writes)
-    return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model +"_"+suffix +".txt"
+    return os.path.dirname(input_dataset_file) + "/input_former_docs_" + sum_model +"_"+suffix +".txt"
 
 
 def transform_query_text(queries_raw_text):
