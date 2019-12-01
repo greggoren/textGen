@@ -234,7 +234,7 @@ def calculate_similarity_tf_idf(text_tfidf, top_docs_tfidf):
 
 def calculate_semantic_similarity_to_top_docs(text, top_docs, doc_texts, model,stemmer=None):
     summary_vector = get_text_centroid(clean_texts(text), model,stemmer)
-    top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model)
+    top_docs_centroid_vector = get_semantic_docs_centroid(doc_texts,top_docs,model,stemmer)
     return cosine_similarity(summary_vector,top_docs_centroid_vector)
 
 def calculate_semantic_similarity_to_centroid(text, centroid,model,stemmer=None):
