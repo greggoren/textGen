@@ -14,7 +14,7 @@ import numpy as np
 import math
 from multiprocessing import cpu_count
 from functools import partial
-
+import re
 
 
 def read_raw_ds(raw_dataset):
@@ -103,6 +103,15 @@ def write_files(feature_list, feature_vals, output_dir, qid):
             for pair in feature_vals[feature]:
                 out.write(pair+" "+str(feature_vals[feature][pair])+"\n")
 
+def find_summary_vector_file(pair,summary_vectors_dir):
+    ref_doc = pair.split("_")[0]
+    summary_index = pair.split("_")[2]
+    regex = re.compile(ref_doc+"_.*_"+summary_index)
+    for file in os.listdir(summary_vectors_dir):
+        if regex.match(file):
+            return file
+
+
 
 def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_index, doc_tfidf_vectors_dir, tfidf_sentence_dir,summary_tfidf_dir, queries, output_dir, qid):
     global word_embd_model
@@ -122,6 +131,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
     ref_sentences = sent_tokenize(doc_texts[ref_doc])
     top_docs_tfidf_centroid = document_centroid([get_java_object(doc_tfidf_vectors_dir+doc) for doc in top_docs])
     for pair in relevant_pairs:
+        summary_vector_fnmae = find_summary_vector_file(pair,summary_tfidf_dir)
         sentence_in = relevant_pairs[pair]["in"]
         sentence_out = relevant_pairs[pair]["out"]
         in_vec = get_text_centroid(clean_texts(sentence_in),word_embd_model,True)
@@ -132,7 +142,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals['FractionOfQueryWordsIn'][pair] = query_term_freq("avg",clean_texts(sentence_in),clean_texts(query))
         feature_vals['FractionOfQueryWordsOut'][pair] = query_term_freq("avg",clean_texts(sentence_out),clean_texts(query))
 
-        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + pair, top_docs_tfidf_centroid)
+        feature_vals['CosineToCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + summary_vector_fnmae, top_docs_tfidf_centroid)
         feature_vals['CosineToCentroidOut'][pair] = calculate_similarity_to_docs_centroid_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], top_docs_tfidf_centroid)
 
         feature_vals["CosineToCentroidInVec"][pair] = calculate_semantic_similarity_to_top_docs(sentence_in,top_docs,doc_texts,word_embd_model)
@@ -140,7 +150,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
 
         feature_vals['CosineToWinnerCentroidInVec'][pair] = cosine_similarity(in_vec,past_winners_semantic_centroid_vector)
         feature_vals['CosineToWinnerCentroidOutVec'][pair] = cosine_similarity(out_vec,past_winners_semantic_centroid_vector)
-        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + pair, past_winners_tfidf_centroid_vector)
+        feature_vals['CosineToWinnerCentroidIn'][pair] = calculate_similarity_to_docs_centroid_tf_idf(summary_tfidf_dir + summary_vector_fnmae, past_winners_tfidf_centroid_vector)
         feature_vals['CosineToWinnerCentroidOut'][pair] = calculate_similarity_to_docs_centroid_tf_idf(tfidf_sentence_dir + pair.split("_")[0] + "_" + pair.split("_")[1], past_winners_tfidf_centroid_vector)
 
         feature_vals['SimilarityToPrev'][pair]=context_similarity(replace_index,ref_sentences,sentence_in,"prev",word_embd_model,True)
