@@ -33,7 +33,7 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs):
             ref_doc = reference_docs[query]
             text = document_texts[ref_doc]
             sentences = nltk.sent_tokenize(text)
-            for j,sentence in sentences:
+            for j,sentence in enumerate(sentences):
                 new_line = "\t".join([query,ref_doc+"_"+str(j)+"_"+str(i),fix_encoding(sentence) ,fix_encoding(summary)])+"\n"
                 out.write(new_line)
 
