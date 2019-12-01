@@ -95,6 +95,7 @@ def write_files(dict,**kwargs):
 
 def calcualte_former_documents(current_epoch,qid,document_texts):
     former_docs = []
+    seen_texts = []
     for doc in document_texts:
         query = doc.split("-")[2]
         epoch = int(doc.split("-")[1])
@@ -102,7 +103,13 @@ def calcualte_former_documents(current_epoch,qid,document_texts):
             continue
         if epoch >= current_epoch:
             continue
+        doc_text = document_texts[doc]
+        cleaned_text = clean_texts(doc_text)
+        cleaned_text = cleaned_text.replace(" ","")
+        if cleaned_text in seen_texts:
+            continue
         former_docs.append(doc)
+        seen_texts.append(cleaned_text)
     return former_docs
 
 def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,ref_docs,top_docs,document_vector_dir,paragraph_vector_dir,ranked_lists,start_epoch,row):
@@ -118,14 +125,14 @@ def creaion_parrallel(queries_text,candidates_dir,input_df,files,document_texts,
     epoch,real_query = reverese_query(qid)
     past_winners = get_past_winners(ranked_lists,epoch,real_query)
     former_docs = calcualte_former_documents(epoch,real_query,document_texts)
-    paragraphs = calculate_summarization_predictors_for_former_docs(query_paragraph_df, former_docs,sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir,paragraph_vector_dir, model)
-    for paragraph in paragraphs.split("\n##\n"):
+    chosen_former_docs = calculate_summarization_predictors_for_former_docs(query_paragraph_df, former_docs,sentence,replacement_index,qid,queries_text,document_texts,ref_docs,top_docs[qid],past_winners,document_vector_dir,paragraph_vector_dir, model)
+    for chosen_doc in chosen_former_docs.split("\n##\n"):
         if sum_model == 'transformer':
-            sentences = sent_tokenize(paragraph)
-            paragraph = " ".join(["<t> " + s + " </t>" for s in sentences])
-            args = {"complete":(files[0],complete_data+"\t"+paragraph),
+            sentences = sent_tokenize(chosen_doc)
+            chosen_doc = " ".join(["<t> " + s + " </t>" for s in sentences])
+            args = {"complete":(files[0],complete_data+"\t"+chosen_doc),
                                         "queries":  (files[1]," ".join(query.split("_"))),"source":(files[2],sentence),
-                                        "inp_paragraphs":(files[3],paragraph)}
+                                        "inp_former_docs":(files[3],chosen_doc)}
             results.append(args)
     return results
 
@@ -169,8 +176,6 @@ def parrallel_create_summarization_task(input_dataset_file, candidates_dir, quer
                         for writes in result:
                             write_files(files_access,**writes)
     return os.path.dirname(input_dataset_file) + "/input_paragraphs_" + sum_model +"_"+suffix +".txt"
-
-
 
 
 def transform_query_text(queries_raw_text):

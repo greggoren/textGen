@@ -6,7 +6,7 @@ from optparse import OptionParser
 import gensim
 import nltk
 from summarization.seo_experiment.borda_mechanism import calculate_seo_predictors
-from summarization.seo_experiment.utils import create_trectext,load_file
+from summarization.seo_experiment.utils import create_trectext,load_file,clean_texts
 from summarization.seo_experiment.bot_execution import get_past_winners,reverese_query
 from summarization.seo_experiment.evaluation.analysis import read_trec_file
 
@@ -73,6 +73,22 @@ def update_document_texts(updated_document_texts,document_texts):
             updated_document_texts[doc]=document_texts[doc]
     return updated_document_texts
 
+
+def choose_highest_rank_summary(chosen_idxs,summaries,document_text,replacement_index):
+    for idx in chosen_idxs:
+        summary = summaries[idx]
+        sentences = nltk.sent_tokenize(document_text)
+        sentences[replacement_index]=summary
+        new_text = " ".join(sentences)
+        if len(clean_texts(new_text).split())<=150:
+            return summary
+    return None
+
+
+
+
+
+
 def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,ranked_lists,document_vectors_dir,query_texts,document_texts,trec_file,number_of_top_docs,summary_tfidf_fname_index,reference_docs,model):
     updated_document_text={}
     top_docs_per_query=get_top_docs(trec_file,number_of_top_docs)
@@ -89,9 +105,13 @@ def update_texts_with_replacement_summary(replacement_indexes,summaries_stats,ra
             past_winners = get_past_winners(ranked_lists,real_epoch,real_query)
             summary_tfidf_fnames = summary_tfidf_fname_index[query]
             replacement_index = replacement_indexes[query]
-            chosen_summary = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,past_winners,model)
-            summary = chosen_summary.replace("<t>","").replace("</t>","").rstrip()
-            updated_text = update_text(document_text,summary,replacement_index)
+            chosen_idxs = calculate_seo_predictors(summaries,summary_tfidf_fnames,replacement_index,query_text,document_text,document_vectors_dir,document_texts,top_docs,past_winners,model)
+            chosen_summary = choose_highest_rank_summary(chosen_idxs,summaries,document_text,replacement_index)
+            if chosen_summary is None:
+                updated_text = document_text
+            else:
+                summary = chosen_summary.replace("<t>","").replace("</t>","").rstrip()
+                updated_text = update_text(document_text,summary,replacement_index)
             updated_document_text[reference_docs[query]]=updated_text
             """ Written only for analysis purposes!!!"""
             source_sentence = nltk.sent_tokenize(document_text)[replacement_index].rstrip().replace("\n"," ")

@@ -226,9 +226,6 @@ def run_summarization_model(script_file,model_file,input_file,output_file,**kwar
     print("Summarization output= "+str(out),flush=True)
 
 def load_file(filename):
-    # with open(filename) as f:
-    #     xml = f.read()
-    # tree = ET.fromstring(re.sub(r"(<\?xml[^>]+\?>)", r"\1<root>", xml) + "</root>")
     parser = etree.XMLParser(recover=True)
     tree = ET.parse(filename,parser=parser)
     root = tree.getroot()
