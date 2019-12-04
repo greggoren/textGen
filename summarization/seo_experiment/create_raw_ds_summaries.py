@@ -14,8 +14,8 @@ def read_data_file(fname,ranked_list,index):
                 continue
             query = doc.split("-")[2]
             ref_doc = ranked_list[epoch][query][index]
-            reference_docs[qid]=ref_doc
             qid = str(int(doc.split("-")[2]))+doc.split("-")[1]
+            reference_docs[qid]=ref_doc
             queries[i]=qid
     return queries,reference_docs,summarized_docs
 
