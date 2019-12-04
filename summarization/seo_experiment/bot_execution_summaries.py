@@ -133,7 +133,7 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
     ref_sentences = sent_tokenize(doc_texts[ref_doc])
     top_docs_tfidf_centroid = document_centroid([get_java_object(doc_tfidf_vectors_dir+doc) for doc in top_docs])
     for pair in relevant_pairs:
-        summary_vector_fnmae = find_summary_vector_file(pair,summary_tfidf_dir)
+        summary_vector_fnmae = pair.split("_")[-1]
         sentence_in = relevant_pairs[pair]["in"]
         sentence_out = relevant_pairs[pair]["out"]
         in_vec = get_text_centroid(clean_texts(sentence_in),word_embd_model,True)
