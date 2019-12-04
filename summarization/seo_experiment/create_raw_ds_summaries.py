@@ -12,6 +12,8 @@ def read_data_file(fname,ranked_list,index):
             epoch = doc.split("-")[1]
             query = doc.split("-")[2]
             if epoch not in ranked_lists:
+                reference_docs["0"] = doc
+                queries[i] = "0"
                 continue
             ref_doc = ranked_list[epoch][query][index]
             qid = str(int(doc.split("-")[2]))+doc.split("-")[1]
@@ -39,6 +41,8 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summa
             summary = summaries[i]
             query = queries[i]
             ref_doc = reference_docs[query]
+            if int(ref_doc.split("-")[1])==0:
+                continue
             if int(summarized_doc.split("-")[1])==0:
                 continue
 
