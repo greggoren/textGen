@@ -1,5 +1,5 @@
 import sys
-from summarization.seo_experiment.utils import load_file
+from summarization.seo_experiment.utils import load_file,run_summarization_model
 import nltk
 def read_data_file(fname):
     queries = {}
