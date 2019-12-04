@@ -37,6 +37,8 @@ def read_trec_scores(trec_file):
         for line in file:
             doc = line.split()[2]
             epoch = doc.split("-")[1]
+            if int(epoch)<7:
+                continue
             query = doc.split("-")[2]
             score = float(line.split()[4])
             if epoch not in stats:
@@ -111,42 +113,36 @@ def get_average_increase(rank_increase_stats):
 #     plt.savefig(fname+".png")
 #     plt.clf()
 #
-
+def read_trec_file(trec_file):
+    stats = {}
+    with open(trec_file) as file:
+        for line in file:
+            doc = line.split()[2]
+            epoch = doc.split("-")[1]
+            if int(epoch)<7:
+                continue
+            query = doc.split("-")[2]
+            if epoch not in stats:
+                stats[epoch]={}
+            if query not in stats[epoch]:
+                stats[epoch][query]=[]
+            stats[epoch][query].append(doc)
+    return stats
 
 if __name__=="__main__":
     for i in [1,2,3,4]:
 
         original_trec="trecs_comp/trec_file_original_sorted.txt"
         updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
-    # bot_trec="../trecs/trec_file_bot_post_sorted.txt"
-        bot_summary_trec="trecs_comp/trec_file_bot_summary_rank_post_"+str(i)+"_sorted.txt"
         bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
-    # top_borda_trec="../trecs/trec_file_top_sentence_borda_post_sorted.txt"
-    # bot_extended_trec="../trecs/trec_file_bot_extended_post_sorted.txt"
         original_lists = read_trec_file(original_trec)
         updated_lists = read_trec_file(updated_trec)
-    # bot_lists = read_trec_file(bot_trec)
-        bot_summary_lists = read_trec_file(bot_summary_trec)
         bot_summary_ext_lists = read_trec_file(bot_summary_trec_ext)
-    # top_borda_lists = read_trec_file(top_borda_trec)
-    # bot_extended_lists = read_trec_file(bot_extended_trec)
         rank_increase_stats = compare_lists(original_lists,updated_lists,i)
-    # bot_increase_stats = compare_lists(original_lists,bot_lists,-1)
-        bot_summary_increase_stats = compare_lists(original_lists,bot_summary_lists,i)
         bot_summary_ext_increase_stats = compare_lists(original_lists,bot_summary_ext_lists,i)
-    # top_borda_increase_stats = compare_lists(original_lists,top_borda_lists,-1)
-    # bot_extended_increase_stats = compare_lists(original_lists,bot_extended_lists,-1)
-    # histograms = histogram(rank_increase_stats)
         averages = get_average_increase(rank_increase_stats)
-    # bot_averages = get_average_increase(bot_increase_stats)
-        bot_summary_averages = get_average_increase(bot_summary_increase_stats)
         bot_summary_ext_averages = get_average_increase(bot_summary_ext_increase_stats)
-    # top_borda_averages = get_average_increase(top_borda_increase_stats)
-    # bot_extended_averages = get_average_increase(bot_extended_increase_stats)
-        ys=[averages,bot_summary_averages,bot_summary_ext_averages]
-        legends=["Summarization","Bot+Summary","RankBot+Summary"]
-        colors=["b","r",'k']
-        plot_metric(ys,[j+1 for j in range(len(averages))],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
-    # for epoch in histograms:
-    #     h = histograms[epoch]
-    #     plot_metric([h[i] for i in range(5)],[],"plt/histogram_"+str(epoch),"#","Rank Increase",False)
+        ys=[averages,bot_summary_ext_averages]
+        legends=["Summarization","Bot+Summary"]
+        colors=["b","r"]
+        plot_metric(ys,[7,8],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
