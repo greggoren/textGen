@@ -37,6 +37,8 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summa
             summary = summaries[i]
             query = queries[i]
             ref_doc = reference_docs[query]
+            if int(summarized_doc.split("-")[1])==0:
+                continue
             if int(ref_doc.split("-")[1])<7:
                 continue
             if int(summarized_doc.split("-")[1])>=int(ref_doc.split("-")[1]):
@@ -50,7 +52,7 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summa
 if __name__=="__main__":
     ref_index=sys.argv[1]
     ranked_lists = read_trec_file("trecs/trec_file_original_sorted.txt")
-    queries, reference_docs,summarized_docs = read_data_file("input_data/all_data_transformer_"+ref_index+".txt",ranked_lists,int(ref_index))
+    queries, reference_docs,summarized_docs = read_data_file("docs.txt",ranked_lists,int(ref_index))
     document_texts = load_file("data/documents.trectext")
     summaries = read_summaries_file("competition_doc_summaries")
     write_raw_ds(queries,summaries,"data/raw_bot_summary_"+ref_index+".txt",document_texts,reference_docs,summarized_docs)
