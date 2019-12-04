@@ -10,6 +10,8 @@ def read_data_file(fname,ranked_list,index):
             doc = line.rstrip()
             summarized_docs[i]=doc
             epoch = doc.split("-")[1]
+            if epoch=="00":
+                continue
             query = doc.split("-")[2]
             ref_doc = ranked_list[epoch][query][index]
             reference_docs[qid]=ref_doc
