@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from summarization.seo_experiment.utils import read_trec_file
-
+import csv
 
 def plot_metric(y,x,fname,y_label,x_label,legends=None,colors=None):
     params = {'legend.fontsize': 'x-large',
@@ -129,7 +129,47 @@ def read_trec_file(trec_file):
             stats[epoch][query].append(doc)
     return stats
 
+
+def read_annotations(fname):
+    stats = {}
+    with open(fname) as file:
+        reader =csv.DictReader(file)
+        for row in reader:
+            query = row["Input.query_id"]
+            initial_rank = row["Input.initial_rank"]
+            if query not in stats:
+                stats[query]={}
+            if initial_rank not in stats[query]:
+                stats[query][initial_rank]=0
+            annotation = row["Answer.this_document_is"]
+            if stats[query][initial_rank]>=5:
+                continue
+            if annotation.lower()=="valid":
+                stats[query][initial_rank]+=1
+    return stats
+
+def analyze_annotations(stats):
+    final_stats={}
+    for qid in stats:
+        r=qid[-1]
+        if r not in final_stats:
+            final_stats[r]={}
+        for initial_rank in stats[qid]:
+            if initial_rank not in final_stats[r]:
+                final_stats[r][initial_rank]=[]
+            tag = 0
+            if stats[qid][initial_rank]>=3:
+                tag = 1
+            final_stats[r][initial_rank].append(tag)
+    for r in final_stats:
+        for initial_rank in final_stats[r]:
+            final_stats[r][initial_rank]=np.mean(final_stats[r][initial_rank])
+    return final_stats
+
+
 if __name__=="__main__":
+    stats = read_annotations("../data/summarization_quality_annotations.csv")
+    final_annotation_stats = analyze_annotations(stats)
     for i in [1,2,3,4]:
 
         original_trec="trecs_comp/trec_file_original_sorted.txt"
@@ -146,3 +186,8 @@ if __name__=="__main__":
         legends=["Summarization","Bot+Summary"]
         colors=["b","r"]
         plot_metric(ys,[7,8],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
+
+    for i in ["1","4"]:
+        quality = [final_annotation_stats[r][i] for r in ["7","8"]]
+        plot_metric(quality,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs")
+
