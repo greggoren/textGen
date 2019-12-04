@@ -10,9 +10,9 @@ def read_data_file(fname,ranked_list,index):
             doc = line.rstrip()
             summarized_docs[i]=doc
             epoch = doc.split("-")[1]
-            if epoch=="00":
-                continue
             query = doc.split("-")[2]
+            if epoch not in ranked_lists:
+                continue
             ref_doc = ranked_list[epoch][query][index]
             qid = str(int(doc.split("-")[2]))+doc.split("-")[1]
             reference_docs[qid]=ref_doc
@@ -41,6 +41,7 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summa
             ref_doc = reference_docs[query]
             if int(summarized_doc.split("-")[1])==0:
                 continue
+
             if int(ref_doc.split("-")[1])<7:
                 continue
             if int(summarized_doc.split("-")[1])>=int(ref_doc.split("-")[1]):
