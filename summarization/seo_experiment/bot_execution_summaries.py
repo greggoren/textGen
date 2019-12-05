@@ -243,7 +243,7 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
             sentences = sent_tokenize(doc_texts[ref_doc])
             sentences[replacement_index]=sentence_in
             new_text = "\n".join(sentences)
-            if len(clean_texts(deepcopy(new_text).split()))> 150:
+            if len(clean_texts(deepcopy(new_text)).split())> 150:
                 continue
             new_texts[ref_doc]=new_text
     for doc in doc_texts:
