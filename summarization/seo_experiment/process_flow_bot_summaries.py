@@ -1,6 +1,7 @@
 from gen_utils import run_bash_command
 
-for ref_index in [1,2,3,4]:
+# for ref_index in [1,2,3,4]:
+for ref_index in [2,]:
     number_of_top_docs = str(min(3,ref_index))
     raw_summary_command = "python create_raw_ds_summaries.py "+str(ref_index)
     out = run_bash_command(raw_summary_command)
