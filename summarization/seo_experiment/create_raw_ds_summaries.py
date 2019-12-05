@@ -34,27 +34,42 @@ def read_summaries_file(fname):
 def fix_encoding(text):
     return bytes(text, 'cp1252', "ignore").decode('utf-8', 'ignore').replace("\n", " ").replace("\r", " ")
 
+def match_summaries(ref_doc,summarized_docs):
+    query = ref_doc.split("-")[2]
+    summaries_indexes = []
+    if int(ref_doc.split("-")[1]) == 0:
+        return []
+    if int(ref_doc.split("-")[1]) < 7:
+        return []
+    for i in summarized_docs:
+        summarized_doc = summarized_docs[i]
+        if query != summarized_doc.split("-")[2]:
+            continue
+        if int(summarized_doc.split("-")[1]) == 0:
+            continue
+        if int(summarized_doc.split("-")[1]) >= int(ref_doc.split("-")[1]):
+            continue
+        summaries_indexes.append(i)
+    return summaries_indexes
+
+
+
 def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summarized_docs):
     with open(fname,'w') as out:
-         for i in range(len(summaries)):
-            summarized_doc = summarized_docs[i]
-            summary = summaries[i]
-            query = queries[i]
-            ref_doc = reference_docs[query]
-            if int(ref_doc.split("-")[1])==0:
-                continue
-            if int(summarized_doc.split("-")[1])==0:
-                continue
-
-            if int(ref_doc.split("-")[1])<7:
-                continue
-            if int(summarized_doc.split("-")[1])>=int(ref_doc.split("-")[1]):
-                continue
+         for qid in reference_docs:
+            ref_doc = reference_docs[qid]
+            summary_indexes =match_summaries(ref_doc,summarized_docs)
             text = document_texts[ref_doc]
             sentences = nltk.sent_tokenize(text)
-            for j,sentence in enumerate(sentences):
-                new_line = "\t".join([query,ref_doc+"_"+str(j)+"_"+summarized_doc,fix_encoding(sentence) ,fix_encoding(summary)])+"\n"
-                out.write(new_line)
+            for index in summary_indexes:
+                summarized_doc = summarized_docs[index]
+                summary = summaries[index]
+                query = queries[index]
+                for j,sentence in enumerate(sentences):
+                        new_line = "\t".join([query,ref_doc+"_"+str(j)+"_"+summarized_doc,fix_encoding(sentence) ,fix_encoding(summary)])+"\n"
+                        out.write(new_line)
+
+
 
 if __name__=="__main__":
     ref_index=sys.argv[1]

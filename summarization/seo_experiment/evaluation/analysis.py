@@ -175,16 +175,20 @@ if __name__=="__main__":
         original_trec="trecs_comp/trec_file_original_sorted.txt"
         updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
         bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
+        bot_trec="trecs_comp/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
         original_lists = read_trec_file(original_trec)
         updated_lists = read_trec_file(updated_trec)
+        bot_lists = read_trec_file(bot_trec)
         bot_summary_ext_lists = read_trec_file(bot_summary_trec_ext)
         rank_increase_stats = compare_lists(original_lists,updated_lists,i)
         bot_summary_ext_increase_stats = compare_lists(original_lists,bot_summary_ext_lists,i)
+        bot_increase_stats = compare_lists(original_lists,bot_lists,i)
         averages = get_average_increase(rank_increase_stats)
         bot_summary_ext_averages = get_average_increase(bot_summary_ext_increase_stats)
-        ys=[averages,bot_summary_ext_averages]
-        legends=["Summarization","Bot+Summary"]
-        colors=["b","r"]
+        bot_averages=get_average_increase(bot_increase_stats)
+        ys=[averages,bot_summary_ext_averages,bot_averages]
+        legends=["Summarization","Bot+Summary","Bot"]
+        colors=["b","r","k"]
         plot_metric(ys,[7,8],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
 
     for i in ["1","4"]:
