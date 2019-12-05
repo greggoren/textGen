@@ -245,7 +245,9 @@ def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
             new_text = "\n".join(sentences)
             if len(clean_texts(deepcopy(new_text)).split())> 150:
                 continue
+
             new_texts[ref_doc]=new_text
+            break
     for doc in doc_texts:
         if doc not in new_texts:
             new_texts[doc]=doc_texts[doc]

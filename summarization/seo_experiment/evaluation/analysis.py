@@ -166,10 +166,37 @@ def analyze_annotations(stats):
             final_stats[r][initial_rank]=np.mean(final_stats[r][initial_rank])
     return final_stats
 
+def read_waterloo(fname):
+    stats = {}
+    with open(fname) as f:
+        for line in f:
+            doc = line.split()[0]
+
+            waterloo = int(line.split()[1].rstrip())
+            stats[doc]=waterloo
+    return stats
+
+def analyze_waterloo(ranked_list,index,waterloo):
+    stats={}
+    for epoch in ranked_list:
+        if int(epoch)<7:
+            continue
+        stats[epoch]=[]
+        for qid in ranked_list[epoch]:
+            ref_index = ranked_list[epoch][qid][index]
+            waterloo_score = waterloo[ref_index]
+            if waterloo_score>=60:
+                stats[epoch].append(1)
+            else:
+                stats[epoch].append(0)
+    for epoch in stats:
+        stats[epoch] = np.mean(stats[epoch])
+    return stats
 
 if __name__=="__main__":
     stats = read_annotations("../data/summarization_quality_annotations.csv")
     final_annotation_stats = analyze_annotations(stats)
+    waterloo_scores = read_waterloo("waterloo_scores_file.txt")
     for i in [1,2,3,4]:
 
         original_trec="trecs_comp/trec_file_original_sorted.txt"
@@ -192,6 +219,11 @@ if __name__=="__main__":
         plot_metric(ys,[7,8],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
 
     for i in ["1","4"]:
+        all_original_quality = analyze_waterloo(original_lists,int(i),waterloo_scores)
+        original_quality = [all_original_quality[e] for e in ["07","08"]]
         quality = [final_annotation_stats[r][i] for r in ["7","8"]]
-        plot_metric(quality,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs")
+        ys = [original_quality,quality]
+        legends = ["Original","Summarization"]
+        colors = ["b", "r"]
+        plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
 
