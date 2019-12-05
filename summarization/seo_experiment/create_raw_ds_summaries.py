@@ -64,9 +64,9 @@ def write_raw_ds(queries, summaries, fname, document_texts, reference_docs,summa
             for index in summary_indexes:
                 summarized_doc = summarized_docs[index]
                 summary = summaries[index]
-                query = queries[index]
+                # query = queries[index]
                 for j,sentence in enumerate(sentences):
-                        new_line = "\t".join([query,ref_doc+"_"+str(j)+"_"+summarized_doc,str(j),fix_encoding(sentence) ,fix_encoding(summary)])+"\n"
+                        new_line = "\t".join([qid,ref_doc+"_"+str(j)+"_"+summarized_doc,fix_encoding(sentence) ,fix_encoding(summary)])+"\n"
                         out.write(new_line)
 
 
