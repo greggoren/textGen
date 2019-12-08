@@ -23,11 +23,12 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
             workingset_docs[qid]=[]
         if doc==ref_docs[qid]:
             if int(epoch)==last_epoch:
-                continue
-            next_qid =str(int(query))+str(int(epoch)+1).zfill(2)
-            if next_qid not in workingset_docs:
-                workingset_docs[next_qid]=[]
-            workingset_docs[next_qid].append(doc)
+                workingset_docs[qid].append(doc)
+            else:
+                next_qid =str(int(query))+str(int(epoch)+1).zfill(2)
+                if next_qid not in workingset_docs:
+                    workingset_docs[next_qid]=[]
+                workingset_docs[next_qid].append(doc)
         else:
             workingset_docs[qid].append(doc)
     return workingset_docs
