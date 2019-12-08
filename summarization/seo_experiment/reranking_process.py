@@ -51,7 +51,7 @@ def rerank(options):
     scores = retrieve_scores(docname_index,query_index, score_file)
     logger.info("scores retrieval completed")
     logger.info("creating trec_eval file")
-    tmp_trec = create_trec_eval_file(scores,query_index, options.trec_file)
+    tmp_trec = create_trec_eval_file(scores, options.trec_file)
     logger.info("trec file creation is completed")
     logger.info("ordering trec file")
     order_trec_file(tmp_trec)
