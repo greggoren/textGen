@@ -156,11 +156,22 @@ def create_trec_eval_file(results,trec_file):
     if not os.path.exists(os.path.dirname(trec_file)):
         os.makedirs(os.path.dirname(trec_file))
     trec_file_access = open(trec_file, 'w')
-    for doc in results:
-        query = str(int(doc.split("-")[2]))+doc.split("-")[1]
-        trec_file_access.write(query+ " Q0 " + doc + " " + str(0) + " " + str(results[doc]) + " summarizarion_task\n")
+    for query in results:
+        for doc in results[query]:
+            trec_file_access.write(query+ " Q0 " + doc + " " + str(0) + " " + str(results[query][doc]) + " summarizarion_task\n")
     trec_file_access.close()
     return trec_file
+
+# def create_trec_eval_file_rerank(results,trec_file):
+#     if not os.path.exists(os.path.dirname(trec_file)):
+#         os.makedirs(os.path.dirname(trec_file))
+#     trec_file_access = open(trec_file, 'w')
+#     for doc in results:
+#         query = str(int(doc.split("-")[2]))+doc.split("-")[1]
+#         trec_file_access.write(query+ " Q0 " + doc + " " + str(0) + " " + str(results[doc]) + " summarizarion_task\n")
+#     trec_file_access.close()
+#     return trec_file
+
 
 def order_trec_file(trec_file):
     final = trec_file.replace(".txt", "")
@@ -170,9 +181,15 @@ def order_trec_file(trec_file):
         print(line)
     return final
 
-def retrieve_scores(test_indices, score_file):
+def retrieve_scores(test_indices, queries,score_file):
+    results = {}
     with open(score_file) as scores:
-        results = {test_indices[i]: float(score.split()[2].rstrip()) for i, score in enumerate(scores)}
+        for i,score in enumerate(scores):
+            query = queries[i]
+            doc = test_indices[i]
+            if query not in results:
+                results[query]={}
+            results[query][doc]=float(score.split()[2].rstrip())
         return results
 
 
@@ -186,6 +203,17 @@ def create_index_to_doc_name_dict(data_set_file):
             doc_name_index[index] = doc_name
             index += 1
         return doc_name_index
+
+def create_index_to_query_dict(data_set_file):
+    query_index={}
+    index = 0
+    with open(data_set_file) as ds:
+        for line in ds:
+            rec = line.split()
+            query = rec[1].split(":")[1]
+            query_index[index] = query
+            index += 1
+        return query_index
 
 def run_model(test_file,home_path,java_path,jar_path,score_file,model_path):
     java_path = home_path+"/"+java_path+"/bin/java"

@@ -1,4 +1,4 @@
-from summarization.seo_experiment.utils import create_index,merge_indices,run_model,create_features_file,create_trec_eval_file,create_index_to_doc_name_dict,retrieve_scores,order_trec_file,create_features_file_diif
+from summarization.seo_experiment.utils import create_index_to_query_dict,create_index,merge_indices,run_model,create_features_file,create_trec_eval_file,create_index_to_doc_name_dict,retrieve_scores,order_trec_file,create_features_file_diif
 import sys,os,logging
 from optparse import OptionParser
 
@@ -40,6 +40,7 @@ def rerank(options):
                                          options.new_features_file, options.workingset_file, options.scripts_path)
     logger.info("creating docname index")
     docname_index = create_index_to_doc_name_dict(features_file)
+    query_index = create_index_to_query_dict(features_file)
     logger.info("docname index creation is completed")
     logger.info("features creation completed")
     logger.info("running ranking model on features file")
@@ -47,10 +48,10 @@ def rerank(options):
                            options.model_file)
     logger.info("ranking completed")
     logger.info("retrieving scores")
-    scores = retrieve_scores(docname_index, score_file)
+    scores = retrieve_scores(docname_index,query_index, score_file)
     logger.info("scores retrieval completed")
     logger.info("creating trec_eval file")
-    tmp_trec = create_trec_eval_file(scores, options.trec_file)
+    tmp_trec = create_trec_eval_file(scores,query_index, options.trec_file)
     logger.info("trec file creation is completed")
     logger.info("ordering trec file")
     order_trec_file(tmp_trec)
