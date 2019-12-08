@@ -5,7 +5,7 @@ def get_ref_docs(ranked_list,index):
     for epoch in ranked_list:
         for query in ranked_list[epoch]:
             qid = str(int(query))+epoch
-            ref_doc = ranked_list[query][epoch][index]
+            ref_doc = ranked_list[epoch][query][index]
             ref_docs[qid]=ref_doc
     return ref_docs
 
