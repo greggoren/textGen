@@ -55,6 +55,16 @@ def run_reranking(working_set_fname,fname_addition,trectext_fname):
     print(out,flush=True)
 
 
+def fix_xml_file(fname):
+    with open(fname,encoding="utf-8",errors="ignore") as f:
+        lines = f.readlines()
+        lines.insert(0,"<DATA>\n")
+        lines.append("</DATA>\n")
+    fixed_fname = "data/fixed_trectext_for_run.trectext"
+    with open(fixed_fname,"w",encoding="utf-8",errors="ignore") as out:
+        out.writelines(lines)
+    return fixed_fname
+
 
 
 if __name__=="__main__":
@@ -63,7 +73,8 @@ if __name__=="__main__":
         trec_file = sys.argv[2]
         fname_addition = sys.argv[3]
         trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
-        texts = load_file(trectext_fname)
+        trectext_file_for_read = fix_xml_file(trectext_fname)
+        texts = load_file(trectext_file_for_read)
         ranked_lists = read_trec_file(trec_file)
         ref_docs = get_ref_docs(ranked_lists,int(ref_index))
         workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
