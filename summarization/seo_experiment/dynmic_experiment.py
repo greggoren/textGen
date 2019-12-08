@@ -57,9 +57,9 @@ def run_reranking(working_set_fname,fname_addition,trectext_fname):
 
 if __name__=="__main__":
     for ref_index in ["1","2","3","4"]:
-        trectext_file_prefix = sys.argv[2]
-        trec_file = sys.argv[3]
-        fname_addition = sys.argv[4]
+        trectext_file_prefix = sys.argv[1]
+        trec_file = sys.argv[2]
+        fname_addition = sys.argv[3]
         trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
         texts = load_file(trectext_fname)
         ranked_lists = read_trec_file(trec_file)
