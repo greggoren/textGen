@@ -37,7 +37,7 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
                     workingset_docs[next_qid]=[]
                 workingset_docs[next_qid].append(doc)
         else:
-            former_qid = str(int(query)) + str(int(epoch) - 1)
+            former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
 
             if former_qid not in ref_docs:
                 workingset_docs[qid].append(doc)
