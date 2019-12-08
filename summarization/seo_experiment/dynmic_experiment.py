@@ -1,5 +1,7 @@
 from summarization.seo_experiment.utils import read_trec_file,load_file,run_bash_command
 import sys
+
+
 def get_ref_docs(ranked_list,index):
     ref_docs={}
     for epoch in ranked_list:
@@ -45,7 +47,7 @@ def create_working_set(ref_docs,texts,starting_epoch,last_epoch,workingset_fname
 def run_reranking(working_set_fname,fname_addition,trectext_fname):
     rerank_command = "python reranking_process.py --mode=all --features_dir=Features_" + fname_addition + "_post_" + str(
         ref_index) + "/ --merged_index=merged_indices/merged_index/ --queries_file=data/queries_seo_exp.xml --new_features_file=final_features_dir/features_" + fname_addition + "_post_" + str(
-        ref_index) + " --workingset_file=data/" + working_set_fname + " --scripts_path=scripts/ --java_path=jdk1.8.0_181 --jar_path=scripts/RankLib.jar --score_file=scores/scores_" + fname_addition + "_post_" + str(
+        ref_index) + " --workingset_file=" + working_set_fname + " --scripts_path=scripts/ --java_path=jdk1.8.0_181 --jar_path=scripts/RankLib.jar --score_file=scores/scores_" + fname_addition + "_post_" + str(
         ref_index) + ".txt --model_file=rank_models/model_bot --trec_file=trecs/trec_file_" + fname_addition + "_post_" + str(
         ref_index) + " --trectext_file="+trectext_fname+" --home_path=~/ --base_index=merged_indices/merged_index --new_index=new_indices/dynamic_experiment_"+fname_addition+"_" + str(
         ref_index) + " --indri_path=work_indri"
@@ -64,7 +66,7 @@ if __name__=="__main__":
         texts = load_file(trectext_fname)
         ranked_lists = read_trec_file(trec_file)
         ref_docs = get_ref_docs(ranked_lists,int(ref_index))
-        workingset_fname = "dynamic_experiment_workingset_"+ref_index+".txt"
+        workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
         create_working_set(ref_docs,texts,7,8,workingset_fname)
         run_reranking(workingset_fname,fname_addition,trectext_fname)
 
