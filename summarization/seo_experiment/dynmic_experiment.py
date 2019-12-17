@@ -30,13 +30,15 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
                 former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
                 if former_doc(doc) == ref_docs[former_qid]:
                     continue
-                workingset_docs[qid].append(doc+"_ref")
+                workingset_docs[qid].append(doc)
             else:
                 next_qid =str(int(query))+str(int(epoch)+1).zfill(2)
                 if next_qid not in workingset_docs:
                     workingset_docs[next_qid]=[]
-                workingset_docs[next_qid].append(doc+"_ref")
+                workingset_docs[next_qid].append(doc)
         else:
+            if int(epoch)==starting_epoch:
+                continue
             former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
             if former_qid not in ref_docs:
                 workingset_docs[qid].append(doc)
@@ -59,15 +61,18 @@ def create_working_set(ref_docs,texts,starting_epoch,last_epoch,workingset_fname
 
 
 
-def run_reranking(working_set_fname,fname_addition,trectext_fname):
+def run_reranking(working_set_fname,fname_addition,starting_epoch,trectext_fname):
+    fname_addition=fname_addition+"_"+str(starting_epoch)
     rerank_command = "python reranking_process.py --mode=all --features_dir=Features_" + fname_addition + "_post_" + str(
-        ref_index) + "/ --merged_index=~/cluewebindex --queries_file=data/queries_seo_exp.xml --new_features_file=final_features_dir/features_" + fname_addition + "_post_" + str(
+        ref_index) + "/ --merged_index=merged_indice/merged_index --queries_file=data/queries_seo_exp.xml --new_features_file=final_features_dir/features_" + fname_addition + "_post_" + str(
         ref_index) + " --workingset_file=" + working_set_fname + " --scripts_path=scripts/ --java_path=jdk1.8.0_181 --jar_path=scripts/RankLib.jar --score_file=scores/scores_" + fname_addition + "_post_" + str(
         ref_index) + ".txt --model_file=rank_models/model_bot --trec_file=trecs/trec_file_" + fname_addition + "_post_" + str(
         ref_index) + " --trectext_file="+trectext_fname+" --home_path=~/ --base_index=~/cluewebindex --new_index=new_indices/dynamic_experiment_"+fname_addition+"_" + str(
         ref_index) + " --indri_path=work_indri"
     out = run_bash_command(rerank_command)
+
     print(out,flush=True)
+    return "trecs/trec_file_" + fname_addition + "_post_" + str(ref_index)
 
 
 def fix_xml_file(fname):
@@ -85,9 +90,11 @@ def fix_xml_file(fname):
 def create_trectext_dynamic(texts,original_texts,workingset_docs,trec_fname):
     with open(trec_fname,"w") as f:
         for query in workingset_docs:
+           query_epoch = query[-1].zfill(2)
            for doc in workingset_docs[query]:
-               if doc.__contains__("_ref"):
-                   text = texts[doc.split("_ref")[0]]
+               doc_epoch = doc.split("-")[1]
+               if doc_epoch!=query_epoch:
+                   text = texts[doc]
                else:
                    text = original_texts[doc]
                f.write("<DOC>\n")
@@ -98,22 +105,33 @@ def create_trectext_dynamic(texts,original_texts,workingset_docs,trec_fname):
                f.write("</DOC>\n")
 
 
+def append_to_file(source,target):
+    with open(source) as input:
+        lines = input.readlines()
+        with open(target,"a") as output:
+            output.writelines(lines)
 
 
 if __name__=="__main__":
+
     for ref_index in ["1","2","3","4"]:
         trectext_file_prefix = sys.argv[1]
         trec_file = sys.argv[2]
         fname_addition = sys.argv[3]
-        trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
-        trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_new.trectext"
-        trectext_file_for_read = fix_xml_file(trectext_fname)
-        texts = load_file(trectext_file_for_read)
-        original_texts = load_file("data/documents.trectext")
-        ranked_lists = read_trec_file(trec_file)
-        ref_docs = get_ref_docs(ranked_lists,int(ref_index))
-        workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
-        workingset_docs = create_working_set(ref_docs,texts,7,8,workingset_fname)
-        create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
-        run_reranking(workingset_fname,fname_addition,trectext_fname_new)
+        starting_epoch = int(sys.argv[4])
+        final_trec_name = "trecs/trec_file_" + fname_addition + "_post_" + str(ref_index)
+        for r in range(starting_epoch,8):
+            trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
+            trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_new.trectext"
+            trectext_file_for_read = fix_xml_file(trectext_fname)
+            texts = load_file(trectext_file_for_read)
+            original_texts = load_file("data/documents.trectext")
+            ranked_lists = read_trec_file(trec_file)
+            ref_docs = get_ref_docs(ranked_lists,int(ref_index))
+            workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
+            workingset_docs = create_working_set(ref_docs,texts,r,r+1,workingset_fname)
+            create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
+            tmp_trec_file = run_reranking(workingset_fname,fname_addition,r,trectext_fname_new)
+            append_to_file(tmp_trec_file,final_trec_name)
+
 
