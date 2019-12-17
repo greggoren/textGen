@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from summarization.seo_experiment.utils import read_trec_file
 import csv
+import os
 
 def plot_metric(y,x,fname,y_label,x_label,legends=None,colors=None):
     params = {'legend.fontsize': 'x-large',
@@ -61,6 +62,72 @@ def compare_lists(original_lists,updated_lists,reference_index):
             stats[epoch][query]=increase
     return stats
 
+def update_doc(doc):
+    return "-".join([doc.split("-")[0], str(int(doc.split("-")[1]) + 1).zfill(2), doc.split("-")[2], doc.split("-")[3]])
+
+def compare_lists_dynamic(original_lists,updated_lists,reference_index):
+    stats ={}
+    success_bot = {}
+    success_human = {}
+    success_bot_over_human = {}
+    average_rank_bot={}
+    average_rank_human={}
+    for epoch in original_lists:
+        if int(epoch)==8:
+            continue
+        success_bot[str(int(epoch)+1)]=[]
+        success_bot[str(int(epoch)+2)]=[]
+        success_human[str(int(epoch)+1)]=[]
+        success_human[str(int(epoch)+2)]=[]
+        success_bot_over_human[str(int(epoch)+1)]=[]
+        success_bot_over_human[str(int(epoch)+2)]=[]
+        average_rank_bot[str(int(epoch)+1)]=[]
+        average_rank_human[str(int(epoch)+1)]=[]
+        stats[str(int(epoch)+1)]={}
+        for query in original_lists[epoch]:
+            fixed_query = query[:-1]+str(int(query[-1])+1)
+            original_list = original_lists[str(int(epoch)+1)][fixed_query]
+            updated_list = updated_lists[str(int(epoch)+1)][fixed_query]
+            reference_doc = original_lists[epoch][query][reference_index]
+            original_index = original_list.index(update_doc(reference_doc))
+            new_index = updated_list.index(reference_doc)
+            if new_index<reference_index:
+                success_bot[str(int(epoch)+1)].append(1)
+            else:
+                success_bot[str(int(epoch) + 1)].append(0)
+            if new_index==reference_index:
+                success_bot[str(int(epoch)+2)].append(1)
+            else:
+                success_bot[str(int(epoch) + 2)].append(0)
+            if original_index<reference_index:
+                success_human[str(int(epoch) + 1)].append(1)
+            else:
+                success_human[str(int(epoch) + 1)].append(0)
+            if original_index==reference_index:
+                success_human[str(int(epoch) + 2)].append(1)
+            else:
+                success_human[str(int(epoch) + 2)].append(0)
+            if new_index<original_index:
+                success_bot_over_human[str(int(epoch) + 1)].append(1)
+            else:
+                success_bot_over_human[str(int(epoch) + 1)].append(0)
+            if new_index==original_index:
+                success_bot_over_human[str(int(epoch) + 2)].append(1)
+            else:
+                success_bot_over_human[str(int(epoch) + 2)].append(0)
+            average_rank_bot[str(int(epoch) + 1)].append(new_index+1)
+            average_rank_human[str(int(epoch) + 1)].append(original_index+1)
+            increase = abs(new_index-original_index) if new_index<original_index else 0
+            stats[str(int(epoch)+1)][fixed_query]=increase
+    for e in success_bot:
+        success_bot[e]=np.mean(success_bot[e])
+        success_human[e]=np.mean(success_human[e])
+        success_bot_over_human[e]=np.mean(success_bot_over_human[e])
+        if e in average_rank_bot:
+            average_rank_bot[e]=np.mean(average_rank_bot[e])
+            average_rank_human[e] = np.mean(average_rank_human[e])
+    return stats,average_rank_bot,average_rank_human,success_bot,success_human,success_bot_over_human
+
 
 def normalize_histograms_for_plot(histograms,max_increase):
     for epoch in histograms:
@@ -84,7 +151,8 @@ def get_average_increase(rank_increase_stats):
     average_stats = {}
     for epoch in rank_increase_stats:
         average_stats[epoch] = np.mean([rank_increase_stats[epoch][q] for q in rank_increase_stats[epoch]])
-    return [average_stats[e] for e in sorted(list(average_stats.keys()))]
+    return average_stats
+    # return [average_stats[e] for e in sorted(list(average_stats.keys()))]
 
 # def plot_metric(y,x,fname,y_label,x_label,plot=True):
 #
@@ -113,6 +181,27 @@ def get_average_increase(rank_increase_stats):
 #     plt.savefig(fname+".png")
 #     plt.clf()
 #
+
+def create_results_table(out_fname,results_dict):
+    if not os.path.exists(os.path.dirname(out_fname)):
+        os.makedirs(os.path.dirname(out_fname))
+    with open(out_fname,'w') as out:
+        cols = "{|"+"c|"*(len(list(results_dict[list(results_dict.keys())[0]].keys()))+1)+"}"
+        out.write("\\begin{tabular}"+cols+"\n")
+        out.write("\\hline\n")
+        header_suffix = " & ".join(['Round'+str(int(r)) for r in sorted(list(results_dict[list(results_dict.keys())[0]].keys()))])+" \\\\ \n"
+        out.write("Method & "+header_suffix)
+        out.write("\\hline\n")
+        for key in sorted(results_dict.keys()):
+            line = key
+            for r in sorted(list(results_dict[key].keys())):
+                line+=" & "+str(round(results_dict[key][r],3))
+            line+=" \\\\ \n"
+            out.write(line)
+            out.write("\\hline\n")
+        out.write("\\end{tabular}\n")
+
+
 def read_trec_file(trec_file):
     stats = {}
     with open(trec_file) as file:
@@ -122,6 +211,23 @@ def read_trec_file(trec_file):
             if int(epoch)<7:
                 continue
             query = doc.split("-")[2]
+            if epoch not in stats:
+                stats[epoch]={}
+            if query not in stats[epoch]:
+                stats[epoch][query]=[]
+            stats[epoch][query].append(doc)
+    return stats
+
+
+def read_dynamic_trec_file(trec_file):
+    stats = {}
+    with open(trec_file) as file:
+        for line in file:
+            doc = line.split()[2]
+            query = line.split()[0]
+            epoch = query[-1]
+            if int(epoch)<7:
+                continue
             if epoch not in stats:
                 stats[epoch]={}
             if query not in stats[epoch]:
@@ -193,6 +299,24 @@ def analyze_waterloo(ranked_list,index,waterloo):
         stats[epoch] = np.mean(stats[epoch])
     return stats
 
+def analyze_waterloo_dynamic(ranked_list,index,waterloo):
+    stats={}
+    for epoch in ranked_list:
+        if int(epoch)!=7:
+            continue
+        stats[str(int(epoch)+1)]=[]
+        for qid in ranked_list[epoch]:
+            ref_index = ranked_list[epoch][qid][index]
+            waterloo_score = waterloo[update_doc(ref_index)]
+            if waterloo_score>=60:
+                stats[str(int(epoch)+1)].append(1)
+            else:
+                stats[str(int(epoch)+1)].append(0)
+    for epoch in stats:
+        stats[epoch] = np.mean(stats[epoch])
+    return stats
+
+
 if __name__=="__main__":
     stats = read_annotations("../data/summarization_quality_annotations.csv")
     final_annotation_stats = analyze_annotations(stats)
@@ -200,10 +324,11 @@ if __name__=="__main__":
     for i in [1,2,3,4]:
 
         original_trec="trecs_comp/trec_file_original_sorted.txt"
+        original_lists = read_trec_file(original_trec)
+        """STATIC ANALYSIS"""
         updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
         bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
         bot_trec="trecs_comp/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
-        original_lists = read_trec_file(original_trec)
         updated_lists = read_trec_file(updated_trec)
         bot_lists = read_trec_file(bot_trec)
         bot_summary_ext_lists = read_trec_file(bot_summary_trec_ext)
@@ -213,17 +338,45 @@ if __name__=="__main__":
         averages = get_average_increase(rank_increase_stats)
         bot_summary_ext_averages = get_average_increase(bot_summary_ext_increase_stats)
         bot_averages=get_average_increase(bot_increase_stats)
-        ys=[averages,bot_summary_ext_averages,bot_averages]
-        legends=["Summarization","Bot+Summary","Bot"]
-        colors=["b","r","k"]
-        plot_metric(ys,[7,8],"plt/average_increase_"+str(i),"Rank Increase","Epochs",legends,colors)
+        ys={"Summarization":averages,"Summary+Bot":bot_summary_ext_averages,"Bot":bot_averages}
+        create_results_table("tables/Static_analysis_experiment_"+str(i)+".tex",ys)
+
+        """DYNAMIC ANALYSIS"""
+        summarization_trec = "dynamic_trecs/trec_file_summarization_post_"+str(i)+"_sorted.txt"
+        bot_trec = "dynamic_trecs/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
+        bot_summary_trec = "dynamic_trecs/trec_file_bot_summary_post_"+str(i)+"_sorted.txt"
+        original_ranks = read_dynamic_trec_file(original_trec)
+        summarization_ranks = read_dynamic_trec_file(summarization_trec)
+        bot_ranks = read_dynamic_trec_file(bot_trec)
+        bot_summary_ranks = read_dynamic_trec_file(bot_summary_trec)
+        summarization_increase,average_rank_summarization,average_rank_human,success_summarization,success_human,success_summarization_over_human = compare_lists_dynamic(original_ranks,summarization_ranks,i)
+        bot_increase,average_rank_bot,average_rank_human,success_bot,success_human,success_bot_over_human = compare_lists_dynamic(original_ranks,bot_ranks,i)
+        bot_summary_increase,average_rank_bot_summary,average_rank_human,success_bot_summary,success_human,success_bot_summary_over_human = compare_lists_dynamic(original_ranks,bot_summary_ranks,i)
+        average_summary_increase = get_average_increase(summarization_increase)
+        average_bot_increase = get_average_increase(bot_increase)
+        average_bot_summary_increase = get_average_increase(bot_summary_increase)
+        ys = {"Summarization": average_summary_increase, "Summary+Bot": average_bot_summary_increase, "Bot": average_bot_increase}
+        create_results_table("tables/Dynamic_analysis_experiment_" + str(i) + ".tex", ys)
+        ys = {"Bot Success":success_bot,"Summarization success":success_summarization,"Bot+Summary success":success_bot_summary,"Human success":success_human}
+        create_results_table("tables/dynamic_success_rate_"+str(i)+".tex",ys)
+        ys = {"Bot over human":success_bot_over_human,"Summarization over human":success_summarization_over_human,"Bot+Summary over human":success_bot_summary_over_human}
+        create_results_table("tables/dynamic_success_over_human_rate_"+str(i)+".tex",ys)
+        ys = {"Average Bot rank":average_rank_bot,"Average summarization rank":average_rank_summarization,"Average Bot+Summary rank":average_rank_bot_summary,"Average rank human":average_rank_human}
+        create_results_table("tables/dynamic_average_rank_"+str(i)+".tex",ys)
+
 
     for i in ["1","4"]:
         all_original_quality = analyze_waterloo(original_lists,int(i),waterloo_scores)
-        original_quality = [all_original_quality[e] for e in ["07","08"]]
-        quality = [final_annotation_stats[r][i] for r in ["7","8"]]
-        ys = [original_quality,quality]
-        legends = ["Original","Summarization"]
-        colors = ["b", "r"]
-        plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
+        dynamic_original_quality = analyze_waterloo_dynamic(original_lists,int(i),waterloo_scores)
+        original_quality = {e:all_original_quality[e] for e in ["07","08"]}
+        quality = {r:final_annotation_stats[r][i] for r in ["7","8"]}
+        ys = {"Original":original_quality,"Summarization":quality}
+        # legends = ["Original","Summarization"]
+        # colors = ["b", "r"]
+        # plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
+        create_results_table("tables/static_quality_"+i+".tex",ys)
+        quality.pop('8')
+        original_quality.pop("08")
 
+        ys = {"Human Bot":dynamic_original_quality,"Summarization":quality,"Untouched document":original_quality}
+        create_results_table("tables/dynamic_quality_" + i + ".tex", ys)

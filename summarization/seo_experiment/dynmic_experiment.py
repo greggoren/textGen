@@ -30,19 +30,17 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
                 former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
                 if former_doc(doc) == ref_docs[former_qid]:
                     continue
-                workingset_docs[qid].append(doc)
+                workingset_docs[qid].append(doc+"_ref")
             else:
                 next_qid =str(int(query))+str(int(epoch)+1).zfill(2)
                 if next_qid not in workingset_docs:
                     workingset_docs[next_qid]=[]
-                workingset_docs[next_qid].append(doc)
+                workingset_docs[next_qid].append(doc+"_ref")
         else:
             former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
-
             if former_qid not in ref_docs:
                 workingset_docs[qid].append(doc)
                 continue
-
             if former_doc(doc) == ref_docs[former_qid]:
                 continue
             workingset_docs[qid].append(doc)
@@ -57,6 +55,7 @@ def create_working_set(ref_docs,texts,starting_epoch,last_epoch,workingset_fname
         for qid in workingset_docs:
             for i,doc in enumerate(workingset_docs[qid]):
                     out_working_set.write(qid+" Q0 "+doc+" "+str(i+1)+" "+str(-(i+1))+" dynamic_experiment\n")
+    return workingset_docs
 
 
 
@@ -83,17 +82,38 @@ def fix_xml_file(fname):
 
 
 
+def create_trectext_dynamic(texts,original_texts,workingset_docs,trec_fname):
+    with open(trec_fname,"w") as f:
+        for query in workingset_docs:
+           for doc in workingset_docs[query]:
+               if doc.__contains__("_ref"):
+                   text = texts[doc.split("_ref")[0]]
+               else:
+                   text = original_texts[doc]
+               f.write("<DOC>\n")
+               f.write("<DOCNO>"+doc+"</DOCNO>\n")
+               f.write("<TEXT>\n")
+               f.write(bytes(str(text), 'cp1252', "ignore").decode('utf-8', 'ignore').rstrip()+"\n")
+               f.write("</TEXT>\n")
+               f.write("</DOC>\n")
+
+
+
+
 if __name__=="__main__":
     for ref_index in ["1","2","3","4"]:
         trectext_file_prefix = sys.argv[1]
         trec_file = sys.argv[2]
         fname_addition = sys.argv[3]
         trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
+        trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_new.trectext"
         trectext_file_for_read = fix_xml_file(trectext_fname)
         texts = load_file(trectext_file_for_read)
+        original_texts = load_file("data/documents.trectext")
         ranked_lists = read_trec_file(trec_file)
         ref_docs = get_ref_docs(ranked_lists,int(ref_index))
         workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
-        create_working_set(ref_docs,texts,7,8,workingset_fname)
-        run_reranking(workingset_fname,fname_addition,trectext_fname)
+        workingset_docs = create_working_set(ref_docs,texts,7,8,workingset_fname)
+        create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
+        run_reranking(workingset_fname,fname_addition,trectext_fname_new)
 
