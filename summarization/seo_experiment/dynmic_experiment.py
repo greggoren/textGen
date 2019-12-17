@@ -64,7 +64,7 @@ def run_reranking(working_set_fname,fname_addition,trectext_fname):
         ref_index) + "/ --merged_index=merged_indices/merged_index/ --queries_file=data/queries_seo_exp.xml --new_features_file=final_features_dir/features_" + fname_addition + "_post_" + str(
         ref_index) + " --workingset_file=" + working_set_fname + " --scripts_path=scripts/ --java_path=jdk1.8.0_181 --jar_path=scripts/RankLib.jar --score_file=scores/scores_" + fname_addition + "_post_" + str(
         ref_index) + ".txt --model_file=rank_models/model_bot --trec_file=trecs/trec_file_" + fname_addition + "_post_" + str(
-        ref_index) + " --trectext_file="+trectext_fname+" --home_path=~/ --base_index=merged_indices/merged_index --new_index=new_indices/dynamic_experiment_"+fname_addition+"_" + str(
+        ref_index) + " --trectext_file="+trectext_fname+" --home_path=~/ --base_index=~/cluewebindex --new_index=new_indices/dynamic_experiment_"+fname_addition+"_" + str(
         ref_index) + " --indri_path=work_indri"
     out = run_bash_command(rerank_command)
     print(out,flush=True)
