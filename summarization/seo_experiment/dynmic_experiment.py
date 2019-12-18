@@ -1,4 +1,4 @@
-from summarization.seo_experiment.utils import read_trec_file,load_file,run_bash_command
+from summarization.seo_experiment.utils import read_trec_file,load_file,run_bash_command,order_trec_file
 import sys,os
 
 
@@ -136,5 +136,5 @@ if __name__=="__main__":
             create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
             tmp_trec_file = run_reranking(workingset_fname,fname_addition,r,trectext_fname_new)
             append_to_file(tmp_trec_file,final_trec_name)
-
+        order_trec_file(final_trec_name)
 
