@@ -136,5 +136,7 @@ if __name__=="__main__":
             create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
             tmp_trec_file = run_reranking(workingset_fname,fname_addition,r,trectext_fname_new)
             append_to_file(tmp_trec_file,final_trec_name)
+            os.remove(tmp_trec_file)
         order_trec_file(final_trec_name)
+        os.remove(final_trec_name)
 
