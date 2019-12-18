@@ -1,5 +1,5 @@
 from summarization.seo_experiment.utils import read_trec_file,load_file,run_bash_command
-import sys
+import sys,os
 
 
 def get_ref_docs(ranked_list,index):
@@ -63,6 +63,7 @@ def create_working_set(ref_docs,texts,starting_epoch,last_epoch,workingset_fname
 
 def run_reranking(working_set_fname,fname_addition,starting_epoch,trectext_fname):
     fname_addition=fname_addition+"_"+str(starting_epoch)
+
     rerank_command = "python reranking_process.py --mode=all --features_dir=Features_" + fname_addition + "_post_" + str(
         ref_index) + "/ --merged_index=merged_indices/merged_index --queries_file=data/queries_seo_exp.xml --new_features_file=final_features_dir/features_" + fname_addition + "_post_" + str(
         ref_index) + " --workingset_file=" + working_set_fname + " --scripts_path=scripts/ --java_path=jdk1.8.0_181 --jar_path=scripts/RankLib.jar --score_file=scores/scores_" + fname_addition + "_post_" + str(
@@ -120,6 +121,8 @@ if __name__=="__main__":
         fname_addition = sys.argv[3]
         starting_epoch = int(sys.argv[4])
         final_trec_name = "trecs/trec_file_" + fname_addition + "_post_" + str(ref_index)
+        if os.path.exists(final_trec_name):
+            os.remove(final_trec_name)
         for r in range(starting_epoch,8):
             trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
             trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_new.trectext"
