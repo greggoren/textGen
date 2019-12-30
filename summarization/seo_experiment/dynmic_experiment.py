@@ -26,7 +26,7 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
             workingset_docs[qid]=[]
 
         if doc==ref_docs[qid]:
-            if int(epoch)==last_epoch:
+            if int(epoch)>=last_epoch:
                 former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
                 if former_doc(doc) == ref_docs[former_qid]:
                     continue
