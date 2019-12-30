@@ -114,12 +114,12 @@ def append_to_file(source,target):
 
 
 if __name__=="__main__":
-
+    trectext_file_prefix = sys.argv[1]
+    trec_file = sys.argv[2]
+    fname_addition = sys.argv[3]
+    starting_epoch = int(sys.argv[4])
     for ref_index in ["1","2","3","4"]:
-        trectext_file_prefix = sys.argv[1]
-        trec_file = sys.argv[2]
-        fname_addition = sys.argv[3]
-        starting_epoch = int(sys.argv[4])
+        fname_addition=fname_addition+"_"+ref_index
         final_trec_name = "trecs/trec_file_" + fname_addition + "_post_" + str(ref_index)
         if os.path.exists(final_trec_name):
             os.remove(final_trec_name)

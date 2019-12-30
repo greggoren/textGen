@@ -324,22 +324,22 @@ if __name__=="__main__":
     for i in [1,2,3,4]:
 
         original_trec="trecs_comp/trec_file_original_sorted.txt"
-        original_lists = read_trec_file(original_trec)
-        """STATIC ANALYSIS"""
-        updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
-        bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
-        bot_trec="trecs_comp/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
-        updated_lists = read_trec_file(updated_trec)
-        bot_lists = read_trec_file(bot_trec)
-        bot_summary_ext_lists = read_trec_file(bot_summary_trec_ext)
-        rank_increase_stats = compare_lists(original_lists,updated_lists,i)
-        bot_summary_ext_increase_stats = compare_lists(original_lists,bot_summary_ext_lists,i)
-        bot_increase_stats = compare_lists(original_lists,bot_lists,i)
-        averages = get_average_increase(rank_increase_stats)
-        bot_summary_ext_averages = get_average_increase(bot_summary_ext_increase_stats)
-        bot_averages=get_average_increase(bot_increase_stats)
-        ys={"Summarization":averages,"Summary+Bot":bot_summary_ext_averages,"Bot":bot_averages}
-        create_results_table("tables/Static_analysis_experiment_"+str(i)+".tex",ys)
+        # original_lists = read_trec_file(original_trec)
+        # """STATIC ANALYSIS"""
+        # updated_trec="trecs_comp/trec_file_post_"+str(i)+"_sorted.txt"
+        # bot_summary_trec_ext="trecs_comp/trec_file_bot_summary_1_post_"+str(i)+"_sorted.txt"
+        # bot_trec="trecs_comp/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
+        # updated_lists = read_trec_file(updated_trec)
+        # bot_lists = read_trec_file(bot_trec)
+        # bot_summary_ext_lists = read_trec_file(bot_summary_trec_ext)
+        # rank_increase_stats = compare_lists(original_lists,updated_lists,i)
+        # bot_summary_ext_increase_stats = compare_lists(original_lists,bot_summary_ext_lists,i)
+        # bot_increase_stats = compare_lists(original_lists,bot_lists,i)
+        # averages = get_average_increase(rank_increase_stats)
+        # bot_summary_ext_averages = get_average_increase(bot_summary_ext_increase_stats)
+        # bot_averages=get_average_increase(bot_increase_stats)
+        # ys={"Summarization":averages,"Summary+Bot":bot_summary_ext_averages,"Bot":bot_averages}
+        # create_results_table("tables/Static_analysis_experiment_"+str(i)+".tex",ys)
 
         """DYNAMIC ANALYSIS"""
         summarization_trec = "dynamic_trecs/trec_file_summarization_post_"+str(i)+"_sorted.txt"
@@ -365,18 +365,18 @@ if __name__=="__main__":
         create_results_table("tables/dynamic_average_rank_"+str(i)+".tex",ys)
 
 
-    for i in ["1","4"]:
-        all_original_quality = analyze_waterloo(original_lists,int(i),waterloo_scores)
-        dynamic_original_quality = analyze_waterloo_dynamic(original_lists,int(i),waterloo_scores)
-        original_quality = {e:all_original_quality[e] for e in ["07","08"]}
-        quality = {r:final_annotation_stats[r][i] for r in ["7","8"]}
-        ys = {"Original":original_quality,"Summarization":quality}
-        # legends = ["Original","Summarization"]
-        # colors = ["b", "r"]
-        # plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
-        create_results_table("tables/static_quality_"+i+".tex",ys)
-        quality.pop('8')
-        original_quality.pop("08")
-
-        ys = {"Human Bot":dynamic_original_quality,"Summarization":quality,"Untouched document":original_quality}
-        create_results_table("tables/dynamic_quality_" + i + ".tex", ys)
+    # for i in ["1","4"]:
+    #     all_original_quality = analyze_waterloo(original_lists,int(i),waterloo_scores)
+    #     dynamic_original_quality = analyze_waterloo_dynamic(original_lists,int(i),waterloo_scores)
+    #     original_quality = {e:all_original_quality[e] for e in ["07","08"]}
+    #     quality = {r:final_annotation_stats[r][i] for r in ["7","8"]}
+    #     ys = {"Original":original_quality,"Summarization":quality}
+    #     # legends = ["Original","Summarization"]
+    #     # colors = ["b", "r"]
+    #     # plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
+    #     create_results_table("tables/static_quality_"+i+".tex",ys)
+    #     quality.pop('8')
+    #     original_quality.pop("08")
+    #
+    #     ys = {"Human Bot":dynamic_original_quality,"Summarization":quality,"Untouched document":original_quality}
+    #     create_results_table("tables/dynamic_quality_" + i + ".tex", ys)
