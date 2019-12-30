@@ -119,19 +119,18 @@ if __name__=="__main__":
     fname_addition = sys.argv[3]
     starting_epoch = int(sys.argv[4])
     for ref_index in ["1","2","3","4"]:
-        fname_addition=fname_addition+"_"+ref_index
         final_trec_name = "trecs/trec_file_" + fname_addition + "_post_" + str(ref_index)
         if os.path.exists(final_trec_name):
             os.remove(final_trec_name)
         for r in range(starting_epoch,8):
             trectext_fname=trectext_file_prefix+"_"+ref_index+".trectext"
-            trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_new.trectext"
+            trectext_fname_new=trectext_file_prefix+"_"+ref_index+"_"+str(r)+"_new.trectext"
             trectext_file_for_read = fix_xml_file(trectext_fname)
             texts = load_file(trectext_file_for_read)
             original_texts = load_file("data/documents.trectext")
             ranked_lists = read_trec_file(trec_file)
             ref_docs = get_ref_docs(ranked_lists,int(ref_index))
-            workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+".txt"
+            workingset_fname = "data/dynamic_experiment_workingset_"+ref_index+"_"+str(r)+".txt"
             workingset_docs = create_working_set(ref_docs,texts,r,r+1,workingset_fname)
             create_trectext_dynamic(texts,original_texts,workingset_docs,trectext_fname_new)
             tmp_trec_file = run_reranking(workingset_fname,fname_addition,r,trectext_fname_new)
