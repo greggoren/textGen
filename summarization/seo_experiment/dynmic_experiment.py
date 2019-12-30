@@ -18,7 +18,7 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
     workingset_docs={}
     for doc in texts:
         epoch=doc.split("-")[1]
-        if int(epoch)<starting_epoch:
+        if int(epoch)!=starting_epoch and int(epoch)!=last_epoch:
             continue
         query=doc.split("-")[2]
         qid=str(int(query))+epoch
@@ -26,7 +26,7 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
             workingset_docs[qid]=[]
 
         if doc==ref_docs[qid]:
-            if int(epoch)>=last_epoch:
+            if int(epoch)==last_epoch:
                 former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
                 if former_doc(doc) == ref_docs[former_qid]:
                     continue
@@ -37,7 +37,7 @@ def gather_docs_for_working_set(texts,starting_epoch,last_epoch,ref_docs):
                     workingset_docs[next_qid]=[]
                 workingset_docs[next_qid].append(doc)
         else:
-            if int(epoch)==starting_epoch:
+            if int(epoch)!=last_epoch:
                 continue
             former_qid = str(int(query)) + str(int(epoch) - 1).zfill(2)
             if former_qid not in ref_docs:
