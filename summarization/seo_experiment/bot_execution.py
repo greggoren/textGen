@@ -26,7 +26,7 @@ def create_sentence_pairs(top_docs,ref_doc,texts):
         for i,top_sentence in enumerate(doc_sentences):
             for j,ref_sentence in enumerate(ref_sentences):
                 key = ref_doc+"$"+doc+"_"+str(j)+"_"+str(i)
-                result[key]=ref_sentence.rstrip().replace("\n","")+"\t"+top_sentence.rstrip().replace("\n","")
+                result[key]=ref_sentence.rstrip().replace("\n"," ").replace("\t"," ")+"\t"+top_sentence.rstrip().replace("\n"," ").replace("\t"," ")
     return result
 
 
