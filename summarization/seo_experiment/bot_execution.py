@@ -257,40 +257,40 @@ def read_sentence_results(fname):
             result[query].append(pair)
     return result
 
-# def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
-#     new_texts = {}
-#     for qid in pairs_ranked_lists:
-#         chosen_pair = pairs_ranked_lists[qid][0]
-#         ref_doc = chosen_pair.split("$")[0]
-#         replacement_index = int(chosen_pair.split("_")[1])
-#         sentence_in = sentence_data[qid][chosen_pair]["in"]
-#         sentences = sent_tokenize(doc_texts[ref_doc])
-#         sentences[replacement_index]=sentence_in
-#         new_text = "\n".join(sentences)
-#         new_texts[ref_doc]=new_text
-#     for doc in doc_texts:
-#         if doc not in new_texts:
-#             new_texts[doc]=doc_texts[doc]
-#     return new_texts
-
 def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
     new_texts = {}
     for qid in pairs_ranked_lists:
-        for chosen_pair in pairs_ranked_lists[qid]:
-            ref_doc = chosen_pair.split("$")[0]
-            replacement_index = int(chosen_pair.split("_")[1])
-            sentence_in = sentence_data[qid][chosen_pair]["in"]
-            sentences = sent_tokenize(doc_texts[ref_doc])
-            sentences[replacement_index]=sentence_in
-            new_text = "\n".join(sentences)
-            if len(clean_texts(deepcopy(new_text)).split())> 150:
-                continue
-            new_texts[ref_doc]=new_text
-            break
+        chosen_pair = pairs_ranked_lists[qid][0]
+        ref_doc = chosen_pair.split("$")[0]
+        replacement_index = int(chosen_pair.split("_")[1])
+        sentence_in = sentence_data[qid][chosen_pair]["in"]
+        sentences = sent_tokenize(doc_texts[ref_doc])
+        sentences[replacement_index]=sentence_in
+        new_text = "\n".join(sentences)
+        new_texts[ref_doc]=new_text
     for doc in doc_texts:
         if doc not in new_texts:
             new_texts[doc]=doc_texts[doc]
     return new_texts
+
+# def update_texts(doc_texts, pairs_ranked_lists, sentence_data):
+#     new_texts = {}
+#     for qid in pairs_ranked_lists:
+#         for chosen_pair in pairs_ranked_lists[qid]:
+#             ref_doc = chosen_pair.split("$")[0]
+#             replacement_index = int(chosen_pair.split("_")[1])
+#             sentence_in = sentence_data[qid][chosen_pair]["in"]
+#             sentences = sent_tokenize(doc_texts[ref_doc])
+#             sentences[replacement_index]=sentence_in
+#             new_text = "\n".join(sentences)
+#             if len(clean_texts(deepcopy(new_text)).split())> 150:
+#                 continue
+#             new_texts[ref_doc]=new_text
+#             break
+#     for doc in doc_texts:
+#         if doc not in new_texts:
+#             new_texts[doc]=doc_texts[doc]
+#     return new_texts
 
 
 
