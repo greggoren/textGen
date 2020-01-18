@@ -452,7 +452,7 @@ def run_sig_test(stats1,stats2):
 if __name__=="__main__":
     # stats = read_annotations("quality_annotations/quality_2.csv")
     stats = read_annotations("old_bot_quality/quality_old.csv")
-    epochs_avoid = ["6"]
+    epochs_avoid = ["7"]
     final_annotation_stats,static_sig_stats = analyze_annotations(stats)
     waterloo_scores = read_waterloo("waterloo_scores_file.txt")
     for i in [1,2,3,4]:
