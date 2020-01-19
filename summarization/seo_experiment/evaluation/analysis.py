@@ -452,6 +452,7 @@ def run_sig_test(stats1,stats2):
 if __name__=="__main__":
     # stats = read_annotations("quality_annotations/quality_2.csv")
     stats = read_annotations("old_bot_quality/quality_old.csv")
+    # stats = read_annotations("quality_0_bot/quality_0_bot.csv")
     epochs_avoid = ["7"]
     final_annotation_stats,static_sig_stats = analyze_annotations(stats)
     waterloo_scores = read_waterloo("waterloo_scores_file.txt")
@@ -478,6 +479,7 @@ if __name__=="__main__":
         # summarization_trec = "dynamic_trecs/trec_file_summarization_post_"+str(i)+"_sorted.txt"
         # bot_trec = "dynamic_trecs/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
         bot_trec = "old_model_dynamic_trecs/trec_file_bot_regular_post_"+str(i)+"_sorted.txt"
+        # bot_trec = "bot_0_trecs/trec_file_bot_regular_0_post_"+str(i)+"_sorted.txt"
         # bot_summary_trec = "dynamic_trecs/trec_file_bot_summary_post_"+str(i)+"_sorted.txt"
         original_ranks = read_dynamic_trec_file(original_trec)
         # summarization_ranks = read_dynamic_trec_file(summarization_trec)
@@ -507,26 +509,22 @@ if __name__=="__main__":
         ys = {"Average rank bot":average_results(aggregated_results_bot),"Average rank human bot":average_results(aggregated_results_human)}
         create_results_table_aggregated("tables/aggregated_average_rank_old"+str(i)+".tex",ys,"Average rank",run_sig_test(aggregated_results_bot,aggregated_results_human))
 
-
-    for i in ["1","4"]:
-        all_original_quality,bot_sig_stats = analyze_waterloo(original_lists,int(i),waterloo_scores)
+    epochs_avoid = ["6"]
+    for i in ["1","2","3","4"]:
+        # all_original_quality,bot_sig_stats = analyze_waterloo(original_lists,int(i),waterloo_scores)
         dynamic_original_quality,dynamic_sig_stats = analyze_waterloo_dynamic(original_lists,int(i),waterloo_scores)
-        original_quality = {e:all_original_quality[e] for e in  [str(i).zfill(2) for i in range(1,8)]}
+        # original_quality = {e:all_original_quality[e] for e in  [str(i).zfill(2) for i in range(1,8)]}
         quality = {r:final_annotation_stats[r][i] for r in [str(i).zfill(2) for i in range(1,8)]}
-        # ys = {"Original":original_quality,"Bot":quality}
-        # legends = ["Original","Summarization"]
-        # colors = ["b", "r"]
-        # plot_metric(ys,[7,8],"plt/average_quality_"+str(i),"Quality Ratio","Epochs",legends,colors)
         dynamic_vectors,dynamic_epochs = get_vectors_for_local_test(dynamic_sig_stats)
-        bot_sig_stats.pop("08")
-        bot_vectors,bot_epochs = get_vectors_for_local_test(bot_sig_stats)
+        static_sig_stats.pop("08")
+        bot_vectors,bot_epochs = get_vectors_for_local_test(static_sig_stats)
         static_vectors,static_epochs = get_vectors_for_local_test(preprocess_static_sig_stats(static_sig_stats,i))
         sig_results = run_local_significance(bot_vectors,dynamic_vectors,dynamic_epochs,bot_epochs)
-        ys = {"Human Bot":dynamic_original_quality,"Bot":quality,"Untouched document":original_quality}
-        create_results_table("tables/dynamic_quality_old" + i + ".tex", ys,sig_results)
+        # ys = {"Human Bot":dynamic_original_quality,"Bot":quality,"Untouched document":original_quality}
+        # create_results_table("tables/dynamic_quality_old" + i + ".tex", ys,sig_results)
 
-        aggregated_bot_quality = transform_stats(bot_sig_stats,epochs_avoid)
+        aggregated_bot_quality = transform_stats(static_sig_stats,epochs_avoid)
         aggregated_human_quality = transform_stats(dynamic_sig_stats,epochs_avoid)
         # ys = {"Human bot":average_results(aggregated_human_quality),"Bot":average_results(aggregated_bot_quality)}
-        ys = {"Human bot":analyze_sig(dynamic_sig_stats,epochs_avoid),"Bot":analyze_sig(bot_sig_stats,epochs_avoid)}
+        ys = {"Human bot":analyze_sig(dynamic_sig_stats,epochs_avoid),"Bot":analyze_sig(static_sig_stats,epochs_avoid)}
         create_results_table_aggregated("tables/aggregated_quality_"+i+".tex",ys,"Quality ratio",run_sig_test(aggregated_bot_quality,aggregated_human_quality))

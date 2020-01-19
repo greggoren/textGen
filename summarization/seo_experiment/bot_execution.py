@@ -309,13 +309,11 @@ if __name__=="__main__":
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
     parser = OptionParser()
-
     parser.add_option("--mode", dest="mode")
     parser.add_option("--index_path", dest="index_path")
     parser.add_option("--raw_ds_out", dest="raw_ds_out")
     parser.add_option("--ref_index", dest="ref_index")
     parser.add_option("--top_docs_index", dest="top_docs_index")
-
     parser.add_option("--doc_tfidf_dir", dest="doc_tfidf_dir")
     parser.add_option("--sentences_tfidf_dir", dest="sentences_tfidf_dir")
     parser.add_option("--queries_file", dest="queries_file")
@@ -373,8 +371,7 @@ if __name__=="__main__":
         name_index = create_index_to_doc_name_dict(features_file)
         scores_file = run_svm_rank_model(features_file, options.svm_model_file, options.scores_dir)
         results = retrieve_scores(name_index, scores_file)
-        queries_index = {pair: str(int(pair.split("$")[0].split("-")[2])) + pair.split("$")[0].split("-")[1] for pair in
-                         results}
+        queries_index = {pair: str(int(pair.split("$")[0].split("-")[2])) + pair.split("$")[0].split("-")[1] for pair in results}
         create_trec_eval_file(queries_index, results, options.sentence_trec_file)
         final_trec = order_trec_file(options.sentence_trec_file)
         ranked_pairs = read_sentence_results(final_trec)
