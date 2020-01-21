@@ -144,6 +144,8 @@ def create_features(raw_ds, ranked_lists, doc_texts, top_doc_index, ref_doc_inde
         feature_vals[feature]={}
 
     epoch,qid_original = reverese_query(qid)
+    if epoch not in ["07"]:
+        return
     past_winners = get_past_winners(ranked_lists,epoch,qid_original)
     past_winners_semantic_centroid_vector = past_winners_centroid(past_winners,doc_texts,word_embd_model)
     past_winners_tfidf_centroid_vector = get_past_winners_tfidf_centroid(past_winners,doc_tfidf_vectors_dir)
